@@ -463,7 +463,7 @@ if (!function_exists('hari_id')) {
     }).catch(()=>{});
   });
 
-  <script>
+
 (function(){
   var token = <?= json_encode($booking->access_token ?? null) ?>;
   if (!token) return;
@@ -572,6 +572,6 @@ if (!function_exists('hari_id')) {
   // load awal
   refreshGallery();
 })();
-</script>
+
 
 </script>
