@@ -435,6 +435,36 @@ if (!function_exists('hari_id')) {
 </div>
 
 <?php $this->load->view("front_end/footer.php") ?>
+<script>
+// Kirim notifikasi WA sekali saat halaman dibuka
+document.addEventListener('DOMContentLoaded', function () {
+  var token = <?= json_encode($booking->access_token ?? null) ?>;
+  if (!token) return;
+
+  // hindari kirim dobel saat user reload cepat
+  var guardKey = 'wa_notified_' + token;
+  if (sessionStorage.getItem(guardKey)) return;
+
+  var url = "<?= site_url('booking/wa_notify') ?>";
+  var params = new URLSearchParams();
+  params.set('t', token);
+  <?php if (config_item('csrf_protection')): ?>
+    params.set('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
+  <?php endif; ?>
+
+  fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
+    body: params.toString(),
+    credentials: 'same-origin'
+  })
+  .then(function(res){ 
+    if (res.ok) sessionStorage.setItem(guardKey, '1');
+    return res.ok ? res.json() : null;
+  })
+  .catch(function(){ /* diamkan saja */ });
+});
+</script>
 
 <script>
   // Copy-to-clipboard
