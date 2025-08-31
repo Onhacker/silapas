@@ -1066,6 +1066,27 @@ public function upload_dokumentasi()
         }
     }
 
+    // --- Terima token 't' sebagai alternatif 'kode' ---
+$tok = trim((string)$this->input->post('t', true));
+if ($kode === '' && $tok === '') {
+    // kalau body JSON
+    $rawIn = $this->input->raw_input_stream;
+    if ($rawIn) {
+        $j = json_decode($rawIn, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($j)) {
+            $tok = trim((string)($j['t'] ?? ''));
+        }
+    }
+}
+if ($kode === '' && $tok !== '') {
+    $kode_from_tok = $this->db
+        ->select('kode_booking')
+        ->get_where('booking_tamu', ['access_token' => $tok])
+        ->row('kode_booking');
+    if ($kode_from_tok) $kode = $kode_from_tok;
+}
+
+
     // --- Validasi minimal ---
     if ($kode === '' || $b64 === '') {
         return $this->json_exit(["ok"=>false, "msg"=>"Data tidak lengkap (kode/image)"], 400);
