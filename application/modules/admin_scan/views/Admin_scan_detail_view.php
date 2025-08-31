@@ -322,6 +322,12 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
                 </span>
               </dd>
             </div>
+            <?php if (!empty($pendamping_rows)): ?>
+  <!-- tabel daftar pendamping -->
+<?php elseif ((int)($booking->jumlah_pendamping ?? 0) > 0): ?>
+  <!-- teks: Belum ada data pendamping -->
+<?php endif; ?>
+
 
             <?php if ($checkin_text): ?>
             <div class="kv-row row no-gutters">

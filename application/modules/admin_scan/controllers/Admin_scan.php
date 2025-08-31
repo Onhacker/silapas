@@ -58,30 +58,40 @@ class Admin_scan extends Admin_Controller {
      * URL: admin_scan/detail/{kode_booking}
      */
     public function detail($kode_booking = '')
-    {
-        $kode_booking = trim((string)$kode_booking);
-        if ($kode_booking === '') show_404();
+{
+    $kode_booking = trim((string)$kode_booking);
+    if ($kode_booking === '') show_404();
 
-        $row = $this->db->get_where('booking_tamu', ['kode_booking' => $kode_booking])->row();
-        if (!$row) show_404();
+    $row = $this->db->get_where('booking_tamu', ['kode_booking' => $kode_booking])->row();
+    if (!$row) show_404();
 
-        // data tambahan untuk tampilan
-        $unit_nama = $this->db->select('nama_unit')->get_where('unit_tujuan', ['id'=>$row->unit_tujuan])->row('nama_unit');
-        $qr_file   = FCPATH.'uploads/qr/qr_'.$row->kode_booking.'.png';
-        $data = [
-            "controller" => get_class($this),
-            "title"      => "Detail Booking",
-            "subtitle"   => "Detail",
-            "booking"    => $row,
-            "unit_nama"  => $unit_nama ?: '-',
-            "qr_url"     => is_file($qr_file) ? base_url('uploads/qr/qr_'.$row->kode_booking.'.png') : null,
-            "surat_url"  => !empty($row->surat_tugas) ? base_url('uploads/surat_tugas/'.$row->surat_tugas) : null,
-            "foto_url"   => !empty($row->foto)        ? base_url('uploads/foto/'.$row->foto)              : null,
-        ];
+    // NEW: ambil daftar pendamping
+    $pendamping_rows = $this->db
+        ->order_by('id_pendamping','ASC')
+        ->get_where('booking_pendamping', ['kode_booking' => $row->kode_booking])
+        ->result();
 
-        $data["content"] = $this->load->view($data["controller"]."_detail_view", $data, true);
-        $this->render($data);
-    }
+    // data tambahan untuk tampilan
+    $unit_nama = $this->db->select('nama_unit')->get_where('unit_tujuan', ['id'=>$row->unit_tujuan])->row('nama_unit');
+    $qr_file   = FCPATH.'uploads/qr/qr_'.$row->kode_booking.'.png';
+    $data = [
+        "controller" => get_class($this),
+        "title"      => "Detail Booking",
+        "subtitle"   => "Detail",
+        "booking"    => $row,
+        "unit_nama"  => $unit_nama ?: '-',
+        "qr_url"     => is_file($qr_file) ? base_url('uploads/qr/qr_'.$row->kode_booking.'.png') : null,
+        "surat_url"  => !empty($row->surat_tugas) ? base_url('uploads/surat_tugas/'.$row->surat_tugas) : null,
+        "foto_url"   => !empty($row->foto)        ? base_url('uploads/foto/'.$row->foto)              : null,
+
+        // NEW: kirim ke view
+        "pendamping_rows" => $pendamping_rows,
+    ];
+
+    $data["content"] = $this->load->view($data["controller"]."_detail_view", $data, true);
+    $this->render($data);
+}
+
 
     /**
      * POST: kode
