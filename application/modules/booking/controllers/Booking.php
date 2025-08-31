@@ -264,25 +264,14 @@ class Booking extends MX_Controller {
         "token_issued_at"       => date('Y-m-d H:i:s'),
         "token_revoked"         => 0
     ];
-    // $okInsert = $this->db->insert("booking_tamu", $insert);
-    // if (!$okInsert) {
-    //     $this->db->trans_rollback();
-    //     return $this->output->set_content_type('application/json')
-    //         ->set_output(json_encode([
-    //             "success"=>false,"title"=>"Gagal Menyimpan","pesan"=>"Terjadi kendala saat menyimpan data booking."
-    //         ]));
-    // }
     $okInsert = $this->db->insert("booking_tamu", $insert);
-if (!$okInsert) {
-    $e = $this->db->error(); // ['code'=>..., 'message'=>...]
-    log_message('error', 'Insert booking_tamu gagal: ('.$e['code'].') '.$e['message']);
-    return $this->output->set_content_type('application/json')
-        ->set_output(json_encode([
-            "success"=>false,
-            "title"=>"Gagal Menyimpan",
-            "pesan"=>"DB ERROR (".$e['code']."): ".$e['message']
-        ]));
-}
+    if (!$okInsert) {
+        $this->db->trans_rollback();
+        return $this->output->set_content_type('application/json')
+            ->set_output(json_encode([
+                "success"=>false,"title"=>"Gagal Menyimpan","pesan"=>"Terjadi kendala saat menyimpan data booking."
+            ]));
+    }
 
     // 6b) INSERT pendamping batch (kalau ada)
     if (!empty($pendampingRows)) {
@@ -1058,7 +1047,7 @@ public function upload_dokumentasi()
     // pakai helper _upload yang sudah ada
     $fname = $this->_upload(
         'doc_photo',
-        './uploads/dokumentasi/',
+        './uploads/foto/',
         'jpg|jpeg|png',
         1536, // KB
         'doc_'.$b->kode_booking
@@ -1079,7 +1068,7 @@ public function upload_dokumentasi()
 
     return $this->_json([
         'ok'  => true,
-        'url' => base_url('uploads/dokumentasi/'.$fname),
+        'url' => base_url('uploads/foto/'.$fname),
         'file'=> $fname
     ]);
 }
