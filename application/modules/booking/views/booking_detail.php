@@ -309,6 +309,30 @@ if (!function_exists('hari_id')) {
             <div class="text-muted small">QR belum tersedia.</div>
           <?php endif; ?>
         </div>
+        <div class="modal fade" id="modalPDF_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width:95%;">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title mb-0">Pratinjau PDF – <?= $kode ?></h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body p-0" style="background:#f8f9fa;">
+        <iframe
+          src="<?= site_url('booking/print_pdf/'.$booking->kode_booking) ?>?t=<?= urlencode($booking->access_token ?? '') ?>&dl=0#view=FitH"
+          style="width:100%; height:80vh; border:0;"
+        ></iframe>
+      </div>
+      <div class="modal-footer py-2">
+        <a href="<?= site_url('booking/print_pdf/'.$booking->kode_booking) ?>?t=<?= urlencode($booking->access_token ?? '') ?>&dl=1"
+           class="btn btn-danger">
+          <i class="mdi mdi-download"></i> Unduh PDF
+        </a>
+        <button type="button" class="btn btn-light" data-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
         <div class="p-3 bg-light rounded mb-3">
           <div class="kv-label mb-2"><i class="mdi mdi-information-outline"></i> Catatan</div>
@@ -319,6 +343,14 @@ if (!function_exists('hari_id')) {
             <li>Unduh & simpan berkas agar tidak hilang.</li>
           </ul>
         </div>
+        <div class="d-flex flex-wrap mt-3" style="gap:.5rem;">
+  <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalPDF_<?= $kode_safe ?>">
+    <i class="mdi mdi-file-pdf-box"></i> Lihat PDF
+  </button>
+  <a href="<?= site_url('booking/print_pdf/'.$booking->kode_booking) ?>?t=<?= urlencode($booking->access_token ?? '') ?>&dl=1" class="btn btn-danger">
+    <i class="mdi mdi-download"></i> Unduh PDF
+  </a>
+</div>
 
         <!-- Uploader Foto Dokumentasi -->
         <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
