@@ -985,4 +985,92 @@ class Booking extends MX_Controller {
             return false;
         }
     }
+
+    // ==== DOKUMENTASI: list & upload (opsional) ====
+
+public function dokumentasi_list()
+{
+    $token = $this->input->post('t', TRUE) ?: $this->input->get('t', TRUE);
+    if (!$token) return $this->_json(['ok'=>false,'err'=>'missing token'], 422);
+
+    $b = $this->db->get_where('booking_tamu', ['access_token' => $token])->row();
+    if (!$b) return $this->_json(['ok'=>false,'err'=>'not found'], 404);
+
+    $dir = FCPATH.'uploads/dokumentasi/';
+    if (!is_dir($dir)) @mkdir($dir, 0755, true);
+
+    $list = [];
+
+    // Kalau ada tabel booking_dokumentasi, ambil dari DB
+    if ($this->db->table_exists('booking_dokumentasi')) {
+        $rows = $this->db->select('id, filename, uploaded_at')
+            ->from('booking_dokumentasi')
+            ->where('kode_booking', $b->kode_booking)
+            ->order_by('uploaded_at','DESC')
+            ->get()->result_array();
+        foreach ($rows as $r) {
+            $list[] = [
+                'filename' => $r['filename'],
+                'url'      => base_url('uploads/dokumentasi/'.rawurlencode($r['filename'])),
+                'time'     => $r['uploaded_at']
+            ];
+        }
+    } else {
+        // fallback: scan file berdasarkan pola nama
+        foreach (glob($dir.'doc_'.$b->kode_booking.'_*.*') ?: [] as $f) {
+            $list[] = [
+                'filename' => basename($f),
+                'url'      => base_url('uploads/dokumentasi/'.basename($f)),
+                'time'     => date('Y-m-d H:i:s', @filemtime($f))
+            ];
+        }
+        // urut terbaru dulu
+        usort($list, function($a,$b){ return strcmp($b['time'] ?? '', $a['time'] ?? ''); });
+    }
+
+    return $this->_json(['ok'=>true,'data'=>$list]);
+}
+
+public function upload_dokumentasi()
+{
+    $token = $this->input->post('t', TRUE);
+    if (!$token) return $this->_json(['ok'=>false,'err'=>'missing token'], 422);
+
+    $b = $this->db->get_where('booking_tamu', ['access_token' => $token])->row();
+    if (!$b) return $this->_json(['ok'=>false,'err'=>'not found'], 404);
+
+    // opsional: tolak jika sudah checkout / token revoked
+    if ((int)$b->token_revoked === 1 || !empty($b->checkout_at)) {
+        return $this->_json(['ok'=>false,'err'=>'token not valid'], 403);
+    }
+
+    // pakai helper _upload yang sudah ada
+    $fname = $this->_upload(
+        'doc_photo',
+        './uploads/dokumentasi/',
+        'jpg|jpeg|png',
+        1536, // KB
+        'doc_'.$b->kode_booking
+    );
+    if ($fname === NULL) {
+        $msg = $this->get_last_upload_error() ?: 'You did not select a file to upload.';
+        return $this->_json(['ok'=>false,'err'=>$msg], 400);
+    }
+
+    // simpan ke DB jika tabel tersedia (opsional)
+    if ($this->db->table_exists('booking_dokumentasi')) {
+        $this->db->insert('booking_dokumentasi', [
+            'kode_booking' => $b->kode_booking,
+            'filename'     => $fname,
+            'uploaded_at'  => date('Y-m-d H:i:s')
+        ]);
+    }
+
+    return $this->_json([
+        'ok'  => true,
+        'url' => base_url('uploads/dokumentasi/'.$fname),
+        'file'=> $fname
+    ]);
+}
+
 }

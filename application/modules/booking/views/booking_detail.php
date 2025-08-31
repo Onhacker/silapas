@@ -293,6 +293,34 @@ if (!function_exists('hari_id')) {
             <li>Unduh & simpan berkas agar tidak hilang.</li>
           </ul>
         </div>
+        <!-- Foto Dokumentasi (Opsional) -->
+        <div class="border rounded p-3 mb-3">
+        	<div class="kv-label mb-2"><i class="mdi mdi-camera"></i> Foto Dokumentasi <span class="soft">(opsional)</span></div>
+
+        	<div class="form-group mb-2">
+        		<input type="file" id="doc_photo" accept="image/*" capture="environment" class="form-control-file">
+        		<small class="text-muted d-block mt-1">JPG/PNG • Maks 1.5MB • Kamera belakang disarankan.</small>
+        	</div>
+
+        	<div id="doc_preview_wrap" class="mb-2" style="display:none;">
+        		<img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;">
+        	</div>
+
+        	<div class="d-flex align-items-center" style="gap:.5rem;">
+        		<button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled>
+        			<i class="mdi mdi-cloud-upload"></i> Upload
+        		</button>
+        		<button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;">
+        			<i class="mdi mdi-close-circle-outline"></i> Batal
+        		</button>
+        	</div>
+
+        	<hr class="my-3">
+
+        	<div class="kv-label mb-2"><i class="mdi mdi-image-multiple"></i> Galeri</div>
+        	<div id="doc_gallery" class="row" style="gap:.75rem .75rem;"></div>
+        </div>
+
 
         <div class="d-flex flex-wrap" style="gap:.5rem;">
           <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalPDF_<?= $kode_safe ?>">
@@ -434,4 +462,116 @@ if (!function_exists('hari_id')) {
       credentials: 'same-origin'
     }).catch(()=>{});
   });
+
+  <script>
+(function(){
+  var token = <?= json_encode($booking->access_token ?? null) ?>;
+  if (!token) return;
+
+  var upUrl   = "<?= site_url('booking/upload_dokumentasi') ?>";
+  var listUrl = "<?= site_url('booking/dokumentasi_list') ?>";
+
+  var elFile   = document.getElementById('doc_photo');
+  var elPrevW  = document.getElementById('doc_preview_wrap');
+  var elPrev   = document.getElementById('doc_preview');
+  var btnUp    = document.getElementById('btnDocUpload');
+  var btnReset = document.getElementById('btnDocReset');
+  var gal      = document.getElementById('doc_gallery');
+
+  function showPreview(file){
+    if (!file){ elPrevW.style.display='none'; btnUp.disabled=true; btnReset.style.display='none'; return; }
+    var url = URL.createObjectURL(file);
+    elPrev.src = url;
+    elPrevW.style.display = 'block';
+    btnUp.disabled = false;
+    btnReset.style.display = 'inline-block';
+  }
+
+  elFile.addEventListener('change', function(){
+    var f = this.files && this.files[0];
+    showPreview(f || null);
+  });
+
+  btnReset.addEventListener('click', function(){
+    elFile.value = '';
+    showPreview(null);
+  });
+
+  function csrfAppend(fdOrParams){
+    <?php if (config_item('csrf_protection')): ?>
+      fdOrParams.set('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
+    <?php endif; ?>
+  }
+
+  btnUp.addEventListener('click', function(){
+    var f = elFile.files && elFile.files[0];
+    if (!f){ alert('Pilih foto dulu.'); return; }
+
+    var fd = new FormData();
+    fd.append('t', token);
+    fd.append('doc_photo', f);
+    csrfAppend(fd);
+
+    btnUp.disabled = true; btnUp.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Mengunggah...';
+
+    fetch(upUrl, { method:'POST', body: fd, credentials:'same-origin' })
+      .then(r=>r.json())
+      .then(j=>{
+        if (!j.ok){
+          alert(j.err || 'Upload gagal.');
+        }else{
+          // sukses → refresh galeri
+          elFile.value=''; showPreview(null);
+          refreshGallery();
+        }
+      })
+      .catch(()=>alert('Gagal mengunggah.'))
+      .finally(()=>{ btnUp.disabled=false; btnUp.innerHTML='<i class="mdi mdi-cloud-upload"></i> Upload'; });
+  });
+
+  function cardTpl(it, idx){
+    var name = (it.filename || ('Foto '+(idx+1)));
+    return (
+      '<div class="col-auto" style="max-width:160px;">' +
+        '<div class="card" style="width:160px;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">' +
+          '<img src="'+ it.url +'" class="card-img-top" alt="'+ name +'" style="height:110px;object-fit:cover;">' +
+          '<div class="card-body p-2 text-center">' +
+            '<div class="small soft" title="'+ name +'" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+ name +'</div>' +
+            '<a class="btn btn-sm btn-outline-secondary mt-1" href="'+ it.url +'" download>Unduh</a>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function refreshGallery(){
+    var params = new URLSearchParams();
+    params.set('t', token);
+    csrfAppend(params);
+
+    fetch(listUrl, {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body: params.toString(),
+      credentials:'same-origin'
+    })
+    .then(r=>r.json())
+    .then(j=>{
+      gal.innerHTML = '';
+      if (!j.ok || !Array.isArray(j.data) || !j.data.length){
+        gal.innerHTML = '<div class="col-12 soft">Belum ada dokumentasi.</div>';
+        return;
+      }
+      j.data.forEach(function(it, i){
+        gal.insertAdjacentHTML('beforeend', cardTpl(it, i));
+      });
+    })
+    .catch(()=>{ gal.innerHTML = '<div class="col-12 text-danger">Gagal memuat galeri.</div>'; });
+  }
+
+  // load awal
+  refreshGallery();
+})();
+</script>
+
 </script>
