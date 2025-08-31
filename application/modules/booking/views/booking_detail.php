@@ -321,7 +321,7 @@ if (!function_exists('hari_id')) {
 
 
 
-        <div class="d-flex flex-wrap" style="gap:.5rem;">
+        <div class="d-flex flex-wrap mt-3" style="gap:.5rem;">
           <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalPDF_<?= $kode_safe ?>">
             <i class="mdi mdi-file-pdf-box"></i> Lihat PDF
           </button>
@@ -638,39 +638,59 @@ if (!function_exists('hari_id')) {
   }
 
   async function doUpload() {
-    const kode = (el.kode?.value || '').trim();
-    if (!kode) { setStatus('Kode booking kosong.', true); return; }
-    if (!dataURL) { setStatus('Tidak ada gambar.', true); return; }
+  const kode = (document.getElementById('kode_booking')?.value || '').trim();
+  if (!kode) { setStatus('Kode booking kosong.', true); return; }
 
-    lock(true, 'Mengunggah...');
-    try {
-      // Jika CI3 CSRF aktif, tambahkan token di sini
-      // const csrf = {'<?= $this->security->get_csrf_token_name() ?>': '<?= $this->security->get_csrf_hash() ?>'};
-      const body = new URLSearchParams({ kode, image: dataURL /*, ...csrf*/ });
+  // pakai hasil kompres (dataURL) bila ada; kalau tidak, pakai file asli
+  const fileInput = document.getElementById('doc_photo');
+  const rawFile = fileInput?.files?.[0] || null;
 
-      const res = await fetch(UPLOAD_URL, {
-        method: 'POST',
-        headers: {'X-Requested-With':'XMLHttpRequest', 'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
-        body
-      });
-      const json = await res.json();
+  if (!dataURL && !rawFile) { setStatus('Tidak ada gambar.', true); return; }
 
-      if (!res.ok || !json.ok) {
-        throw new Error(json?.msg || `HTTP ${res.status}`);
-      }
+  lock(true, 'Mengunggah...');
 
-      setStatus('Berhasil diupload.');
-      // tambahkan ke galeri
-      if (json.url) appendToGallery(json.url);
+  try {
+    const fd = new FormData();
+    fd.append('kode', kode);
 
-      // opsional: reset setelah sukses
-      resetAll();
-    } catch (err) {
-      setStatus(err.message || 'Upload gagal', true);
-    } finally {
-      lock(false);
+    if (dataURL) {
+      // kirim versi terkompres supaya pasti kecil
+      const blob = dataURLtoBlob(dataURL); // helper di bawah
+      const name = (rawFile?.name || 'foto.jpg').replace(/\.[^.]+$/, '.jpg');
+      fd.append('doc_photo', blob, name);
+    } else {
+      fd.append('doc_photo', rawFile, rawFile.name);
     }
+
+    // jika CI CSRF aktif, tambahkan:
+    // fd.append('<?= $this->security->get_csrf_token_name() ?>','<?= $this->security->get_csrf_hash() ?>');
+
+    const res = await fetch('<?= site_url("booking/upload_dokumentasi") ?>', {
+      method: 'POST',
+      body: fd   // JANGAN set Content-Type manual
+    });
+    const json = await res.json();
+    if (!res.ok || !json.ok) throw new Error(json?.msg || `HTTP ${res.status}`);
+
+    setStatus('Berhasil diupload.');
+    if (json.url) appendToGallery(json.url);
+    resetAll();
+  } catch (e) {
+    setStatus(e.message || 'Upload gagal', true);
+  } finally {
+    lock(false);
   }
+}
+
+function dataURLtoBlob(dUrl) {
+  const arr = dUrl.split(',');
+  const mime = (arr[0].match(/:(.*?);/)||[])[1] || 'image/jpeg';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8 = new Uint8Array(n);
+  while (n--) u8[n] = bstr.charCodeAt(n);
+  return new Blob([u8], {type: mime});
+}
 
   function lock(state, text) {
     el.btnUpload.disabled = state;
