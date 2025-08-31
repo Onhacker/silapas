@@ -22,8 +22,8 @@ class Developer extends MX_Controller {
         header('Content-Type: application/json');
         $manifest = [
             "id" => "/",
-            "name" => "SiDia Desa",
-            "short_name" => "SiDia Desa",
+            "name" => "Silapas Makassar",
+            "short_name" => "Silapas Makassar",
             "start_url" => site_url("/home"),
             "display" => "standalone",
             "display_override" => ["window-controls-overlay", "standalone"],
@@ -45,7 +45,7 @@ class Developer extends MX_Controller {
                     "label" => "Icon 512x512"
                 ]
             ],
-            "description" => "SiDia adalah platform digital untuk pelayanan dokumen kependudukan di Kabupaten Morowali Utara.",
+            "description" => "SiDia adalah platform digital untuk pelayanan Kunjungan Tamu Lapas Kelas I Makassar.",
             "developer" => [
                 "name" => "PT. MVIN",
                 "url" => "https://mediaverse.com"
