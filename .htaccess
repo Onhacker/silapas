@@ -1,0 +1,44 @@
+<IfModule mod_php8.c>
+    AddHandler application/x-httpd-php80 .php
+</IfModule>
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # Set default expiration time to 1 month
+    ExpiresDefault "access plus 1 month"
+
+    # Set expiration for specific file types
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Set Cache-Control headers
+    Header set Cache-Control "public, max-age=31536000, immutable"
+</IfModule>
+
+
+# Aktifkan Gzip Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE text/css application/javascript
+</IfModule>
+
+<filesMatch "\.(css|js|jpg|png|gif|woff|woff2)$">
+  Header set Cache-Control "max-age=31536000, public"
+</filesMatch>
