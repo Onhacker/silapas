@@ -100,6 +100,7 @@
 <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
 
 <!-- SFX: Suara untuk check-in / checkout (tanpa vibrate) -->
+<!-- SFX: nada check-in/checkout/error -->
 <script>
 let audioCtx;
 function initAudio(){
@@ -118,20 +119,19 @@ function playTone(freq=880, durMs=180){
   gain.gain.setValueAtTime(0.0001, ctx.currentTime);
   osc.connect(gain).connect(ctx.destination);
   osc.start();
-
-  // Attack cepat lalu release
-  gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 0.02);
   gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + durMs/1000);
-
   osc.stop(ctx.currentTime + durMs/1000 + 0.02);
 }
 function sfx(kind){
-  if (kind === 'checkin')       playTone(880, 180);     // A5
-  else if (kind === 'checkout') playTone(523.25, 180);  // C5
+  if (kind === 'checkin')       playTone(880, 180);
+  else if (kind === 'checkout') playTone(523.25, 180);
   else if (kind === 'error')    playTone(200, 220);
 }
 </script>
 
+<!-- ZXing + logic kamera rugged untuk Chrome -->
+<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
 <script>
   // Ambil mode dari radio
   function getScanMode(){
@@ -154,18 +154,65 @@ function sfx(kind){
     const resultBox = document.getElementById('resultBox');
 
     let controls = null;
-    let facing   = 'environment';
+    let facing   = 'environment';     // default coba kamera belakang
     let torchTrack = null;
+    let currentStream = null;
 
     function setResult(html, ok){
       resultBox.innerHTML = html;
-      resultBox.style.background = ok ? '#ecfdf5' : '#fff7ed'; // hijau muda saat ok, oranye muda saat error
+      resultBox.style.background = ok ? '#ecfdf5' : '#fff7ed';
     }
     function isSecureOk(){
       return window.isSecureContext || ['localhost','127.0.0.1'].includes(location.hostname);
     }
     function setMirror(isFront){
       video.style.transform = isFront ? 'scaleX(-1)' : 'none';
+    }
+
+    function stopScan(){
+      btnStop.disabled = true;
+      if (controls && controls.stop) controls.stop();
+      controls = null;
+      if (video.srcObject){
+        video.srcObject.getTracks().forEach(t=>t.stop());
+        video.srcObject = null;
+      }
+      if (currentStream){
+        currentStream.getTracks().forEach(t=>t.stop());
+        currentStream = null;
+      }
+      btnTorch.disabled = true;
+      torchTrack = null;
+    }
+
+    async function ensureLabels(){
+      // Buka izin singkat supaya label kamera kebaca
+      try { await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); }
+      catch(e){}
+    }
+
+    async function listCameras(){
+      await ensureLabels();
+      let devices = [];
+      if (BrowserCodeReader?.listVideoInputDevices) {
+        devices = await BrowserCodeReader.listVideoInputDevices();
+      } else if (navigator.mediaDevices?.enumerateDevices) {
+        devices = (await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
+      }
+      sel.innerHTML = '';
+      devices.forEach((d, i)=>{
+        const opt = document.createElement('option');
+        opt.value = d.deviceId;
+        opt.textContent = d.label || `Kamera ${i+1}`;
+        sel.appendChild(opt);
+      });
+
+      // bersihkan deviceId lama yang tak cocok origin ini
+      const last = localStorage.getItem('scan.camId');
+      if (last && [...sel.options].some(o=>o.value===last)) sel.value = last;
+      else localStorage.removeItem('scan.camId');
+
+      return devices;
     }
 
     async function setupTorch(){
@@ -180,22 +227,39 @@ function sfx(kind){
       btnTorch.disabled = !caps.torch;
     }
 
-    async function listCameras(){
-      let devices = [];
-      if (BrowserCodeReader && BrowserCodeReader.listVideoInputDevices) {
-        devices = await BrowserCodeReader.listVideoInputDevices();
-      } else if (navigator.mediaDevices?.enumerateDevices) {
-        devices = (await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
+    function buildBaseConstraints({ deviceId, prefFacing } = {}){
+      // Jangan gunakan exact kecuali user memilih device dari dropdown
+      if (deviceId) {
+        return { audio:false, video:{ deviceId:{ exact: deviceId }, width:{ ideal:1280 }, height:{ ideal:720 } } };
       }
-      sel.innerHTML = '';
-      devices.forEach((d, i)=>{
-        const opt = document.createElement('option');
-        opt.value = d.deviceId;
-        opt.textContent = d.label || `Kamera ${i+1}`;
-        sel.appendChild(opt);
+      return {
+        audio:false,
+        video:{
+          width:  { ideal:1280 },
+          height: { ideal:720  },
+          frameRate: { ideal:24, max:30 },
+          facingMode: { ideal: (prefFacing || facing) }
+        }
+      };
+    }
+
+    async function startWithConstraints(cons){
+      // ZXing akan internally memanggil getUserMedia; simpan stream utk torch
+      const c = await reader.decodeFromConstraints(cons, video, (res, err)=>{
+        if (res && res.text){
+          const code = (res.text || '').trim();
+          stopScan();
+          doAction(code);
+        }
       });
-      const last = localStorage.getItem('scan.camId');
-      if (last && [...sel.options].some(o=>o.value===last)) sel.value = last;
+      // decodeFromConstraints memulai stream; simpan rujukan
+      currentStream = video.srcObject || null;
+      controls = c;
+      btnStop.disabled = false;
+      await listCameras();
+      await setupTorch();
+      try { await video.play(); } catch(e){}
+      return true;
     }
 
     async function startScan(deviceId){
@@ -204,41 +268,57 @@ function sfx(kind){
         setResult(`<div class="text-danger rbody"><b>Kamera diblokir:</b> akses via <b>HTTPS</b> atau <code>localhost</code>.</div>`);
         return;
       }
-      try{
-        const byDevice = !!deviceId;
-        const constraints = byDevice
-          ? { audio:false, video:{ deviceId: { exact: deviceId } } }
-          : { audio:false, video:{ facingMode:{ ideal: facing }, width:{ ideal:1280 }, height:{ ideal:720 } } };
 
-        setMirror(!byDevice && facing === 'user');
+      // Kumpulan strategi fallback yang “longgar”
+      const baseByDevice = deviceId ? buildBaseConstraints({ deviceId }) : buildBaseConstraints({ prefFacing: facing });
+      const tries = [
+        baseByDevice,
+        // buang deviceId jika ada
+        (deviceId ? buildBaseConstraints({ prefFacing: facing }) : null),
+        // turunkan resolusi
+        { audio:false, video:{ width:{ ideal:640 }, height:{ ideal:480 }, facingMode:{ ideal:facing } } },
+        // fallback ke kamera depan
+        { audio:false, video:{ width:{ ideal:640 }, height:{ ideal:480 }, facingMode:{ ideal:'user' } } },
+        // terakhir: biarkan browser pilih
+        { audio:false, video:true }
+      ].filter(Boolean);
 
-        controls = await reader.decodeFromConstraints(constraints, video, (res, err)=>{
-          if (res && res.text){
-            const code = (res.text || '').trim();
-            stopScan();
-            doAction(code);
+      let lastErr = null;
+
+      for (let i=0;i<tries.length;i++){
+        try {
+          setMirror(tries[i]?.video?.facingMode?.ideal === 'user' && !deviceId);
+          await startWithConstraints(tries[i]);
+          return;
+        } catch (err) {
+          console.warn('✗ Gagal getUserMedia/decode:', err.name, err.message, 'constraint:', err.constraint, tries[i]);
+          lastErr = err;
+
+          // Perbaikan khusus Chrome:
+          // 1) Overconstrained + deviceId → buang deviceId lalu lanjut
+          if (err.name === 'OverconstrainedError' && tries[i].video?.deviceId){
+            try {
+              const alt = buildBaseConstraints({ prefFacing: facing });
+              await startWithConstraints(alt);
+              console.log('✓ OK setelah buang deviceId');
+              return;
+            } catch (e2) { lastErr = e2; }
           }
-        });
-
-        btnStop.disabled = false;
-        await listCameras();
-        await setupTorch();
-        try { await video.play(); } catch(e){}
-      }catch(e){
-        console.error(e);
-        setResult(`<div class="text-danger rbody"><b>Gagal akses kamera:</b> ${e.message || e}</div>`);
+          // 2) Overconstrained + facingMode → paksa 'user'
+          if (err.name === 'OverconstrainedError' && err.constraint === 'facingMode'){
+            try {
+              const alt = { audio:false, video:{ width:{ ideal:640 }, height:{ ideal:480 }, facingMode:{ ideal:'user' } } };
+              setMirror(true);
+              await startWithConstraints(alt);
+              console.log('✓ OK fallback facingMode=user');
+              return;
+            } catch (e3) { lastErr = e3; }
+          }
+          // 3) NotReadableError / AbortError → kemungkinan dipakai app lain, lanjut try berikut
+        }
       }
-    }
 
-    function stopScan(){
-      btnStop.disabled = true;
-      if (controls && controls.stop) controls.stop();
-      controls = null;
-      if (video.srcObject){
-        video.srcObject.getTracks().forEach(t=>t.stop());
-        video.srcObject = null;
-      }
-      btnTorch.disabled = true;
+      setResult(`<div class="text-danger rbody"><b>Gagal akses kamera:</b> ${lastErr?.name || 'Unknown'} — ${lastErr?.message || ''}${lastErr?.constraint ? ('<br>Constraint: <code>'+lastErr.constraint+'</code>') : ''}</div>`);
     }
 
     function toggleTorch(){
@@ -249,9 +329,9 @@ function sfx(kind){
       }catch(e){}
     }
 
-    // Kirim ke endpoint sesuai mode (radio)
+    // Kirim ke endpoint sesuai mode
     function doAction(kode){
-      const mode = getScanMode(); // <-- ambil dari radio
+      const mode = getScanMode();
       const endpoint = mode === 'checkout'
         ? '<?= site_url('admin_scan/checkout_api') ?>'
         : '<?= site_url('admin_scan/checkin_api') ?>';
@@ -259,7 +339,7 @@ function sfx(kind){
       const m = (kode||'').match(/[A-Za-z0-9_\-]+/g);
       if (!m){ sfx('error'); setResult(`<div class="text-danger rbody">Kode tidak valid.</div>`); return; }
       const clean = m.join('');
-      setResult(`<div class="rbory">Memproses <b>${mode}</b>: <b>${clean}</b>...</div>`); // tetap normal case
+      setResult(`<div class="rbody">Memproses <b>${mode}</b>: <b>${clean}</b>...</div>`);
 
       const params = new URLSearchParams();
       params.set('kode', clean);
@@ -277,21 +357,18 @@ function sfx(kind){
         if (j.ok){
           const d          = j.data || {};
           const isCheckout = (mode === 'checkout');
-          const statusText = d.status ? `<div class="rbory">Status: <b>${d.status}</b></div>` : '';
+          const statusText = d.status ? `<div class="rbody">Status: <b>${d.status}</b></div>` : '';
           const petugas    = isCheckout ? (d.petugas_checkout || '-') : (d.petugas_checkin || '-');
 
-          // SUARA: sukses (beda nada)
           sfx(isCheckout ? 'checkout' : 'checkin');
 
           setResult(`
-            <div class="rboy ${isCheckout ? 'is-checkout' : 'is-checkin'}" style="text-transform:none;">
-              <h5 class="mb-1" style="text-transform:none;">
-                ✔ ${isCheckout ? 'Checkout' : 'Check-in'} berhasil
-              </h5>
-              <div class="rbory">Kode: <b>${d.kode || '-'}</b></div>
-              <div class="rbory">Nama: <b>${d.nama || '-'}</b></div>
-              <div class="rbory">Waktu: <b>${(d.checkin_at || d.checkout_at || '-')}</b></div>
-              <div class="rbory">Petugas: <b>${petugas}</b></div>
+            <div class="${isCheckout ? 'is-checkout' : 'is-checkin'}" style="text-transform:none;">
+              <h5 class="mb-1" style="text-transform:none;">✔ ${isCheckout ? 'Checkout' : 'Check-in'} berhasil</h5>
+              <div class="rbody">Kode: <b>${d.kode || '-'}</b></div>
+              <div class="rbody">Nama: <b>${d.nama || '-'}</b></div>
+              <div class="rbody">Waktu: <b>${(d.checkin_at || d.checkout_at || '-')}</b></div>
+              <div class="rbody">Petugas: <b>${petugas}</b></div>
               ${statusText}
               ${j.already ? '<div class="mt-1 text-warning rbody">Aksi ini sudah pernah dilakukan.</div>' : ''}
               <div class="mt-2 d-flex flex-wrap" style="gap:.5rem;">
@@ -305,7 +382,6 @@ function sfx(kind){
           if (btnAgain) btnAgain.addEventListener('click', ()=> { initAudio(); startScan(sel.value || null); });
 
         } else {
-          // SUARA: error
           sfx('error');
           setResult(`<div class="text-danger rbody"><b>Gagal:</b> ${j.msg || 'Tidak diketahui'}</div>`);
           setTimeout(()=>startScan(sel.value || null), 1200);
@@ -318,7 +394,7 @@ function sfx(kind){
       });
     }
 
-    // UI handlers (panggil initAudio agar audio unlocked)
+    // UI handlers
     btnStart.addEventListener('click', ()=> { initAudio(); startScan(sel.value || null); });
     btnStop .addEventListener('click', stopScan);
     btnFlip .addEventListener('click', ()=>{ initAudio(); facing = (facing==='environment' ? 'user' : 'environment'); setMirror(facing === 'user'); startScan(null); });
@@ -332,6 +408,14 @@ function sfx(kind){
     });
 
     // init
-    listCameras();
+    (async ()=>{
+      await listCameras();
+      // Auto-start saat kembali ke tab jika sebelumnya stop oleh OS
+      document.addEventListener('visibilitychange', async ()=>{
+        if (!document.hidden && !video.srcObject && !controls){
+          await listCameras();
+        }
+      });
+    })();
   })();
 </script>
