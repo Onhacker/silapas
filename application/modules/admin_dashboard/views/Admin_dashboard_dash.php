@@ -278,16 +278,4 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Harian • Mingguan • Bulanan', E
   markActive(state.period);
   load();
 })();
-
-if ('caches' in window) {
-  caches.keys().then(keys => Promise.all(
-    keys.map(k => caches.open(k).then(c =>
-      c.keys().then(reqs => Promise.all(reqs
-        .filter(r => r.url.includes('/get_menu_desktop'))
-        .map(r => c.delete(r))
-      ))
-    ))
-  ));
-}
-
 </script>
