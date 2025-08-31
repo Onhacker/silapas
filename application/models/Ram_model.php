@@ -96,7 +96,7 @@ class Ram_model extends CI_model{
         $this->db->where("blokir", "N");
         $this->db->where("username", $this->session->userdata("admin_username"));
         $this->db->from("users");
-        $this->db->join("lokasi", "lokasi.id_desa = users.id_desa"); // Join condition added here
+        // $this->db->join("lokasi", "lokasi.id_desa = users.id_desa"); // Join condition added here
         $this->db->select("*");
         $user = $this->db->get()->row();
         // echo $this->db->last_query();
