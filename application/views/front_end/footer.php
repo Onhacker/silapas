@@ -261,7 +261,7 @@
     </div> -->
 
     <div class="nav-item">
-      <a href="<?= base_url('hal/alur') ?>" class="<?= ($uri == 'hal/struktur') ? 'text-primary' : 'text-dark' ?>">
+      <a href="<?= base_url('hal/alur') ?>" class="<?= ($uri == 'hal/alur') ? 'text-primary' : 'text-dark' ?>">
         <i class="fas fa-briefcase d-block mb-1"></i>
         <span class="small">Alur</span>
       </a>
@@ -273,7 +273,7 @@
   </div>
 </nav>
 
-<div class="modal" id="kontakModal" tabindex="-1" aria-labelledby="kontakModalLabel" aria-hidden="true">
+<!-- <div class="modal" id="kontakModal" tabindex="-1" aria-labelledby="kontakModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-bottom fadeInUp animated modal-dialog-full" style="animation-duration: 0.5s;">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
@@ -302,7 +302,7 @@
       </div>
     </div>
   </div>
-</div>
+</div> -->
 
 <!-- <?php if ($this->uri->segment(1) != "on_login") : ?>
   <footer class="footer d-none d-md-block">
@@ -385,9 +385,7 @@ function scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 </script>
-<?php if ($this->session->userdata("admin_login")): ?>
-  <script src="<?= base_url('assets/js/notifikasi.js?v=1.3') ?>"></script>
-<?php endif; ?>
+
 
 </body>
 </html>

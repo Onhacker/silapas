@@ -70,7 +70,7 @@ class Admin_permohonan extends Admin_Controller {
             'kode' => '<a href="'.site_url('admin_permohonan/detail/'.rawurlencode($row->kode_booking)).'" '.
                       'class="badge badge-info" title="Lihat detail">'.
                       htmlspecialchars($row->kode_booking).'</a>',
-            'tgljam' => htmlspecialchars($row->tanggal).' '.$row->jam,
+            'tgljam' => hari_ini($row->tanggal).",".htmlspecialchars(tgl_view($row->tanggal)).' '.$row->jam,
             'tamu'   => '<b>'.htmlspecialchars($row->nama_tamu).'</b>'.
                         '<div class="text-muted small">'.htmlspecialchars($row->jabatan ?: '-').'</div>',
             'asal'   => htmlspecialchars($asal),
