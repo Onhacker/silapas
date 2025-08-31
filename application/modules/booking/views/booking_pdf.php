@@ -75,9 +75,15 @@
   $unit_nama = $ci->db->select('nama_unit')->get_where('unit_tujuan', ['id'=>$booking->unit_tujuan])->row('nama_unit');
   $unit_nama = $unit_nama ?: '-';
 
-  // instansi asal
+  // instansi asal & pejabat unit
   $instansi = ($booking->target_instansi_nama ?? '') ?: ($booking->instansi ?? '-');
-  $nama_petugas_instansi = ($booking->nama_petugas_instansi ?? '') ?: ($booking->nama_petugas_instansi ?? '-');
+  $nama_petugas_instansi = !empty($booking->nama_petugas_instansi) ? $booking->nama_petugas_instansi : '-';
+
+  // ====== AMBIL DAFTAR PENDAMPING ======
+  $pendamping_rows = $ci->db
+      ->order_by('id_pendamping','ASC')
+      ->get_where('booking_pendamping', ['kode_booking' => $booking->kode_booking])
+      ->result();
 
   // path logo & QR (pakai path lokal agar aman di PDF)
   $logoPath = FCPATH.'assets/images/logo.png';
@@ -95,9 +101,7 @@
 ?>
 <div class="wrap">
 
- 
-
-   <table >
+   <table>
     <tr>
       <td align="center" width="25%">
          <?php if ($hasLogo): ?>
@@ -106,9 +110,7 @@
       </td>
       <td align="center">
        <strong>LAPAS KLAS I MAKASSAR</strong>
-         <!-- <div class="brand-subtitle" align="center"> -->
-         <div style="font-size: 9px">Alamat : Jl. Sultan Alauddin, Gn. Sari, Kec. Rappocini, Kota Makassar, Sulawesi Selatan 90221</div>
-       <!-- </div> -->
+       <div style="font-size: 9px">Alamat : Jl. Sultan Alauddin, Gn. Sari, Kec. Rappocini, Kota Makassar, Sulawesi Selatan 90221</div>
       </td>
     </tr>
    </table>
@@ -130,12 +132,42 @@
               <tr><td class="k">No. HP</td>         <td class="v"><?= $e($booking->no_hp) ?></td></tr>
               <tr><td class="k">Instansi Asal</td>  <td class="v"><?= $e($instansi) ?></td></tr>
               <tr><td class="k">Unit Tujuan</td>    <td class="v"><?= $e($unit_nama) ?></td></tr>
-              <tr><td class="k">Nama <?= $e($unit_nama) ?></td>    <td class="v"><?= $e($nama_petugas_instansi) ?></td></tr>
+              <tr><td class="k">Nama <?= $e($unit_nama) ?></td> <td class="v"><?= $e($nama_petugas_instansi) ?></td></tr>
               <tr><td class="k">Keperluan</td>      <td class="v"><?= $e($booking->keperluan) ?></td></tr>
               <tr><td class="k">Tanggal & Jam</td>  <td class="v"><?= $tgl ?> &nbsp;<?= $jam ?></td></tr>
-              <!-- <tr><td class="k">Check-in</td>       <td class="v"><?= $fmtChkIn ?></td></tr> -->
-              <!-- <tr><td class="k">Checkout</td>       <td class="v"><?= $fmtChkOut ?></td></tr> -->
+              <!-- <tr><td class="k">Check-in</td>    <td class="v"><?= $fmtChkIn ?></td></tr> -->
+              <!-- <tr><td class="k">Checkout</td>    <td class="v"><?= $fmtChkOut ?></td></tr> -->
               <tr><td class="k">Pendamping</td>     <td class="v"><?= (int)$booking->jumlah_pendamping ?> orang</td></tr>
+
+              <?php if (!empty($pendamping_rows)): ?>
+                <!-- ====== Daftar Pendamping (tabel ringkas) ====== -->
+                <tr>
+                  <td class="k">Daftar Pendamping</td>
+                  <td class="v">
+                    <table class="tbl" style="border:1px solid #e5e7eb;">
+                      <tr>
+                        <td style="width:40px;"><strong>No</strong></td>
+                        <td style="width:160px;"><strong>NIK</strong></td>
+                        <td><strong>Nama</strong></td>
+                      </tr>
+                      <?php foreach ($pendamping_rows as $i => $p): ?>
+                      <tr>
+                        <td><?= $i+1 ?></td>
+                        <td><code><?= $e($p->nik) ?></code></td>
+                        <td><?= $e($p->nama) ?></td>
+                      </tr>
+                      <?php endforeach; ?>
+                    </table>
+                  </td>
+                </tr>
+              <?php else: ?>
+                <?php if ((int)$booking->jumlah_pendamping > 0): ?>
+                  <tr>
+                    <td class="k">Daftar Pendamping</td>
+                    <td class="v" style="color:#6b7280">Belum ada data pendamping.</td>
+                  </tr>
+                <?php endif; ?>
+              <?php endif; ?>
             </table>
           </div>
         </div>
@@ -143,9 +175,8 @@
         <div class="note">
           <ul>
             <li>Unduh file ini untuk disimpan.</li>
-<li>Bawa Kode Booking saat proses check-in.</li>
-<li>Tunjukkan Kode Booking beserta QR Code kepada petugas saat check-in.</li>
-
+            <li>Bawa Kode Booking saat proses check-in.</li>
+            <li>Tunjukkan Kode Booking beserta QR Code kepada petugas saat check-in.</li>
           </ul>
         </div>
       </td>

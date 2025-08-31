@@ -61,10 +61,10 @@ class Api extends MX_Controller {
             'label' => 'Master',
             'icon'  => 'fe-git-commit',
             'children' => [
-                [ 'label'=>'Master Permohonan', 'url'=>site_url('master_permohonan'), 'require'=>'master permohonan' ],
-                [ 'label'=>'Master Syarat',     'url'=>site_url('master_syarat'),     'require'=>'master syarat' ],
-                [ 'label'=>'Master Inputan',    'url'=>site_url('master_inputan'),    'require'=>'master inputan' ],
-                [ 'label'=>'Manajemen User Capil','url'=>site_url('admin_user/capil'), 'require'=>['manajemen user capil','user capil'] ],
+                // [ 'label'=>'Master Permohonan', 'url'=>site_url('master_permohonan'), 'require'=>'master permohonan' ],
+                // [ 'label'=>'Master Syarat',     'url'=>site_url('master_syarat'),     'require'=>'master syarat' ],
+                // [ 'label'=>'Master Inputan',    'url'=>site_url('master_inputan'),    'require'=>'master inputan' ],
+                // [ 'label'=>'Manajemen User Capil','url'=>site_url('admin_user/capil'), 'require'=>['manajemen user capil','user capil'] ],
                 [ 'label'=>'Manajemen User','url'=>site_url('admin_user'),        'require'=>['manajemen user','user '] ],
             ]
         ];

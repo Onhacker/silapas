@@ -36,51 +36,61 @@ class Admin_permohonan extends Admin_Controller {
     }
 
     public function get_data()
-    {
-        $post = $this->input->post(NULL, TRUE);
+{
+    $post = $this->input->post(NULL, TRUE);
 
-        $list  = $this->mbt->get_datatables($post);
-        $data  = [];
-        $start = intval($post['start'] ?? 0);
+    $list  = $this->mbt->get_datatables($post);
+    $data  = [];
+    $start = intval($post['start'] ?? 0);
 
-        foreach ($list as $row) {
-            $start++;
+    foreach ($list as $row) {
+        $start++;
 
-            // status badge
-            $badge = '<span class="badge bg-secondary">Draft</span>';
-            if ($row->status === 'approved') {
-                $badge = '<span class="badge bg-info text-dark">✅ Approved</span>';
-            } elseif ($row->status === 'checked_in') {
-                $badge = '<span class="badge bg-success">🟢 Checked-in</span>';
-            } elseif ($row->status === 'checked_out') {
-                $badge = '<span class="badge bg-warning text-dark">🟡 Checked-out</span>';
-            }
-
-            $data[] = [
-                'no'        => $start,
-                'kode' => '<a href="'.site_url('admin_permohonan/detail/'.rawurlencode($row->kode_booking)).'" '.
-          'class="badge badge-info" title="Lihat detail">'
-          .htmlspecialchars($row->kode_booking).'</a>',
-                'tgljam'    => htmlspecialchars($row->tanggal).' '.$row->jam,
-                'tamu'      => '<b>'.htmlspecialchars($row->nama_tamu).'</b><div class="text-muted small">'.htmlspecialchars($row->jabatan ?: '-').'</div>',
-                'asal'      => htmlspecialchars($row->asal ?: '-'), // dari bt.target_instansi_nama
-'instansi'  => '<b>'.htmlspecialchars($row->unit_tujuan_nama ?: '-').'</b>'
-               . ( !empty($row->nama_petugas_instansi)
-                   ? '<div class="small text-muted">'.htmlspecialchars($row->nama_petugas_instansi).'</div>'
-                   : '' ),
-
-                'status'    => $badge
-            ];
+        // Status badge lengkap
+        switch ($row->status) {
+            case 'approved':
+                $badge = '<span class="badge bg-info text-dark">✅ Approved</span>'; break;
+            case 'checked_in':
+                $badge = '<span class="badge bg-success">🟢 Checked-in</span>'; break;
+            case 'checked_out':
+                $badge = '<span class="badge bg-warning text-dark">🟡 Checked-out</span>'; break;
+            case 'expired':
+                $badge = '<span class="badge bg-secondary">⛔ Tidak Datang</span>'; break;
+            case 'rejected':
+                $badge = '<span class="badge bg-danger">❌ Rejected</span>'; break;
+            default:
+                $badge = '<span class="badge bg-light text-dark">Draft</span>';
         }
 
-        $output = [
-            "draw"            => intval($post['draw'] ?? 1),
-            "recordsTotal"    => $this->mbt->count_all($post),
-            "recordsFiltered" => $this->mbt->count_filtered($post),
-            "data"            => $data,
+        $asal = $row->asal ?: '-'; // dari COALESCE(target_instansi_nama, instansi)
+        $unit = $row->unit_tujuan_nama ?: '-';
+
+        $data[] = [
+            'no'   => $start,
+            'kode' => '<a href="'.site_url('admin_permohonan/detail/'.rawurlencode($row->kode_booking)).'" '.
+                      'class="badge badge-info" title="Lihat detail">'.
+                      htmlspecialchars($row->kode_booking).'</a>',
+            'tgljam' => htmlspecialchars($row->tanggal).' '.$row->jam,
+            'tamu'   => '<b>'.htmlspecialchars($row->nama_tamu).'</b>'.
+                        '<div class="text-muted small">'.htmlspecialchars($row->jabatan ?: '-').'</div>',
+            'asal'   => htmlspecialchars($asal),
+            'instansi' => '<b>'.htmlspecialchars($unit).'</b>'.
+                          ( !empty($row->nama_petugas_instansi)
+                              ? '<div class="small text-muted">'.htmlspecialchars($row->nama_petugas_instansi).'</div>'
+                              : '' ),
+            'status' => $badge
         ];
-        echo json_encode($output);
     }
+
+    $output = [
+        "draw"            => intval($post['draw'] ?? 1),
+        "recordsTotal"    => $this->mbt->count_all($post),
+        "recordsFiltered" => $this->mbt->count_filtered($post),
+        "data"            => $data,
+    ];
+    echo json_encode($output);
+}
+
 
     public function cetak_pdf()
 {

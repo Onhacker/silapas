@@ -7,9 +7,9 @@
     <li class="has-submenu <?= ($uri == 'hal/struktur') ? 'active-menu' : '' ?>">
         <a href="<?= site_url('hal/struktur'); ?>"><i class=" fas fa-building fa-lg"></i> Struktur Organisasi</a>
     </li>
-    <li class="has-submenu <?= ($uri == 'tracking') ? 'active-menu' : '' ?>">
+ <!--    <li class="has-submenu <?= ($uri == 'tracking') ? 'active-menu' : '' ?>">
         <a href="<?= site_url('tracking'); ?>"><i class="fas fa-route fa-lg"></i> Tracking</a>
-    </li>
+    </li> -->
     <li class="has-submenu <?= ($uri == 'hal/alur') ? 'active-menu' : '' ?>">
         <a href="<?= site_url('hal/alur'); ?>"><i class="fe-layers"></i> Alur Kunjungan</a>
     </li>

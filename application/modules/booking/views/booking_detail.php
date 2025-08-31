@@ -96,6 +96,11 @@ if (!function_exists('hari_id')) {
   if (!empty($booking->checkout_at)) {
     $checkout_str = hari_id($booking->checkout_at).', '.date('d-m-Y H:i', strtotime($booking->checkout_at));
   }
+    // Daftar pendamping dari tabel booking_pendamping
+  $pendamping_rows = $this->db
+      ->order_by('id_pendamping','ASC')
+      ->get_where('booking_pendamping', ['kode_booking' => $booking->kode_booking])
+      ->result();
 
   // Durasi hanya jika ada checkin & checkout
   $durasi = '';
@@ -181,6 +186,41 @@ if (!function_exists('hari_id')) {
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">📅 Tanggal</dt><dd class="col-sm-8 kv-value"><?= $hari_tgl ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏰ Jam</dt><dd class="col-sm-8 kv-value"><?= $jam ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👥 Jumlah Pendamping</dt><dd class="col-sm-8 kv-value"><span class="badge badge-pill badge-primary" style="font-size:.9rem;"><?= (int)$booking->jumlah_pendamping ?> orang</span></dd></div>
+          <?php if (!empty($pendamping_rows)): ?>
+  <div class="kv-row row no-gutters">
+    <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
+    <dd class="col-sm-8 kv-value">
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered mb-0">
+          <thead class="thead-light">
+            <tr>
+              <th style="width:60px;">No</th>
+              <th style="width:200px;">NIK</th>
+              <th>Nama</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($pendamping_rows as $i => $p): ?>
+              <tr>
+                <td class="text-center"><?= $i+1 ?></td>
+                <td><code><?= htmlspecialchars($p->nik, ENT_QUOTES, 'UTF-8') ?></code></td>
+                <td><?= htmlspecialchars($p->nama, ENT_QUOTES, 'UTF-8') ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </dd>
+  </div>
+<?php else: ?>
+  <?php if ((int)$booking->jumlah_pendamping > 0): ?>
+    <div class="kv-row row no-gutters">
+      <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
+      <dd class="col-sm-8 kv-value soft">Belum ada data pendamping.</dd>
+    </div>
+  <?php endif; ?>
+<?php endif; ?>
+
 
           <?php if ($checkin_str): ?>
             <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🕘 Check-in</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($checkin_str, ENT_QUOTES, 'UTF-8') ?></dd></div>

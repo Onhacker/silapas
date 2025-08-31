@@ -94,15 +94,45 @@ class Admin_scan extends Admin_Controller {
     $row = $this->db->get_where('booking_tamu', ['kode_booking'=>$kode])->row_array();
     if (!$row) return $this->json_exit(["ok"=>false,"msg"=>"Booking tidak ditemukan"], 404);
 
+    // Sudah checkout? stop
     if (!empty($row['checkout_at'])) {
         return $this->json_exit(["ok"=>false,"msg"=>"Sudah checked_out"], 409);
     }
 
-    // status resmi: pending, approved, checked_in, checked_out, expired, rejected
+    // Hanya boleh dari status ini
     $status = strtolower((string)$row['status']);
     if (!in_array($status, ['approved','checked_in'])) {
         return $this->json_exit(["ok"=>false,"msg"=>"Status sekarang '$status' tidak bisa di-check-in"], 409);
     }
+
+    // ===== RULE BARU: tanggal harus sama & belum lewat jam jadwal =====
+    // Pastikan server timezone sudah Asia/Makassar (sudah kamu set di __construct)
+    $todayLocal   = date('Y-m-d');
+    $nowTs        = time(); // epoch saat ini (Makassar)
+    $scheduledStr = trim($row['tanggal']).' '.trim($row['jam']); // "YYYY-mm-dd HH:ii:ss"
+    $scheduledTs  = strtotime($scheduledStr);
+
+   /*  === TEMP BYPASS VALIDASI JADWAL (untuk uji coba) ===
+
+	 // 1) Harus tepat di tanggal yang sama
+	 if ($row['tanggal'] !== $todayLocal) {
+	     return $this->json_exit([
+	         "ok"  => false,
+	         "msg" => "Check-in ditolak: hanya bisa pada tanggal ".date('d-m-Y', strtotime($row['tanggal']))."."
+	     ], 409);
+	 }
+
+	 // 2) Tidak boleh melewati jam jadwal (<= jam OK, > jam ditolak)
+	 if ($scheduledTs !== false && $nowTs > $scheduledTs) {
+	     $jamInfo = date('H:i', strtotime($row['jam']));
+	     return $this->json_exit([
+	         "ok"  => false,
+	         "msg" => "Check-in ditolak: sudah melewati jam jadwal ($jamInfo WITA)."
+	     ], 409);
+	 }
+
+	 === END TEMP BYPASS === */
+	// ===== END RULE BARU =====
 
     // Nama petugas dari session
     $petugas = trim((string)($this->session->userdata('admin_nama') ?: $this->session->userdata('admin_username') ?: ''));
@@ -110,9 +140,8 @@ class Admin_scan extends Admin_Controller {
     // DETAIL ADMIN (tanpa token)
     $detail_url = site_url('admin_scan/detail/'.$row['kode_booking']);
 
-    // Idempotent: sudah check-in sebelumnya
+    // Idempotent: bila sudah checked_in sebelumnya, jangan ubah checkin_at
     if (!empty($row['checkin_at']) || $status === 'checked_in') {
-        // Jika petugas_checkin kosong, isi sekarang (tanpa mengubah checkin_at/status)
         if ($petugas !== '' && empty($row['petugas_checkin'])) {
             $this->db->where('kode_booking', $kode)->update('booking_tamu', [
                 'petugas_checkin' => $petugas
@@ -138,7 +167,7 @@ class Admin_scan extends Admin_Controller {
     $this->db->where('kode_booking', $kode)->update('booking_tamu', [
         'checkin_at'       => $now,
         'status'           => 'checked_in',
-        'petugas_checkin'  => $petugas, // <— isi petugas
+        'petugas_checkin'  => $petugas ?: null,
     ]);
 
     return $this->json_exit([
@@ -153,6 +182,7 @@ class Admin_scan extends Admin_Controller {
         ]
     ], 200);
 }
+
 
 public function checkout_api(){
     $kode = trim((string)$this->input->post('kode', true));

@@ -41,7 +41,7 @@ if (function_exists('mb_strlen')) {
   <ul class="list-unstyled topnav-menu float-right mb-0 ">
 
     <!-- Notifikasi -->
-    <li class="dropdown notification-list">
+ <!--    <li class="dropdown notification-list">
       <a class="nav-link dropdown-toggle waves-effect" data-toggle="dropdown" href="javascript:void(0)" onclick="loadNotifikasi()" role="button" aria-haspopup="false" aria-expanded="false">
         <i class="fe-bell noti-icon" id="notification-icon"></i>
         <span class="badge badge-danger rounded-circle noti-icon-badge" id="notif-count" style="display:none;">0</span>
@@ -65,7 +65,7 @@ if (function_exists('mb_strlen')) {
           Tidak ada notifikasi
         </div>
       </div>
-    </li>
+    </li> -->
 
     <!-- User / Login -->
     <?php if ($admin_login): ?>

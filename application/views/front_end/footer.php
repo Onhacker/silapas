@@ -241,9 +241,9 @@
     </div>
 
     <div class="nav-item">
-      <a href="<?= base_url('tracking') ?>" class="<?= ($uri == 'tracking') ? 'text-primary' : 'text-dark' ?>">
+      <a href="<?= base_url('hal/struktur') ?>" class="<?= ($uri == 'hal/struktur') ? 'text-primary' : 'text-dark' ?>">
         <i class="fas fa-route d-block mb-1"></i>
-        <span class="small">Tracking</span>
+        <span class="small">Struktur</span>
       </a>
     </div>
 
@@ -253,10 +253,17 @@
     </div>
     <div class="space-right"></div>
 
-    <div class="nav-item">
+    <!-- <div class="nav-item">
       <a href="javascript:void(0)" class="<?= in_array($uri, ['hal/kontak', 'hal/kontak_capil', 'hal/alur']) ? 'text-primary' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModal">
         <i class="fas fa-briefcase d-block mb-1"></i>
         <span class="small">Layanan</span>
+      </a>
+    </div> -->
+
+    <div class="nav-item">
+      <a href="<?= base_url('hal/alur') ?>" class="<?= ($uri == 'hal/struktur') ? 'text-primary' : 'text-dark' ?>">
+        <i class="fas fa-briefcase d-block mb-1"></i>
+        <span class="small">Alur</span>
       </a>
     </div>
 

@@ -124,13 +124,7 @@ if ($this->session->userdata("admin_level") == "admin") {
 </div>
 
 
-<?php 
-if ($this->session->userdata("admin_level") == "faskes") {
-  $this->load->view("backend/footer_faskes.php");
-} else {
-  $this->load->view("backend/footer_admin.php");
-}
-?>
+<?php $this->load->view("backend/footer_admin.php"); ?>
 
 
 
@@ -190,7 +184,7 @@ if ($this->session->userdata("admin_level") == "faskes") {
 <script>
     var base_url = "<?= base_url() ?>";
 </script>
-<script src="<?= base_url('assets/js/notifikasi.js?v=1.3') ?>"></script>
+
 
 
 </body>
