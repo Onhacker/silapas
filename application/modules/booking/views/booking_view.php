@@ -24,6 +24,8 @@
     height:1px; background:linear-gradient(to right,transparent,#e9ecef,transparent);
     margin: 1rem 0 1.25rem 0;
   }
+  .nifty-stepper .btn { min-width: 38px; }
+  .nifty-stepper .input-group-text { background:#f8fafc; }
 </style>
 
 <div class="container-fluid">
@@ -61,8 +63,9 @@
                   <label for="jabatan" class="form-label label-required">Jabatan</label>
                   <input type="text" id="jabatan" name="jabatan" class="form-control" placeholder="Contoh: Staf / Kepala Seksi" required>
                 </div>
-                </div>
-                <div class="col-md-6">
+              </div>
+
+              <div class="col-md-6">
                 <div class="form-group mb-3">
                   <label for="no_hp" class="form-label label-required">No. HP</label>
                   <input type="text" id="no_hp" name="no_hp" class="form-control"
@@ -70,20 +73,32 @@
                   <small class="help-hint">Gunakan nomor aktif untuk menerima WhatsApp konfirmasi.</small>
                 </div>
               </div>
-                 <div class="col-md-12">
+
+              <div class="col-md-12">
                 <!-- ====== Jumlah Pendamping + Panel Inline ====== -->
                 <div class="form-group mb-3">
-                  <label for="jumlah_pendamping" class="form-label ">Jumlah Pendamping</label>
-                  <div class="input-group">
-                    <input type="number" id="jumlah_pendamping" name="jumlah_pendamping" class="form-control"
-                           placeholder="0" min="0" >
+                  <label for="jumlah_pendamping" class="form-label">Jumlah Pendamping</label>
+                  <div class="input-group input-group-sm nifty-stepper">
+                    <div class="input-group-prepend">
+                      <button type="button" class="btn btn-outline-secondary" id="btnPdMinus" title="Kurangi">
+                        <i class="fas fa-minus"></i>
+                      </button>
+                    </div>
+                    <input type="number" id="jumlah_pendamping" name="jumlah_pendamping"
+                           class="form-control text-center" min="0" max="20" step="1" placeholder="0">
                     <div class="input-group-append">
-                      <button type="button" class="btn btn-outline-primary" id="btnSetPendamping">
-                        Set Pendamping
+                      <span class="input-group-text">
+                        <i class="fas fa-users"></i>
+                        <span class="ml-1" id="pdCountBadge">0</span>
+                      </span>
+                      <button type="button" class="btn btn-outline-secondary" id="btnPdPlus" title="Tambah">
+                        <i class="fas fa-plus"></i>
                       </button>
                     </div>
                   </div>
-                  <small class="help-hint">Isi angka, lalu klik <b>Set Pendamping</b> untuk memasukkan data pendamping.</small>
+                  <small class="form-text text-muted">
+                    Geser jumlah di atas — baris pendamping akan menyesuaikan otomatis.
+                  </small>
                 </div>
 
                 <!-- Panel inline pendamping -->
@@ -109,7 +124,7 @@
                         <label class="form-label mb-1">Nama Pendamping</label>
                         <input type="text" id="pd_nama" class="form-control form-control-sm" placeholder="Nama lengkap">
                       </div>
-                      <div class="col-md-3 d-flex align-items-end" style="gap:.5rem;">
+                      <div class="col-md-3 d-flex align-items-end mt-2" style="gap:.5rem;">
                         <button type="button" class="btn btn-sm btn-success" id="btnPdAdd">Tambah</button>
                         <button type="button" class="btn btn-sm btn-warning d-none" id="btnPdSave">Simpan</button>
                         <button type="button" class="btn btn-sm btn-secondary d-none" id="btnPdCancel">Batal</button>
@@ -145,8 +160,6 @@
                 <input type="hidden" name="pendamping_json" id="pendamping_json">
                 <!-- /Panel inline pendamping -->
               </div>
-
-              
             </div>
 
             <div class="divider-soft"></div>
@@ -168,7 +181,7 @@
                     <option value="cabjari">Cabang Kejaksaan Negeri</option>
                     <option value="bnn">BNN</option>
                     <option value="kodim">Kodim Wil. Kodam XIV/Hasanuddin</option>
-                    <option value="lainnya">Lainnya</option><!-- NEW -->
+                    <option value="lainnya">Lainnya</option>
                   </select>
                   <small class="help-hint">Jika tidak ada di daftar, pilih <b>Lainnya</b>.</small>
                 </div>
@@ -332,15 +345,6 @@
         useSelectMode();
         // TODO: AJAX load daftar instansi berdasarkan kategori `v`
         sel.innerHTML = '<option value="">-- Pilih Instansi --</option>';
-        // Contoh:
-        // fetch('<?= site_url('api/instansi_by_kategori') ?>?kategori='+encodeURIComponent(v))
-        //  .then(r=>r.json()).then(j=>{
-        //    (j.data||[]).forEach(function(it){
-        //      var opt = document.createElement('option');
-        //      opt.value = it.id; opt.textContent = it.nama;
-        //      sel.appendChild(opt);
-        //    });
-        //  });
       } else {
         sel.value=''; sel.setAttribute('disabled','disabled'); sel.removeAttribute('required');
         man.value=''; man.setAttribute('disabled','disabled'); man.removeAttribute('required');
@@ -368,11 +372,12 @@
  * Pastikan panggil window._ensurePendampingBeforeSubmit() di awal simpan().
  */
 (function(){
-  // State & elemen
-  let pendamping = [];    // [{nik, nama}]
-  let editIndex  = -1;
+  // ===== State & elemen (UNIFIED ke window.pendamping) =====
+  window.pendamping = Array.isArray(window.pendamping) ? window.pendamping : [];
+  let pendamping = window.pendamping;                   // referensi yang sama
+  let editIndex  = (typeof window.editIndex === 'number') ? window.editIndex : -1;
 
-  const btnSet   = document.getElementById('btnSetPendamping');
+  const btnSet   = document.getElementById('btnSetPendamping'); // opsional (tidak wajib ada)
   const wrap     = document.getElementById('pendampingWrap');
   const inJumlah = document.getElementById('jumlah_pendamping');
 
@@ -394,12 +399,11 @@
   // Utils
   const onlyDigits = s => String(s||'').replace(/\D+/g,'');
   const is16Digits = s => /^\d{16}$/.test(String(s||''));
-  // function esc(s){return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&gt;','>':'&gt;','"':'&quot;'}[m]))}
-function esc(s){
-  return String(s||'').replace(/[&<>"']/g, m => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'
-  }[m]));
-}
+  function esc(s){
+    return String(s||'').replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'
+    }[m]));
+  }
 
   function getTarget(){
     return parseInt(inJumlah.value,10) || 0;
@@ -418,8 +422,12 @@ function esc(s){
           <td><code>${esc(p.nik)}</code></td>
           <td>${esc(p.nama)}</td>
           <td class="text-center">
-            <button type="button" class="btn btn-xs btn-outline-info" onclick="pdEdit(${i})">Edit</button>
-            <button type="button" class="btn btn-xs btn-outline-danger" onclick="pdDel(${i})">Hapus</button>
+            <button type="button" class="btn btn-xs btn-outline-info" onclick="pdEdit(${i})" title="Edit">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button type="button" class="btn btn-xs btn-outline-danger" onclick="pdDel(${i})" title="Hapus">
+              <i class="fas fa-trash-alt"></i>
+            </button>
           </td>
         </tr>
       `).join('');
@@ -439,44 +447,74 @@ function esc(s){
       pdHelp.textContent = 'Pastikan jumlah pendamping sesuai field “Jumlah Pendamping”.';
     }
   }
-
-  function resetRowForm(){
-    editIndex = -1;
-    inNik.value = '';
-    inNama.value = '';
-    btnAdd.classList.remove('d-none');
-    btnSave.classList.add('d-none');
-    btnCancel.classList.add('d-none');
-  }
+function resetRowForm(){
+  editIndex = -1;
+  window.editIndex = editIndex;
+  inNik.value = '';
+  inNama.value = '';
+  btnAdd.classList.remove('d-none');
+  btnSave.classList.add('d-none');
+  btnCancel.classList.add('d-none');
+  inNik.focus(); // <— tambah baris ini
+}
 
   // Expose untuk tombol tabel
-  window.pdEdit = function(i){
-    if (i<0 || i>=pendamping.length) return;
-    editIndex = i;
-    inNik.value  = pendamping[i].nik;
-    inNama.value = pendamping[i].nama;
-    btnAdd.classList.add('d-none');
-    btnSave.classList.remove('d-none');
-    btnCancel.classList.remove('d-none');
-    if (wrap.classList.contains('d-none')) wrap.classList.remove('d-none');
-    inNik.focus();
-  };
+ window.pdEdit = function(i){
+  if (i<0 || i>=pendamping.length) return;
+  editIndex = i;
+  window.editIndex = editIndex;
+  inNik.value  = pendamping[i].nik;
+  inNama.value = pendamping[i].nama;
+  btnAdd.classList.add('d-none');
+  btnSave.classList.remove('d-none');
+  btnCancel.classList.remove('d-none');
+  if (wrap.classList.contains('d-none')) wrap.classList.remove('d-none');
+  inNik.focus(); // <— tadinya inNama.focus()
+};
 
-  window.pdDel = function(i){
-    if (i<0 || i>=pendamping.length) return;
-    if (!confirm('Hapus pendamping ini?')) return;
-    pendamping.splice(i,1);
+
+  window.pdDel = async function(i){
+    if (i < 0 || i >= pendamping.length) return;
+
+    const nama = (pendamping[i] && (pendamping[i].nama || pendamping[i].NAMA || ''));
+    const { isConfirmed } = await Swal.fire({
+      title: 'Hapus pendamping?',
+      text: nama ? `Nama: ${nama}` : 'Data ini akan dihapus.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, hapus',
+      cancelButtonText: 'Batal',
+      reverseButtons: true,
+      focusCancel: true
+    });
+
+    if (!isConfirmed) return;
+
+    pendamping.splice(i, 1);
     if (editIndex === i) resetRowForm();
+    else if (editIndex > i) { editIndex--; window.editIndex = editIndex; }
     render();
+
+    Swal.fire({
+      title: 'Terhapus',
+      text: 'Data pendamping berhasil dihapus.',
+      icon: 'success',
+      timer: 1200,
+      showConfirmButton: false
+    });
   };
 
   // Events
-  btnSet.addEventListener('click', ()=>{
-    // toggle panel
-    wrap.classList.toggle('d-none');
-    // update target label
-    pdTarget.textContent = getTarget();
-  });
+  if (btnSet) {
+    btnSet.addEventListener('click', ()=>{
+      wrap.classList.toggle('d-none');
+      pdTarget.textContent = getTarget();
+    });
+  }
+
+  if (Number(inJumlah?.value || 0) > 0) {
+    wrap.classList.remove('d-none');
+  }
 
   inJumlah.addEventListener('change', ()=>{
     pdTarget.textContent = getTarget();
@@ -548,10 +586,106 @@ function esc(s){
     }
   };
 
+  // ------ EXPOSE ke global agar dipanggil stepper ------
+  window.render = render;
+  window.editIndex = editIndex;
+
   // render awal
   render();
 })();
+</script>
 
+<script>
+// batas maksimum baris pendamping (ubah sesuai kebutuhan)
+const MAX_PENDAMPING = 20;
+
+// ambil elemen
+const elJumlah = document.getElementById('jumlah_pendamping');
+const elBadge  = document.getElementById('pdCountBadge');
+const btnPlus  = document.getElementById('btnPdPlus');
+const btnMinus = document.getElementById('btnPdMinus');
+
+// fallback kalau variabel global belum ada
+window.pendamping = Array.isArray(window.pendamping) ? window.pendamping : [];
+window.editIndex  = typeof window.editIndex === 'number' ? window.editIndex : -1;
+
+// set nilai awal input = panjang array sekarang
+function updateJumlahInput() {
+  const n = window.pendamping.length;
+  if (elJumlah) elJumlah.value = n;
+  if (elBadge)  elBadge.textContent = n;
+}
+
+// sinkronkan target jumlah dgn array `pendamping`
+async function syncJumlahPendamping(target) {
+  let t = parseInt(target, 10);
+  if (isNaN(t)) t = 0;
+  t = Math.max(0, Math.min(MAX_PENDAMPING, t));
+
+  const cur = window.pendamping.length;
+  if (t === cur) { updateJumlahInput(); return; }
+
+  if (t > cur) {
+    // tambah baris kosong
+    for (let i = cur; i < t; i++) {
+      window.pendamping.push({ nik: '', nama: '' });
+    }
+    updateJumlahInput();
+
+    // Paksa tampilkan panel pendamping
+    document.getElementById('pendampingWrap')?.classList.remove('d-none');
+
+    // Render tabel via fungsi global + auto-buka editor baris kosong pertama
+    if (typeof window.render === 'function') window.render();
+    const firstEmpty = window.pendamping.findIndex(p => !p.nik || !p.nama);
+    if (firstEmpty >= 0 && typeof window.pdEdit === 'function') window.pdEdit(firstEmpty);
+
+    return;
+  }
+
+  // t < cur → konfirmasi pengurangan
+  let ok = true;
+  if (typeof Swal !== 'undefined') {
+    const { isConfirmed } = await Swal.fire({
+      title: 'Kurangi pendamping?',
+      text: `${cur - t} baris terakhir akan dihapus.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, kurangi',
+      cancelButtonText: 'Batal',
+      reverseButtons: true,
+      focusCancel: true
+    });
+    ok = isConfirmed;
+  } else {
+    ok = confirm(`Hapus ${cur - t} pendamping terakhir?`);
+  }
+  if (!ok) { updateJumlahInput(); return; }
+
+  window.pendamping.splice(t); // buang sisa di akhir
+  if (typeof window.editIndex === 'number' && window.editIndex >= t) window.editIndex = -1;
+  updateJumlahInput();
+  if (typeof window.render === 'function') window.render();
+}
+
+// handler tombol +/-
+btnPlus && btnPlus.addEventListener('click', () => syncJumlahPendamping(window.pendamping.length + 1));
+btnMinus && btnMinus.addEventListener('click', () => syncJumlahPendamping(window.pendamping.length - 1));
+
+// ketik manual → debounce
+let pdTimer = null;
+elJumlah && elJumlah.addEventListener('input', () => {
+  clearTimeout(pdTimer);
+  pdTimer = setTimeout(() => syncJumlahPendamping(elJumlah.value), 250);
+});
+// perubahan final (enter/tab/blur)
+elJumlah && elJumlah.addEventListener('change', () => syncJumlahPendamping(elJumlah.value));
+
+// inisialisasi tampilan awal
+updateJumlahInput();
+</script>
+
+<script>
 // booking_js
 function simpan(){
   try {
@@ -562,12 +696,14 @@ function simpan(){
     return;             // stop submit
   }
 
-  // ... lanjutkan membuat FormData dan kirim AJAX seperti biasa
+  // ... lanjutkan membuat FormData dan kirim AJAX sesuai implementasi kamu
   // const fd = new FormData(document.getElementById('form_app'));
   // $.ajax({ url:'<?= site_url("booking/add") ?>', method:'POST', data: fd, ... });
 }
-
 </script>
+
+<!-- Dependensi (pastikan ini ada di layout; FA opsional jika belum ada) -->
+<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" referrerpolicy="no-referrer" /> -->
 
 <script src="<?php echo base_url('assets/admin') ?>/js/vendor.min.js"></script>
 <script src="<?php echo base_url('assets/admin') ?>/js/app.min.js"></script>
