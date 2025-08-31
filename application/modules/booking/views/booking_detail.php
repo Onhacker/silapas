@@ -7,7 +7,7 @@ if (!function_exists('hari_id')) {
     if (empty($dateString)) return '-';
     $ts = strtotime($dateString);
     if ($ts === false) return '-';
-    $map = ['Sun'=>'Minggu','Mon'=>'Senin','Tue'=>'Selasa','Wed'=>'Rabu','Thu'=>'Kamis','Fri'=>'Jumat','Sat'=>'Sabtu'];
+    $map = ['Sun'=>'Minggu','Mon'=>'Senin','Tue'=>'Rabu','Thu'=>'Kamis','Fri'=>'Jumat','Sat'=>'Sabtu'];
     return $map[date('D',$ts)] ?? date('D',$ts);
   }
 }
@@ -64,7 +64,7 @@ if (!function_exists('hari_id')) {
   $qr_exists = is_file(FCPATH.$qr_file);
   $qr_url    = base_url($qr_file);
 
-  // Surat & Foto (encode basename utk aman)
+  // Surat & Foto
   $surat_url = !empty($booking->surat_tugas) ? base_url('uploads/surat_tugas/'.rawurlencode(basename($booking->surat_tugas))) : null;
   $foto_url  = !empty($booking->foto)        ? base_url('uploads/foto/'.rawurlencode(basename($booking->foto)))              : null;
 
@@ -96,13 +96,14 @@ if (!function_exists('hari_id')) {
   if (!empty($booking->checkout_at)) {
     $checkout_str = hari_id($booking->checkout_at).', '.date('d-m-Y H:i', strtotime($booking->checkout_at));
   }
-    // Daftar pendamping dari tabel booking_pendamping
+
+  // Daftar pendamping
   $pendamping_rows = $this->db
       ->order_by('id_pendamping','ASC')
       ->get_where('booking_pendamping', ['kode_booking' => $booking->kode_booking])
       ->result();
 
-  // Durasi hanya jika ada checkin & checkout
+  // Durasi
   $durasi = '';
   if (!empty($booking->checkin_at) && !empty($booking->checkout_at)) {
     try {
@@ -118,7 +119,7 @@ if (!function_exists('hari_id')) {
     } catch (Throwable $e) { $durasi = ''; }
   }
 
-  // No HP untuk tautan WA
+  // No HP WA
   $hp_wa = preg_replace('/\D+/', '', (string)$booking->no_hp);
 ?>
 
@@ -186,41 +187,39 @@ if (!function_exists('hari_id')) {
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">📅 Tanggal</dt><dd class="col-sm-8 kv-value"><?= $hari_tgl ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏰ Jam</dt><dd class="col-sm-8 kv-value"><?= $jam ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👥 Jumlah Pendamping</dt><dd class="col-sm-8 kv-value"><span class="badge badge-pill badge-primary" style="font-size:.9rem;"><?= (int)$booking->jumlah_pendamping ?> orang</span></dd></div>
-          <?php if (!empty($pendamping_rows)): ?>
-  <div class="kv-row row no-gutters">
-    <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
-    <dd class="col-sm-8 kv-value">
-      <div class="table-responsive">
-        <table class="table table-sm table-bordered mb-0">
-          <thead class="thead-light">
-            <tr>
-              <th style="width:60px;">No</th>
-              <th style="width:200px;">NIK</th>
-              <th>Nama</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($pendamping_rows as $i => $p): ?>
-              <tr>
-                <td class="text-center"><?= $i+1 ?></td>
-                <td><code><?= htmlspecialchars($p->nik, ENT_QUOTES, 'UTF-8') ?></code></td>
-                <td><?= htmlspecialchars($p->nama, ENT_QUOTES, 'UTF-8') ?></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
-    </dd>
-  </div>
-<?php else: ?>
-  <?php if ((int)$booking->jumlah_pendamping > 0): ?>
-    <div class="kv-row row no-gutters">
-      <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
-      <dd class="col-sm-8 kv-value soft">Belum ada data pendamping.</dd>
-    </div>
-  <?php endif; ?>
-<?php endif; ?>
 
+          <?php if (!empty($pendamping_rows)): ?>
+          <div class="kv-row row no-gutters">
+            <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
+            <dd class="col-sm-8 kv-value">
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0">
+                  <thead class="thead-light">
+                    <tr>
+                      <th style="width:60px;">No</th>
+                      <th style="width:200px;">NIK</th>
+                      <th>Nama</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($pendamping_rows as $i => $p): ?>
+                      <tr>
+                        <td class="text-center"><?= $i+1 ?></td>
+                        <td><code><?= htmlspecialchars($p->nik, ENT_QUOTES, 'UTF-8') ?></code></td>
+                        <td><?= htmlspecialchars($p->nama, ENT_QUOTES, 'UTF-8') ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            </dd>
+          </div>
+          <?php elseif ((int)$booking->jumlah_pendamping > 0): ?>
+          <div class="kv-row row no-gutters">
+            <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
+            <dd class="col-sm-8 kv-value soft">Belum ada data pendamping.</dd>
+          </div>
+          <?php endif; ?>
 
           <?php if ($checkin_str): ?>
             <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🕘 Check-in</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($checkin_str, ENT_QUOTES, 'UTF-8') ?></dd></div>
@@ -248,50 +247,47 @@ if (!function_exists('hari_id')) {
             </div>
           <?php endif; ?>
 
-          <?php if ($foto_url): ?>
-          	<!-- 🖼️ Foto -->
-          	<div class="kv-row row no-gutters" id="row_foto">
-          		<dt class="col-sm-4 kv-label">🖼️ Foto</dt>
-          		<dd class="col-sm-8" id="col_foto">
-          			<?php if (!empty($foto_url)): ?>
-          				<img id="foto_thumb" src="<?= $foto_url ?>" alt="Foto Lampiran"
-          				class="mini-thumb img-fluid"
-          				data-toggle="modal" data-target="#modalFoto_<?= $kode_safe ?>" loading="lazy">
-          				<div class="mt-2">
-          					<a id="foto_download" class="btn btn-sm btn-outline-secondary" href="<?= $foto_url ?>" download>
-          						<i class="mdi mdi-download"></i> Unduh Foto
-          					</a>
-          				</div>
-          				<?php else: ?>
-          					<span class="soft" id="foto_empty">Belum ada foto.</span>
-          				<?php endif; ?>
-          			</dd>
-          		</div>
+          <!-- 🖼️ Foto (SELALU ADA) -->
+          <div class="kv-row row no-gutters" id="row_foto">
+            <dt class="col-sm-4 kv-label">🖼️ Foto</dt>
+            <dd class="col-sm-8" id="col_foto">
+              <?php if (!empty($foto_url)): ?>
+                <img id="foto_thumb" src="<?= $foto_url ?>" alt="Foto Lampiran"
+                     class="mini-thumb img-fluid"
+                     data-toggle="modal" data-target="#modalFoto_<?= $kode_safe ?>" loading="lazy">
+                <div class="mt-2">
+                  <a id="foto_download" class="btn btn-sm btn-outline-secondary" href="<?= $foto_url ?>" download>
+                    <i class="mdi mdi-download"></i> Unduh Foto
+                  </a>
+                </div>
+              <?php else: ?>
+                <span class="soft" id="foto_empty">Belum ada foto.</span>
+              <?php endif; ?>
+            </dd>
+          </div>
 
-          		<!-- Modal Foto: selalu ada supaya bisa diupdate via JS -->
-          		<div class="modal fade" id="modalFoto_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
-          			<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-          				<div class="modal-content">
-          					<div class="modal-header py-2">
-          						<h6 class="modal-title"><i class="mdi mdi-image"></i> Foto Lampiran</h6>
-          						<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-          					</div>
-          					<div class="modal-body text-center">
-          						<img id="foto_modal_img" src="<?= $foto_url ?? '' ?>" class="img-fluid" style="max-height:75vh" alt="Foto Lampiran">
-          					</div>
-          					<div class="modal-footer py-2">
-          						<a id="foto_modal_download" class="btn btn-outline-secondary"
-          						href="<?= !empty($foto_url)?$foto_url:'#' ?>" download
-          						style="<?= !empty($foto_url)?'':'display:none' ?>">
-          						<i class="mdi mdi-download"></i> Unduh
-          					</a>
-          					<button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
-          				</div>
-          			</div>
-          		</div>
-          	</div>
-
-          <?php endif; ?>
+          <!-- Modal Foto (SELALU ADA) -->
+          <div class="modal fade" id="modalFoto_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header py-2">
+                  <h6 class="modal-title"><i class="mdi mdi-image"></i> Foto Lampiran</h6>
+                  <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body text-center">
+                  <img id="foto_modal_img" src="<?= $foto_url ?? '' ?>" class="img-fluid" style="max-height:75vh" alt="Foto Lampiran">
+                </div>
+                <div class="modal-footer py-2">
+                  <a id="foto_modal_download" class="btn btn-outline-secondary"
+                     href="<?= !empty($foto_url)?$foto_url:'#' ?>" download
+                     style="<?= !empty($foto_url)?'':'display:none' ?>">
+                    <i class="mdi mdi-download"></i> Unduh
+                  </a>
+                  <button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
+                </div>
+              </div>
+            </div>
+          </div>
 
         </dl>
       </div>
@@ -323,44 +319,39 @@ if (!function_exists('hari_id')) {
             <li>Unduh & simpan berkas agar tidak hilang.</li>
           </ul>
         </div>
-        <!-- Foto Dokumentasi (Opsional) -->
-       <!-- simpan kode booking di hidden input atau isi via PHP -->
-<input type="hidden" id="kode_booking" value="<?= html_escape($kode_booking ?? $kode ?? '') ?>">
 
-<div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
-  <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
-  <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm">
-    <i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto
-  </button>
-  <small id="pickLabel" class="text-muted">Belum ada file</small>
-</div>
+        <!-- Uploader Foto Dokumentasi -->
+        <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
 
-<div id="doc_preview_wrap" class="mb-2" style="display:none;">
-  <img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;">
-</div>
-
-<div class="d-flex align-items-center" style="gap:.5rem;">
-  <button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled>
-    <i class="mdi mdi-cloud-upload"></i> Upload
-  </button>
-  <button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;">
-    <i class="mdi mdi-close-circle-outline"></i> Batal
-  </button>
-  <small id="doc_status" class="text-muted ms-2"></small>
-</div>
-
-
-
-        <div class="d-flex flex-wrap mt-3" style="gap:.5rem;">
-          <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalPDF_<?= $kode_safe ?>">
-            <i class="mdi mdi-file-pdf-box"></i> Lihat PDF
+        <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
+          <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
+          <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm">
+            <i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto
           </button>
-          <a href="<?= site_url('booking/print_pdf/'.$booking->kode_booking) ?>?t=<?= urlencode($booking->access_token) ?>&dl=1" class="btn btn-danger">
-            <i class="mdi mdi-download"></i> Unduh PDF
-          </a>
+          <small id="pickLabel" class="text-muted">Belum ada file</small>
         </div>
-      </div>
 
+        <div id="doc_preview_wrap" class="mb-2" style="display:none;">
+          <img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;">
+        </div>
+
+        <div class="d-flex align-items-center" style="gap:.5rem;">
+          <button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled>
+            <i class="mdi mdi-cloud-upload"></i> Upload
+          </button>
+          <button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;">
+            <i class="mdi mdi-close-circle-outline"></i> Batal
+          </button>
+          <small id="doc_status" class="text-muted ms-2"></small>
+        </div>
+
+        <!-- Galeri (opsional) -->
+        <div class="kv-row row no-gutters mt-3">
+          <dt class="col-sm-4 kv-label"><i class="mdi mdi-image-multiple"></i> Galeri</dt>
+          <dd class="col-sm-8"><div id="doc_gallery" class="d-flex flex-wrap" style="gap:.75rem;"></div></dd>
+        </div>
+
+      </div>
     </div><!-- /row -->
   </div>
 </div>
@@ -393,48 +384,6 @@ if (!function_exists('hari_id')) {
   </div>
 </div>
 <?php endif; ?>
-
-<!-- Modal Foto -->
-<?php if ($foto_url): ?>
-<div class="modal fade" id="modalFoto_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header py-2">
-        <h6 class="modal-title"><i class="mdi mdi-image"></i> Foto Lampiran</h6>
-        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-      </div>
-      <div class="modal-body text-center">
-        <img src="<?= $foto_url ?>" class="img-fluid" style="max-height:75vh" alt="Foto Lampiran">
-      </div>
-      <div class="modal-footer py-2">
-        <a class="btn btn-outline-secondary" href="<?= $foto_url ?>" download><i class="mdi mdi-download"></i> Unduh</a>
-        <button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
-      </div>
-    </div>
-  </div>
-</div>
-<?php endif; ?>
-
-<!-- Modal PDF -->
-<div class="modal fade" id="modalPDF_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width:95%;">
-    <div class="modal-content">
-      <div class="modal-header py-2">
-        <h5 class="modal-title mb-0">Pratinjau PDF – <?= $kode ?></h5>
-        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-      </div>
-      <div class="modal-body p-0" style="background:#f8f9fa;">
-        <iframe src="<?= site_url('booking/print_pdf/'.$booking->kode_booking) ?>?t=<?= urlencode($booking->access_token) ?>&dl=0#view=FitH"
-                style="width:100%; height:80vh; border:0;"></iframe>
-      </div>
-      <div class="modal-footer py-2">
-        <a href="<?= site_url('booking/print_pdf/'.$booking->kode_booking) ?>?t=<?= urlencode($booking->access_token) ?>&dl=1"
-           class="btn btn-danger"><i class="mdi mdi-download"></i> Unduh PDF</a>
-        <button type="button" class="btn btn-light" data-dismiss="modal">Tutup</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <?php else: ?>
   <div class="text-center py-5">
@@ -473,140 +422,11 @@ if (!function_exists('hari_id')) {
       });
     });
   })();
-
-  // WA auto notify (opsional, sesuai milik Anda)
-  document.addEventListener('DOMContentLoaded', function () {
-    var token = <?= json_encode($booking->access_token ?? null) ?>;
-    if (!token) return;
-    var url = "<?= site_url('booking/wa_notify') ?>";
-    var params = new URLSearchParams();
-    params.set('t', token);
-    <?php if (config_item('csrf_protection')): ?>
-      params.set('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
-    <?php endif; ?>
-    fetch(url, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
-      body: params.toString(),
-      credentials: 'same-origin'
-    }).catch(()=>{});
-  });
-
-
-(function(){
-  var token = <?= json_encode($booking->access_token ?? null) ?>;
-  if (!token) return;
-
-  var upUrl   = "<?= site_url('booking/upload_dokumentasi') ?>";
-  var listUrl = "<?= site_url('booking/dokumentasi_list') ?>";
-
-  var elFile   = document.getElementById('doc_photo');
-  var elPrevW  = document.getElementById('doc_preview_wrap');
-  var elPrev   = document.getElementById('doc_preview');
-  var btnUp    = document.getElementById('btnDocUpload');
-  var btnReset = document.getElementById('btnDocReset');
-  var gal      = document.getElementById('doc_gallery');
-
-  function showPreview(file){
-    if (!file){ elPrevW.style.display='none'; btnUp.disabled=true; btnReset.style.display='none'; return; }
-    var url = URL.createObjectURL(file);
-    elPrev.src = url;
-    elPrevW.style.display = 'block';
-    btnUp.disabled = false;
-    btnReset.style.display = 'inline-block';
-  }
-
-  elFile.addEventListener('change', function(){
-    var f = this.files && this.files[0];
-    showPreview(f || null);
-  });
-
-  btnReset.addEventListener('click', function(){
-    elFile.value = '';
-    showPreview(null);
-  });
-
-  function csrfAppend(fdOrParams){
-    <?php if (config_item('csrf_protection')): ?>
-      fdOrParams.set('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
-    <?php endif; ?>
-  }
-
-  btnUp.addEventListener('click', function(){
-    var f = elFile.files && elFile.files[0];
-    if (!f){ alert('Pilih foto dulu.'); return; }
-
-    var fd = new FormData();
-    fd.append('t', token);
-    fd.append('doc_photo', f);
-    csrfAppend(fd);
-
-    btnUp.disabled = true; btnUp.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Mengunggah...';
-
-    fetch(upUrl, { method:'POST', body: fd, credentials:'same-origin' })
-      .then(r=>r.json())
-      .then(j=>{
-        if (!j.ok){
-          alert(j.err || 'Upload gagal.');
-        }else{
-          // sukses → refresh galeri
-          elFile.value=''; showPreview(null);
-          refreshGallery();
-        }
-      })
-      .catch(()=>alert('Gagal mengunggah.'))
-      .finally(()=>{ btnUp.disabled=false; btnUp.innerHTML='<i class="mdi mdi-cloud-upload"></i> Upload'; });
-  });
-
-  function cardTpl(it, idx){
-    var name = (it.filename || ('Foto '+(idx+1)));
-    return (
-      '<div class="col-auto" style="max-width:160px;">' +
-        '<div class="card" style="width:160px;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">' +
-          '<img src="'+ it.url +'" class="card-img-top" alt="'+ name +'" style="height:110px;object-fit:cover;">' +
-          '<div class="card-body p-2 text-center">' +
-            '<div class="small soft" title="'+ name +'" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+ name +'</div>' +
-            '<a class="btn btn-sm btn-outline-secondary mt-1" href="'+ it.url +'" download>Unduh</a>' +
-          '</div>' +
-        '</div>' +
-      '</div>'
-    );
-  }
-
-  function refreshGallery(){
-    var params = new URLSearchParams();
-    params.set('t', token);
-    csrfAppend(params);
-
-    fetch(listUrl, {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-      body: params.toString(),
-      credentials:'same-origin'
-    })
-    .then(r=>r.json())
-    .then(j=>{
-      gal.innerHTML = '';
-      if (!j.ok || !Array.isArray(j.data) || !j.data.length){
-        gal.innerHTML = '<div class="col-12 soft">Belum ada dokumentasi.</div>';
-        return;
-      }
-      j.data.forEach(function(it, i){
-        gal.insertAdjacentHTML('beforeend', cardTpl(it, i));
-      });
-    })
-    .catch(()=>{ gal.innerHTML = '<div class="col-12 text-danger">Gagal memuat galeri.</div>'; });
-  }
-
-  // load awal
-  refreshGallery();
-})();
-
-
 </script>
+
+<!-- ====== Uploader (SATU-SATUNYA) ====== -->
 <script>
 (function() {
-  const UPLOAD_URL = '<?= site_url("booking/upload_doc_photo") ?>'; // sesuaikan route-mu
   const MAX_BYTES  = 1.5 * 1024 * 1024;  // 1.5MB
   const MAX_SIDE   = 1600;               // sisi terpanjang saat resize
 
@@ -645,7 +465,6 @@ if (!function_exists('hari_id')) {
     const file = e.target.files?.[0];
     if (!file) { resetAll(); return; }
 
-    // Validasi tipe dasar
     if (!/^image\/(jpeg|png)$/i.test(file.type)) {
       setStatus('Hanya JPG/PNG.', true); resetAll(); return;
     }
@@ -655,7 +474,6 @@ if (!function_exists('hari_id')) {
     try {
       const out = await fileToCompressedDataURL(file, MAX_SIDE, MAX_BYTES);
       dataURL = out.dataURL;
-      // tampilkan preview dari hasil kompres
       el.preview.src = dataURL;
       el.previewWrap.style.display = 'block';
       el.btnUpload.disabled = false;
@@ -668,59 +486,57 @@ if (!function_exists('hari_id')) {
   }
 
   async function doUpload() {
-  const kode = (document.getElementById('kode_booking')?.value || '').trim();
-  if (!kode) { setStatus('Kode booking kosong.', true); return; }
+    const kode = (document.getElementById('kode_booking')?.value || '').trim();
+    if (!kode) { setStatus('Kode booking kosong.', true); return; }
 
-  // pakai hasil kompres (dataURL) bila ada; kalau tidak, pakai file asli
-  const fileInput = document.getElementById('doc_photo');
-  const rawFile = fileInput?.files?.[0] || null;
+    const rawFile = el.input?.files?.[0] || null;
+    if (!dataURL && !rawFile) { setStatus('Tidak ada gambar.', true); return; }
 
-  if (!dataURL && !rawFile) { setStatus('Tidak ada gambar.', true); return; }
+    lock(true, 'Mengunggah...');
 
-  lock(true, 'Mengunggah...');
+    try {
+      const fd = new FormData();
+      fd.append('kode', kode);
 
-  try {
-    const fd = new FormData();
-    fd.append('kode', kode);
+      if (dataURL) {
+        const blob = dataURLtoBlob(dataURL);
+        const name = (rawFile?.name || 'foto.jpg').replace(/\.[^.]+$/, '.jpg');
+        fd.append('doc_photo', blob, name);
+      } else {
+        fd.append('doc_photo', rawFile, rawFile.name);
+      }
 
-    if (dataURL) {
-      // kirim versi terkompres supaya pasti kecil
-      const blob = dataURLtoBlob(dataURL); // helper di bawah
-      const name = (rawFile?.name || 'foto.jpg').replace(/\.[^.]+$/, '.jpg');
-      fd.append('doc_photo', blob, name);
-    } else {
-      fd.append('doc_photo', rawFile, rawFile.name);
+      const res = await fetch('<?= site_url("booking/upload_dokumentasi") ?>', {
+        method: 'POST',
+        body: fd
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json?.msg || `HTTP ${res.status}`);
+
+      // SUKSES → toast + update blok 🖼️ Foto + galeri
+      toastOK('Upload berhasil');
+      setStatus('Berhasil diupload.');
+      if (json.url) {
+        updateFotoSection(json.url);  // <<== ini kuncinya
+        appendToGallery(json.url);    // (opsional) tambahkan ke galeri
+      }
+      resetAll();
+    } catch (e) {
+      setStatus(e.message || 'Upload gagal', true);
+    } finally {
+      lock(false);
     }
-
-    // jika CI CSRF aktif, tambahkan:
-    // fd.append('<?= $this->security->get_csrf_token_name() ?>','<?= $this->security->get_csrf_hash() ?>');
-
-    const res = await fetch('<?= site_url("booking/upload_dokumentasi") ?>', {
-      method: 'POST',
-      body: fd   // JANGAN set Content-Type manual
-    });
-    const json = await res.json();
-    if (!res.ok || !json.ok) throw new Error(json?.msg || `HTTP ${res.status}`);
-    toastOK('Upload berhasil');
-    setStatus('Berhasil diupload.');
-    if (json.url) appendToGallery(json.url);
-    resetAll();
-  } catch (e) {
-    setStatus(e.message || 'Upload gagal', true);
-  } finally {
-    lock(false);
   }
-}
 
-function dataURLtoBlob(dUrl) {
-  const arr = dUrl.split(',');
-  const mime = (arr[0].match(/:(.*?);/)||[])[1] || 'image/jpeg';
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8 = new Uint8Array(n);
-  while (n--) u8[n] = bstr.charCodeAt(n);
-  return new Blob([u8], {type: mime});
-}
+  function dataURLtoBlob(dUrl) {
+    const arr = dUrl.split(',');
+    const mime = (arr[0].match(/:(.*?);/)||[])[1] || 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8 = new Uint8Array(n);
+    while (n--) u8[n] = bstr.charCodeAt(n);
+    return new Blob([u8], {type: mime});
+  }
 
   function lock(state, text) {
     el.btnUpload.disabled = state;
@@ -750,14 +566,12 @@ function dataURLtoBlob(dUrl) {
     el.gallery?.appendChild(col);
   }
 
-  // Kompres: resize ke MAX_SIDE dan turunkan kualitas JPEG sampai <= MAX_BYTES
   function fileToCompressedDataURL(file, maxSide, maxBytes) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
         const img = new Image();
         img.onload = () => {
-          // Hitung dimensi baru
           const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
           const w = Math.max(1, Math.floor(img.width * scale));
           const h = Math.max(1, Math.floor(img.height * scale));
@@ -766,19 +580,15 @@ function dataURLtoBlob(dUrl) {
           cvs.width = w; cvs.height = h;
           const ctx = cvs.getContext('2d');
 
-          // latar putih agar PNG transparan tidak jadi hitam saat konversi ke JPEG
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(0,0,w,h);
           ctx.drawImage(img, 0, 0, w, h);
 
           let q = 0.92, out = cvs.toDataURL('image/jpeg', q);
-
-          // Turunkan kualitas bertahap sampai ukuran <= maxBytes atau kualitas minimal
           while (dataURLBytes(out) > maxBytes && q > 0.5) {
             q -= 0.07;
             out = cvs.toDataURL('image/jpeg', q);
           }
-
           const bytes = dataURLBytes(out);
           if (bytes > maxBytes) {
             reject(new Error('Gambar terlalu besar setelah kompres. Coba ambil ulang dengan resolusi lebih rendah.'));
@@ -796,7 +606,6 @@ function dataURLtoBlob(dUrl) {
 
   function dataURLBytes(dUrl) {
     const base64 = dUrl.split(',')[1] || '';
-    // ukuran bytes ≈ panjang base64 * (3/4) - padding
     let len = base64.length;
     if (base64.endsWith('==')) len -= 2;
     else if (base64.endsWith('=')) len -= 1;
@@ -808,6 +617,8 @@ function dataURLtoBlob(dUrl) {
   }
 })();
 </script>
+
+<!-- Toast + Updater Foto -->
 <script>
 // Toast sederhana (atas kanan)
 function toastOK(msg='Upload berhasil') {
@@ -858,4 +669,3 @@ function updateFotoSection(url) {
   if (mDown) { mDown.href = bust; mDown.style.display = ''; }
 }
 </script>
-
