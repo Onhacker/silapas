@@ -129,11 +129,12 @@ if (!function_exists('hari_id')) {
     <div class="d-flex justify-content-between align-items-center kv-head pb-3 mb-3">
       <div class="d-flex align-items-center" style="gap:1rem;">
         <h4 class="mb-0 section-title">Detail Booking</h4>
-        <div class="chip"><span class="dot"></span><span class="soft">Kode</span><strong><?= $kode ?></strong></div>
-      </div>
-      <div class="d-flex align-items-center flex-wrap" style="gap:.5rem;">
+        <!-- <div class="chip"><span class="dot"></span><span class="soft">Kode</span><strong><?= $kode ?></strong></div> -->
+        <div class="d-flex align-items-center flex-wrap" style="gap:.5rem;">
         <span class="pill <?= $badgeCls ?> text-uppercase"><?= htmlspecialchars($booking->status) ?></span>
       </div>
+      </div>
+      
     </div>
 
     <div class="row">
