@@ -298,7 +298,7 @@ if (!function_exists('hari_id')) {
         	<div class="kv-label mb-2"><i class="mdi mdi-camera"></i> Foto Dokumentasi <span class="soft">(opsional)</span></div>
 
         	<div class="form-group mb-2">
-        		<input type="file" id="doc_photo" accept="image/*" capture="environment" class="form-control-file">
+        		<input type="file" id="doc_photo" name="image" accept="image/*" capture="environment" class="form-control-file">
         		<small class="text-muted d-block mt-1">JPG/PNG • Maks 1.5MB • Kamera belakang disarankan.</small>
         	</div>
 
