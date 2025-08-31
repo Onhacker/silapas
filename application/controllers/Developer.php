@@ -45,7 +45,7 @@ class Developer extends MX_Controller {
                     "label" => "Icon 512x512"
                 ]
             ],
-            "description" => "SiDia adalah platform digital untuk pelayanan Kunjungan Tamu Lapas Kelas I Makassar.",
+            "description" => "Silapas adalah platform digital untuk pelayanan Kunjungan Tamu Lapas Kelas I Makassar.",
             "developer" => [
                 "name" => "PT. MVIN",
                 "url" => "https://mediaverse.com"
