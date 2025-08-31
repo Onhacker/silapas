@@ -7,6 +7,7 @@ class Admin_dashboard extends Admin_Controller
     {
         parent::__construct();
         $this->load->model("M_admin_dashboard","ma");
+        date_default_timezone_set('Asia/Makassar');
         // cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
     }
 
@@ -81,22 +82,7 @@ class Admin_dashboard extends Admin_Controller
         $this->render($data);
     }
 
-    /* =========================================================
-     *                    UTIL WILAYAH (opsional)
-     * ========================================================= */
-    public function get_desa()
-    {
-        $id_kecamatan = $this->input->post('id');
-        $data = $this->ma->arr_desa2($id_kecamatan);
-        echo form_dropdown("id_desa", $data, "", 'id="id_desa_cari" class="form-control select2" onchange="get_dusun(this,\'#id_dusun_cari\',1)"');
-    }
-
-    public function get_dusun()
-    {
-        $id_desa = $this->input->post('id');
-        $data = $this->ma->arr_dusun($id_desa);
-        echo form_dropdown("id_dusun", $data, "", 'id="id_dusun_cari" class="form-control select2"');
-    }
+   
 
     /* =========================================================
      *                   NOTIFIKASI (opsional)
@@ -230,7 +216,7 @@ class Admin_dashboard extends Admin_Controller
      *   - in_visit     : daftar yang sudah check-in & belum checkout
      *   - server_time  : waktu server ISO8601 (untuk jam live di UI)
      */
-   public function monitor_data()
+public function monitor_data()
 {
     $q        = trim((string)$this->input->get('q', true));
     $page     = max(1, (int)$this->input->get('page'));
@@ -239,42 +225,37 @@ class Admin_dashboard extends Admin_Controller
     $offset   = ($page - 1) * $per_page;
     $like     = ($q !== '') ? $this->db->escape_like_str($q) : null;
 
-    // Filter untuk "sudah booking" (pending/approved, belum check-in)
-    // 1) Tambah kolom pejabat unit ke SELECT + LIKE
-$this->db->reset_query();
-$this->db->select('b.*, u.nama_unit, u.pejabat_unit');   // <-- tambah u.pejabat_unit
-$this->db->from('booking_tamu b');
-$this->db->join('unit_tujuan u','u.id=b.unit_tujuan','left');
-$apply_filters = function() use ($like) {
-    $this->db->where('b.checkin_at IS NULL', null, false);
-    $this->db->where_in('LOWER(b.status)', ['approved','pending']);
-    if ($like !== null) {
-        $this->db->group_start()
-            ->like('b.kode_booking',            $like, 'both', false)
-            ->or_like('b.nama_tamu',            $like, 'both', false)
-            ->or_like('b.nik',                  $like, 'both', false)
-            ->or_like('b.no_hp',                $like, 'both', false)
-            ->or_like('b.keperluan',            $like, 'both', false)
-            ->or_like('b.target_instansi_nama', $like, 'both', false)
-            ->or_like('b.instansi',             $like, 'both', false)
-            ->or_like('u.nama_unit',            $like, 'both', false)
-            ->or_like('b.nama_petugas_instansi',$like, 'both', false) // <-- NEW
-        ->group_end();
-    }
-};
+    // ===== helper filter "Sudah Booking" (pending/approved, belum check-in, TIDAK expired)
+    $apply_filters = function() use ($like) {
+        $this->db->where('b.checkin_at IS NULL', null, false);
+        $this->db->where_in('b.status', ['approved','pending']); // cukup pakai kolom langsung (collation sudah _ci)
+        $this->db->where('b.status <>', 'expired');              // pastikan bukan expired
+        if ($like !== null) {
+            $this->db->group_start()
+                ->like('b.kode_booking',            $like, 'both', false)
+                ->or_like('b.nama_tamu',            $like, 'both', false)
+                ->or_like('b.nik',                  $like, 'both', false)
+                ->or_like('b.no_hp',                $like, 'both', false)
+                ->or_like('b.keperluan',            $like, 'both', false)
+                ->or_like('b.target_instansi_nama', $like, 'both', false)
+                ->or_like('b.instansi',             $like, 'both', false)
+                ->or_like('u.nama_unit',            $like, 'both', false)
+                ->or_like('b.nama_petugas_instansi',$like, 'both', false)
+            ->group_end();
+        }
+    };
 
-
-    // Hitung total booking (untuk pagination)
-   $this->db->reset_query();
-$this->db->select('b.*, u.nama_unit, u.pejabat_unit'); // <-- tambah
-$this->db->from('booking_tamu b');
-$this->db->join('unit_tujuan u','u.id=b.unit_tujuan','left');
+    // ===== total booked (untuk pagination)
+    $this->db->reset_query();
+    $this->db->select('b.id_booking');
+    $this->db->from('booking_tamu b');
+    $this->db->join('unit_tujuan u','u.id=b.unit_tujuan','left');
     $apply_filters();
     $booked_total = (int)$this->db->count_all_results();
 
-    // Ambil data booking (halaman berjalan)
+    // ===== data booked (halaman berjalan)
     $this->db->reset_query();
-    $this->db->select('b.*, u.nama_unit'); // b.* sudah termasuk nama_petugas_unit & jumlah_pendamping
+    $this->db->select('b.*, u.nama_unit');
     $this->db->from('booking_tamu b');
     $this->db->join('unit_tujuan u','u.id=b.unit_tujuan','left');
     $apply_filters();
@@ -283,51 +264,41 @@ $this->db->join('unit_tujuan u','u.id=b.unit_tujuan','left');
     $this->db->limit($per_page, $offset);
     $booked_rows = $this->db->get()->result_array();
 
-    // Sedang berkunjung (sudah check-in & belum checkout) — tanpa pagination
+    // ===== Sedang berkunjung (sudah check-in & belum checkout), TIDAK expired
     $this->db->reset_query();
     $this->db->select('b.*, u.nama_unit');
     $this->db->from('booking_tamu b');
     $this->db->join('unit_tujuan u','u.id=b.unit_tujuan','left');
     $this->db->where('b.checkin_at IS NOT NULL', null, false);
     $this->db->where('b.checkout_at IS NULL', null, false);
+    $this->db->where('b.status <>', 'expired');          // exclude expired
+    // (opsional lebih ketat) kalau mau hanya yang status 'checked_in', aktifkan baris di bawah:
+    // $this->db->where('b.status', 'checked_in');
     $this->db->order_by('b.checkin_at','DESC');
     $invisit = $this->db->get()->result_array();
 
-    // Mapper output baris (tambahkan nama_petugas_unit & jumlah_pendamping)
-    // Mapper output baris (pakai nama_petugas_unit & sertakan jumlah_pendamping)
-    // Mapper output baris (pakai kolom nama_petugas_instansi)
-$map = function($r) {
-    // Ambil nama petugas dengan fallback:
-    $petugas = trim((string)(
-        ($r['nama_petugas_instansi'] ?? '') !== '' ? $r['nama_petugas_instansi'] :
-        ($r['pejabat_unit'] ?? '')
-    ));
+    // ===== mapper baris ke format UI (pakai nama_petugas_instansi dari booking_tamu)
+    $map = function($r) {
+        $petugas = trim((string)($r['nama_petugas_instansi'] ?? ''));
+        $pend    = isset($r['jumlah_pendamping']) ? (int)$r['jumlah_pendamping'] : 0;
 
-    $pend = isset($r['jumlah_pendamping']) ? (int)$r['jumlah_pendamping'] : 0;
-
-    return [
-        'kode'               => (string)$r['kode_booking'],
-        'nama'               => (string)$r['nama_tamu'],
-        'unit'               => (string)($r['nama_unit'] ?: '-'),
-        'instansi'           => (string)($r['target_instansi_nama'] ?: ($r['instansi'] ?: '-')),
-        'jam'                => (string)($r['jam'] ?: ''),
-        'tanggal'            => (string)($r['tanggal'] ?: ''),
-        'status'             => strtolower((string)$r['status']),
-        'checkin_at'         => (string)($r['checkin_at'] ?: ''),
-        'checkout_at'        => (string)($r['checkout_at'] ?: ''),
-        'jumlah_pendamping'  => $pend,
-
-        // kunci yang dipakai UI (prioritas nama_petugas_instansi)
-        'nama_petugas_instansi' => $petugas,
-        'petugas_unit'          => $petugas,   // alias
-        'petugas'               => $petugas,   // alias
-
-        'detail_url'            => site_url('admin_scan/detail/'.rawurlencode($r['kode_booking'])),
-    ];
-};
-
-
-
+        return [
+            'kode'               => (string)$r['kode_booking'],
+            'nama'               => (string)$r['nama_tamu'],
+            'unit'               => (string)($r['nama_unit'] ?: '-'),
+            'instansi'           => (string)($r['target_instansi_nama'] ?: ($r['instansi'] ?: '-')),
+            'jam'                => (string)($r['jam'] ?: ''),
+            'tanggal'            => (string)($r['tanggal'] ?: ''),
+            'status'             => strtolower((string)$r['status']),
+            'checkin_at'         => (string)($r['checkin_at'] ?: ''),
+            'checkout_at'        => (string)($r['checkout_at'] ?: ''),
+            'jumlah_pendamping'  => $pend,
+            'nama_petugas_instansi' => $petugas,
+            'petugas_unit'          => $petugas, // alias untuk UI
+            'petugas'               => $petugas, // alias untuk UI
+            'detail_url'            => site_url('admin_scan/detail/'.rawurlencode($r['kode_booking'])),
+        ];
+    };
 
     $total_pages = ($booked_total > 0) ? (int)ceil($booked_total / $per_page) : 0;
 
@@ -346,6 +317,8 @@ $map = function($r) {
         'server_time'   => date('c'),
     ]);
 }
+
+
 
 
     /* =========================================================
@@ -501,218 +474,63 @@ $map = function($r) {
         ]);
     }
 
-    public function live()
+   /**
+     * Jalankan via CLI:
+     *   php index.php cron expire_bookings [grace_minutes]
+     * Contoh:
+     *   php index.php cron expire_bookings 30
+     */
+    public function expire_bookings($grace_minutes = 30)
     {
-        $sec  = (int) $this->input->get('sec', true);
-        if ($sec < 5) { $sec = 5; } // default 45 detik
-        $auto = (int) $this->input->get('auto', true) === 1;
+        if (!$this->input->is_cli_request()) {
+            show_404();
+            return;
+        }
+        $grace = (int)$grace_minutes;
+        if ($grace < 0 || $grace > 1440) $grace = 30;
 
-        // Tab yang diputar (edit judul/url jika perlu)
-        $tabs = [
-            ['title' => 'Dashboard', 'url' => site_url('admin_dashboard/dashboard?live=1')],
-            ['title' => 'Monitor',   'url' => site_url('admin_dashboard/monitor?live=1')],
-        ];
-
-        $tabsJson = json_encode($tabs, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-        $autoJson = $auto ? 'true' : 'false';
-
-        // HTML langsung dari controller (tanpa file view)
-        $html = <<<HTML
-<!doctype html>
-<html lang="id">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Live Wallboard</title>
-<style>
-  :root{--bg:#0b1220;--card:#0f172a;--text:#e5e7eb;--muted:#94a3b8;--accent:#22c55e}
-  *{box-sizing:border-box}html,body{height:100%}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  .wrap{display:flex;flex-direction:column;height:100vh}
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}
-  .brand{display:flex;align-items:center;gap:.6rem}.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:ping 1.6s infinite}
-  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}80%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
-  .brand h1{font-size:1rem;margin:0}.meta{display:flex;align-items:center;gap:1rem;color:var(--muted);font-size:.9rem}.meta b{color:var(--text)}
-  .controls button{background:transparent;border:1px solid rgba(255,255,255,.2);color:var(--text);padding:.35rem .6rem;border-radius:.5rem;cursor:pointer}
-  .controls button:hover{border-color:#fff}
-  .stage{position:relative;flex:1}
-  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;opacity:0;transition:opacity .35s ease}
-  iframe.show{opacity:1}
-  .tabs{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:.35rem;background:rgba(15,23,42,.6);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.1);padding:.25rem .35rem;border-radius:999px}
-  .tag{color:var(--muted);font-weight:600;font-size:.8rem;padding:.15rem .6rem;border-radius:999px}.tag.active{background:#1f2937;color:#fff}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <div class="topbar">
-    <div class="brand"><span class="dot"></span><h1>Live Wallboard</h1></div>
-    <div class="meta">
-      <span id="tabTitle">—</span><span>•</span><span id="clock">--:--:--</span><span>•</span>
-      <span>Rotasi <b id="durText">{$sec}</b> dtk</span>
-    </div>
-    <div class="controls">
-      <button id="btnPrev" title="Sebelumnya">« Prev</button>
-      <button id="btnNext" title="Berikutnya">Next »</button>
-      <button id="btnPause" title="Jeda / Lanjut">⏸︎</button>
-      <button id="btnFS" title="Fullscreen">⛶</button>
-    </div>
-  </div>
-
-  <div class="stage">
-    <iframe id="frameA" referrerpolicy="same-origin"></iframe>
-    <iframe id="frameB" referrerpolicy="same-origin"></iframe>
-
-    <div class="tabs" id="tabsWrap"></div>
-  </div>
-</div>
-
-<script>
-(function(){
-  var TABS = {$tabsJson};
-  var DURATION = {$sec} * 1000;
-  var AUTOFS = {$autoJson};
-
-  var idx = 0, timer = null, paused = false, activeA = true;
-  var frameA = document.getElementById('frameA');
-  var frameB = document.getElementById('frameB');
-  var clock  = document.getElementById('clock');
-  var tabTitle = document.getElementById('tabTitle');
-  var tabsWrap = document.getElementById('tabsWrap');
-  document.getElementById('durText').textContent = (DURATION/1000)|0;
-
-  // render tag tabs
-  for (var i=0;i<TABS.length;i++){
-    var sp = document.createElement('span');
-    sp.className = 'tag' + (i===0?' active':'');
-    sp.textContent = (TABS[i].title || ('Tab '+(i+1)));
-    (function(n){ sp.addEventListener('click', function(){ swapTo(n); if(!paused) start(); }); })(i);
-    tabsWrap.appendChild(sp);
-  }
-
-  function setActiveTag(n){
-    var tags = tabsWrap.children;
-    for (var i=0;i<tags.length;i++){ tags[i].classList.toggle('active', i===n); }
-  }
-
-  // jam live
-  setInterval(function(){
-    var d=new Date(), p=function(n){return (n<10?'0':'')+n};
-    clock.textContent = p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
-  }, 1000);
-
-  function bust(url){
-    var sep = url.indexOf('?')>-1 ? '&' : '?';
-    return url + sep + '_ts=' + Date.now();
-  }
-
-  function swapTo(n){
-    if (!TABS.length) return;
-    idx = (n + TABS.length) % TABS.length;
-    var url = bust(TABS[idx].url);
-    var title = TABS[idx].title || ('Tab '+(idx+1));
-    tabTitle.textContent = title;
-    setActiveTag(idx);
-
-    var nextFrame = activeA ? frameB : frameA;
-    var curFrame  = activeA ? frameA : frameB;
-
-    nextFrame.classList.remove('show');
-    nextFrame.onload = null; // bersih
-    nextFrame.src = url;
-
-    nextFrame.onload = function(){
-      nextFrame.classList.add('show');
-      curFrame.classList.remove('show');
-      activeA = !activeA;
-    };
-    // fallback jika onload tidak terpanggil (3 dtk)
-    setTimeout(function(){
-      if (!nextFrame.classList.contains('show')){
-        nextFrame.classList.add('show');
-        curFrame.classList.remove('show');
-        activeA = !activeA;
-      }
-    }, 3000);
-  }
-
-  function start(){ stop(); timer = setInterval(function(){ swapTo(idx+1); }, DURATION); }
-  function stop(){ if (timer){ clearInterval(timer); timer=null; } }
-
-  // tombol
-  document.getElementById('btnNext').addEventListener('click', function(){ swapTo(idx+1); if(!paused) start(); });
-  document.getElementById('btnPrev').addEventListener('click', function(){ swapTo(idx-1); if(!paused) start(); });
-  document.getElementById('btnPause').addEventListener('click', function(){
-    paused = !paused; this.textContent = paused ? '▶︎' : '⏸︎'; if (paused) stop(); else start();
-  });
-
-  // Fullscreen toggle
-  document.getElementById('btnFS').addEventListener('click', function(){
-    if (!document.fullscreenElement){
-      (document.documentElement.requestFullscreen
-        ? document.documentElement.requestFullscreen({navigationUI:'hide'})
-        : document.body.requestFullscreen()).catch(function(){});
-    } else {
-      document.exitFullscreen().catch(function(){});
-    }
-  });
-
-  // Hotkeys: n/p (next/prev), spasi (pause), f (fullscreen)
-  document.addEventListener('keydown', function(e){
-    var k=(e.key||'').toLowerCase();
-    if (k==='n'){ e.preventDefault(); document.getElementById('btnNext').click(); }
-    else if (k==='p'){ e.preventDefault(); document.getElementById('btnPrev').click(); }
-    else if (k===' '){ e.preventDefault(); document.getElementById('btnPause').click(); }
-    else if (k==='f'){ e.preventDefault(); document.getElementById('btnFS').click(); }
-  });
-
-  // Auto fullscreen jika diminta
-  if (AUTOFS){ setTimeout(function(){ try{ document.getElementById('btnFS').click(); }catch(e){} }, 600); }
-
-  // mulai
-  swapTo(0); start();
-})();
-</script>
-</body>
-</html>
-HTML;
-
-        $this->output
-             ->set_content_type('text/html; charset=UTF-8')
-             ->set_output($html);
+        $affected = $this->ma->expire_past_bookings($grace, 'Asia/Makassar');
+        echo "[OK] expired={$affected}, grace={$grace}m, time=" . date('Y-m-d H:i:s') . PHP_EOL;
     }
 
+    /**
+     * Versi HTTP (opsional) — panggil via cron dengan GET param `token`.
+     * Tambahkan config item 'cron_secret' di application/config/config.php:
+     *   $config['cron_secret'] = 'gantilah_token_rahasia_ini';
+     *
+     * Contoh panggilan:
+     // *   https://domainmu.com/index.php/cron/expire_bookings_http?token=gantilah_token_rahasia_ini&grace=30
+     */
+    public function expire_bookings_http()
+    {
+        $secret_cfg = $this->config->item('cron_secret');
+        $token      = (string)$this->input->get('token', true);
+        if (!$secret_cfg || $token !== $secret_cfg) {
+            return $this->_json(['ok'=>false,'msg'=>'Forbidden'], 403);
+        }
 
+        $grace = (int)$this->input->get('grace', true);
+        if ($grace < 0 || $grace > 1440) $grace = 30;
 
-       
+        $affected = $this->ma->expire_past_bookings($grace, 'Asia/Makassar');
+        return $this->_json([
+            'ok'       => true,
+            'expired'  => $affected,
+            'grace'    => $grace,
+            'server'   => date('c'),
+        ]);
+    }
 
-public function live_combined()
-{
-    // durasi rotasi & auto fullscreen dari querystring
-    $sec  = (int) $this->input->get('sec', true);
-    if ($sec < 5) { $sec = 45; }
-    $auto = ((int) $this->input->get('auto', true) === 1);
-
-    // tab yang diputar
-    $tabs = [
-        ['title' => 'Dashboard', 'url' => site_url('admin_dashboard/dashboard?live=1')],
-        ['title' => 'Monitor',   'url' => site_url('admin_dashboard/monitor?live=1')],
-    ];
-
-    // siapkan data untuk view
-    $data["controller"] = get_class($this);
-    $data["title"]      = "Live Wallboard";
-    $data["subtitle"]   = "Rotating Dashboard & Monitor";
-    $data["sec"]        = $sec;
-    $data["auto"]       = $auto;
-    $data["tabs"]       = $tabs;
-
-    // jika Anda punya layout global, gunakan $this->render seperti biasa:
-    $data["content"] = $this->load->view('Admin_dashboard_jsx', $data, true);
-    $this->render($data);
-
-    // Jika TIDAK pakai layout global, cukup:
-    // $this->load->view('Admin_dashboard_jsx', $data);
-}
-
+    /** Helper JSON ringkas */
+    private function _json($payload, int $status = 200)
+    {
+        if (!is_string($payload)) {
+            $payload = json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+        }
+        $this->output->set_status_header($status)
+                     ->set_content_type('application/json','utf-8')
+                     ->set_output($payload);
+    }
 
 
 }

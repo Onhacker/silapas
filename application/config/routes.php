@@ -59,6 +59,8 @@ $route['admin_scan']               = 'admin_scan/admin_scan/index';
 $route['admin_scan/checkin_api']   = 'admin_scan/admin_scan/checkin_api';
 $route['admin_scan/checkout_api']  = 'admin_scan/admin_scan/checkout_api';
 
+// Panggilan HTTP ke URL: https://silapas.onhacker.co.id/admin_dashboard/expire_bookings
+$route['admin_dashboard/expire_bookings'] = 'admin_dashboard/expire_bookings_http';
 
 // $route['rss'] = 'rss.xml';
 // $route['sitemap'] = "kmzwa8awaa/index";

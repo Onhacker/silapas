@@ -1,128 +1,66 @@
-<?php 
-class M_admin_dashboard extends CI_model{
-    public function arr_kecamatan() {
-        $res = $this->db->order_by("kecamatan")->get("tiger_kecamatan")->result();
-        $arr[''] = '== Pilih Kecamatan ==';
-        foreach ($res as $row) {
-            $arr[$row->id] = $row->kecamatan;
-        }
-        return $arr;
-    }
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
 
-    public function get_status_count()
+class M_admin_dashboard extends CI_Model
+{
+    /**
+     * Tandai otomatis booking yang sudah lewat jadwal sebagai 'expired'.
+     *
+     * Kriteria:
+     *  - Belum check-in (checkin_at IS NULL)
+     *  - Status masih 'pending' atau 'approved'
+     *  - TIMESTAMP(tanggal, jam) < (now - grace_minutes)
+     *
+     * @param int $grace_minutes  Waktu toleransi (menit) setelah jadwal. Default 30 menit.
+     * @param string $tz          Timezone yang dipakai untuk cutoff (default Asia/Makassar).
+     * @return int                Jumlah baris yang di-update.
+     */
+    public function expire_past_bookings(int $grace_minutes = 30, string $tz = 'Asia/Makassar'): int
     {
-        $id_session = $this->session->userdata("admin_session");
-
-    // Ambil data view_users_capil terlebih dahulu (terpisah dari query utama)
-        $asal_tabels = [];
-        $cekper = $this->db->get_where("view_users_capil", ["id_session" => $id_session]);
-        foreach ($cekper->result() as $t) {
-            $asal_tabels[] = $t->nama_tabel;
+        if ($grace_minutes < 0 || $grace_minutes > 1440) {
+            $grace_minutes = 30;
         }
 
-    // Menyusun query utama untuk menghitung status permohonan
-        $this->db->select('status, COUNT(*) as total');
-        $this->db->from('view_semua_paket');
-        
-        if ($this->session->userdata("admin_level") != "admin") {
-        // Jika bukan super admin, batasi berdasarkan desa dan username admin
-            $this->db->where_in('status', [0, 1, 2, 3, 4]);
-            $this->db->where('YEAR(create_date)', date('Y'));
-            $this->db->where('id_desa', $this->session->userdata("id_desa"));
-            $this->db->where('username', $this->session->userdata("admin_username"));
-        } else {
-        // Jika super admin, gunakan asal_tabel berdasarkan hak akses yang ada
-            if (!empty($asal_tabels)) {
-                $this->db->where_in("asal_tabel", $asal_tabels);
-            }
-            $this->db->where_in('status', [2, 3, 4]);
-            $this->db->where('YEAR(create_date)', date('Y'));
+        // Hitung cutoff berdasarkan timezone lokal yang diinginkan
+        $dt = new DateTime('now', new DateTimeZone($tz));
+        if ($grace_minutes > 0) {
+            $dt->modify("-{$grace_minutes} minutes");
         }
+        $cutoff = $dt->format('Y-m-d H:i:s');
 
-    // Kelompokkan hasil berdasarkan status
-        $this->db->group_by('status');
-        $query = $this->db->get();
-
-    // Buat array lengkap untuk status 0-4, dengan nilai default 0
-        $result = array_fill_keys([0, 1, 2, 3, 4], 0);
-        foreach ($query->result() as $row) {
-            $result[$row->status] = $row->total;
-        }
-
-        return $result;
-    }
-
-
-
-    public function arr_desa2($id_kecamatan = "") {
-        if ($id_kecamatan != "") {
-            $this->db->where("id_kecamatan", $id_kecamatan);
-        }
-        $res = $this->db->order_by("desa")->get("tiger_desa")->result();
-        $arr[''] = '== Pilih Desa ==';
-        foreach ($res as $row) {
-            $arr[$row->id] = $row->desa;
-        }
-        return $arr;
-    }
-
-    public function arr_dusun($id_desa = "") {
-        if ($id_desa != "") {
-            $this->db->where("id_desa", $id_desa);
-        }
-        $res = $this->db->order_by("nama_dusun")->get("master_dusun")->result();
-        $arr[''] = '== Pilih Dusun ==';
-        foreach ($res as $row) {
-            $arr[$row->id_dusun] = $row->nama_dusun;
-        }
-        return $arr;
-    }
-
-
-
-    function arr_tahun()
-    {
-        $query = "
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_a
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_b
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_c
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_d
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_e
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_f
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_g
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_h
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_i
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_j
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_k
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_l
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_m
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_n
-        UNION
-        SELECT DISTINCT YEAR(update_time) AS tahun FROM paket_o
-        ORDER BY tahun DESC
+        // Jalankan UPDATE langsung (paling rapi untuk ekspresi TIMESTAMP(tanggal, jam))
+        $sql = "
+        UPDATE booking_tamu
+        SET status = 'expired'
+        WHERE checkin_at IS NULL
+        AND status IN ('pending','approved')
+        AND schedule_dt < ?
         ";
 
-        $res = $this->db->query($query);
-        $arr[""] = "== Semua Tahun ==";
-        foreach ($res->result() as $row) {
-            $arr[$row->tahun] = $row->tahun;
-        }
+        $this->db->query($sql, [$cutoff]);
 
-        return $arr;
+        return $this->db->affected_rows();
     }
 
+    /**
+     * Lihat berapa yang "akan di-expire" tanpa mengubah data (dry-run).
+     */
+    public function count_will_expire(int $grace_minutes = 30, string $tz = 'Asia/Makassar'): int
+    {
+        $dt = new DateTime('now', new DateTimeZone($tz));
+        if ($grace_minutes > 0) {
+            $dt->modify("-{$grace_minutes} minutes");
+        }
+        $cutoff = $dt->format('Y-m-d H:i:s');
 
+        $sql = "
+            SELECT COUNT(*) AS c
+              FROM booking_tamu
+             WHERE checkin_at IS NULL
+               AND status IN ('pending','approved')
+               AND TIMESTAMP(tanggal, jam) < ?
+        ";
+        $row = $this->db->query($sql, [$cutoff])->row_array();
+        return (int)($row['c'] ?? 0);
+    }
 }
