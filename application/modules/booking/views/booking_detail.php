@@ -249,18 +249,48 @@ if (!function_exists('hari_id')) {
           <?php endif; ?>
 
           <?php if ($foto_url): ?>
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-4 kv-label">🖼️ Foto</dt>
-              <dd class="col-sm-8">
-                <img src="<?= $foto_url ?>" alt="Foto Lampiran" class="mini-thumb img-fluid"
-                     data-toggle="modal" data-target="#modalFoto_<?= $kode_safe ?>" loading="lazy">
-                <div class="mt-2">
-                  <a class="btn btn-sm btn-outline-secondary" href="<?= $foto_url ?>" download>
-                    <i class="mdi mdi-download"></i> Unduh Foto
-                  </a>
-                </div>
-              </dd>
-            </div>
+          	<!-- 🖼️ Foto -->
+          	<div class="kv-row row no-gutters" id="row_foto">
+          		<dt class="col-sm-4 kv-label">🖼️ Foto</dt>
+          		<dd class="col-sm-8" id="col_foto">
+          			<?php if (!empty($foto_url)): ?>
+          				<img id="foto_thumb" src="<?= $foto_url ?>" alt="Foto Lampiran"
+          				class="mini-thumb img-fluid"
+          				data-toggle="modal" data-target="#modalFoto_<?= $kode_safe ?>" loading="lazy">
+          				<div class="mt-2">
+          					<a id="foto_download" class="btn btn-sm btn-outline-secondary" href="<?= $foto_url ?>" download>
+          						<i class="mdi mdi-download"></i> Unduh Foto
+          					</a>
+          				</div>
+          				<?php else: ?>
+          					<span class="soft" id="foto_empty">Belum ada foto.</span>
+          				<?php endif; ?>
+          			</dd>
+          		</div>
+
+          		<!-- Modal Foto: selalu ada supaya bisa diupdate via JS -->
+          		<div class="modal fade" id="modalFoto_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
+          			<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+          				<div class="modal-content">
+          					<div class="modal-header py-2">
+          						<h6 class="modal-title"><i class="mdi mdi-image"></i> Foto Lampiran</h6>
+          						<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+          					</div>
+          					<div class="modal-body text-center">
+          						<img id="foto_modal_img" src="<?= $foto_url ?? '' ?>" class="img-fluid" style="max-height:75vh" alt="Foto Lampiran">
+          					</div>
+          					<div class="modal-footer py-2">
+          						<a id="foto_modal_download" class="btn btn-outline-secondary"
+          						href="<?= !empty($foto_url)?$foto_url:'#' ?>" download
+          						style="<?= !empty($foto_url)?'':'display:none' ?>">
+          						<i class="mdi mdi-download"></i> Unduh
+          					</a>
+          					<button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
+          				</div>
+          			</div>
+          		</div>
+          	</div>
+
           <?php endif; ?>
 
         </dl>
@@ -671,7 +701,7 @@ if (!function_exists('hari_id')) {
     });
     const json = await res.json();
     if (!res.ok || !json.ok) throw new Error(json?.msg || `HTTP ${res.status}`);
-
+    toastOK('Upload berhasil');
     setStatus('Berhasil diupload.');
     if (json.url) appendToGallery(json.url);
     resetAll();
@@ -777,5 +807,55 @@ function dataURLtoBlob(dUrl) {
     return n > 1024*1024 ? (n/1024/1024).toFixed(2)+' MB' : (n/1024).toFixed(0)+' KB';
   }
 })();
+</script>
+<script>
+// Toast sederhana (atas kanan)
+function toastOK(msg='Upload berhasil') {
+  let wrap = document.getElementById('toast-wrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'toast-wrap';
+    wrap.style.position = 'fixed';
+    wrap.style.top = '16px';
+    wrap.style.right = '16px';
+    wrap.style.zIndex = 1080;
+    document.body.appendChild(wrap);
+  }
+  const el = document.createElement('div');
+  el.style.background = '#10b981';
+  el.style.color = '#fff';
+  el.style.padding = '10px 14px';
+  el.style.borderRadius = '10px';
+  el.style.marginTop = '8px';
+  el.style.boxShadow = '0 6px 18px rgba(0,0,0,.12)';
+  el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.gap = '.5rem';
+  el.innerHTML = '<i class="mdi mdi-check-circle-outline"></i><span>'+msg+'</span>';
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .35s'; setTimeout(()=>el.remove(), 350); }, 1600);
+}
+
+// Update blok 🖼️ Foto + modal tanpa reload
+function updateFotoSection(url) {
+  const bust = url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now(); // cache-busting
+  const col  = document.getElementById('col_foto');
+  if (!col) return;
+
+  col.innerHTML = `
+    <img id="foto_thumb" src="${bust}" alt="Foto Lampiran"
+         class="mini-thumb img-fluid"
+         data-toggle="modal" data-target="#modalFoto_<?= $kode_safe ?>" loading="lazy">
+    <div class="mt-2">
+      <a id="foto_download" class="btn btn-sm btn-outline-secondary" href="${bust}" download>
+        <i class="mdi mdi-download"></i> Unduh Foto
+      </a>
+    </div>
+  `;
+
+  // update modal
+  const mImg  = document.getElementById('foto_modal_img');
+  const mDown = document.getElementById('foto_modal_download');
+  if (mImg)  mImg.src  = bust;
+  if (mDown) { mDown.href = bust; mDown.style.display = ''; }
+}
 </script>
 
