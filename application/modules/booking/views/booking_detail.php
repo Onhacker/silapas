@@ -294,32 +294,31 @@ if (!function_exists('hari_id')) {
           </ul>
         </div>
         <!-- Foto Dokumentasi (Opsional) -->
-        <div class="border rounded p-3 mb-3">
-        	<div class="kv-label mb-2"><i class="mdi mdi-camera"></i> Foto Dokumentasi <span class="soft">(opsional)</span></div>
+       <!-- simpan kode booking di hidden input atau isi via PHP -->
+<input type="hidden" id="kode_booking" value="<?= html_escape($kode_booking ?? $kode ?? '') ?>">
 
-        	<div class="form-group mb-2">
-        		<input type="file" id="doc_photo" name="image" accept="image/*" capture="environment" class="form-control-file">
-        		<small class="text-muted d-block mt-1">JPG/PNG • Maks 1.5MB • Kamera belakang disarankan.</small>
-        	</div>
+<div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
+  <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
+  <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm">
+    <i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto
+  </button>
+  <small id="pickLabel" class="text-muted">Belum ada file</small>
+</div>
 
-        	<div id="doc_preview_wrap" class="mb-2" style="display:none;">
-        		<img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;">
-        	</div>
+<div id="doc_preview_wrap" class="mb-2" style="display:none;">
+  <img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;">
+</div>
 
-        	<div class="d-flex align-items-center" style="gap:.5rem;">
-        		<button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled>
-        			<i class="mdi mdi-cloud-upload"></i> Upload
-        		</button>
-        		<button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;">
-        			<i class="mdi mdi-close-circle-outline"></i> Batal
-        		</button>
-        	</div>
+<div class="d-flex align-items-center" style="gap:.5rem;">
+  <button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled>
+    <i class="mdi mdi-cloud-upload"></i> Upload
+  </button>
+  <button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;">
+    <i class="mdi mdi-close-circle-outline"></i> Batal
+  </button>
+  <small id="doc_status" class="text-muted ms-2"></small>
+</div>
 
-        	<hr class="my-3">
-
-        	<div class="kv-label mb-2"><i class="mdi mdi-image-multiple"></i> Galeri</div>
-        	<div id="doc_gallery" class="row" style="gap:.75rem .75rem;"></div>
-        </div>
 
 
         <div class="d-flex flex-wrap" style="gap:.5rem;">
@@ -575,3 +574,188 @@ if (!function_exists('hari_id')) {
 
 
 </script>
+<script>
+(function() {
+  const UPLOAD_URL = '<?= site_url("booking/upload_doc_photo") ?>'; // sesuaikan route-mu
+  const MAX_BYTES  = 1.5 * 1024 * 1024;  // 1.5MB
+  const MAX_SIDE   = 1600;               // sisi terpanjang saat resize
+
+  const el = {
+    kode: document.getElementById('kode_booking'),
+    input: document.getElementById('doc_photo'),
+    btnPick: document.getElementById('btnPick'),
+    previewWrap: document.getElementById('doc_preview_wrap'),
+    preview: document.getElementById('doc_preview'),
+    btnUpload: document.getElementById('btnDocUpload'),
+    btnReset: document.getElementById('btnDocReset'),
+    label: document.getElementById('pickLabel'),
+    status: document.getElementById('doc_status'),
+    gallery: document.getElementById('doc_gallery')
+  };
+
+  let dataURL = null; // hasil kompres (akan dikirim)
+
+  el.btnPick.addEventListener('click', () => el.input.click());
+  el.btnReset.addEventListener('click', resetAll);
+  el.input.addEventListener('change', handlePick);
+  el.btnUpload.addEventListener('click', doUpload);
+
+  function resetAll() {
+    el.input.value = '';
+    dataURL = null;
+    el.preview.src = '';
+    el.previewWrap.style.display = 'none';
+    el.btnUpload.disabled = true;
+    el.btnReset.style.display = 'none';
+    el.label.textContent = 'Belum ada file';
+    setStatus('');
+  }
+
+  async function handlePick(e) {
+    const file = e.target.files?.[0];
+    if (!file) { resetAll(); return; }
+
+    // Validasi tipe dasar
+    if (!/^image\/(jpeg|png)$/i.test(file.type)) {
+      setStatus('Hanya JPG/PNG.', true); resetAll(); return;
+    }
+
+    el.label.textContent = file.name;
+
+    try {
+      const out = await fileToCompressedDataURL(file, MAX_SIDE, MAX_BYTES);
+      dataURL = out.dataURL;
+      // tampilkan preview dari hasil kompres
+      el.preview.src = dataURL;
+      el.previewWrap.style.display = 'block';
+      el.btnUpload.disabled = false;
+      el.btnReset.style.display = 'inline-block';
+      setStatus(`Siap diupload (${fmtBytes(out.bytes)}, ${out.width}×${out.height})`);
+    } catch (err) {
+      setStatus(err.message || 'Gagal memproses gambar', true);
+      resetAll();
+    }
+  }
+
+  async function doUpload() {
+    const kode = (el.kode?.value || '').trim();
+    if (!kode) { setStatus('Kode booking kosong.', true); return; }
+    if (!dataURL) { setStatus('Tidak ada gambar.', true); return; }
+
+    lock(true, 'Mengunggah...');
+    try {
+      // Jika CI3 CSRF aktif, tambahkan token di sini
+      // const csrf = {'<?= $this->security->get_csrf_token_name() ?>': '<?= $this->security->get_csrf_hash() ?>'};
+      const body = new URLSearchParams({ kode, image: dataURL /*, ...csrf*/ });
+
+      const res = await fetch(UPLOAD_URL, {
+        method: 'POST',
+        headers: {'X-Requested-With':'XMLHttpRequest', 'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
+        body
+      });
+      const json = await res.json();
+
+      if (!res.ok || !json.ok) {
+        throw new Error(json?.msg || `HTTP ${res.status}`);
+      }
+
+      setStatus('Berhasil diupload.');
+      // tambahkan ke galeri
+      if (json.url) appendToGallery(json.url);
+
+      // opsional: reset setelah sukses
+      resetAll();
+    } catch (err) {
+      setStatus(err.message || 'Upload gagal', true);
+    } finally {
+      lock(false);
+    }
+  }
+
+  function lock(state, text) {
+    el.btnUpload.disabled = state;
+    el.btnPick.disabled = state;
+    el.btnReset.disabled = state;
+    if (state && text) {
+      el.btnUpload.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>'+text;
+    } else {
+      el.btnUpload.innerHTML = '<i class="mdi mdi-cloud-upload"></i> Upload';
+    }
+  }
+
+  function setStatus(msg, isErr=false) {
+    el.status.textContent = msg;
+    el.status.classList.toggle('text-danger', !!isErr);
+    el.status.classList.toggle('text-muted', !isErr);
+  }
+
+  function appendToGallery(url) {
+    const col = document.createElement('div');
+    col.className = 'col-auto';
+    col.style.padding = '0';
+    col.innerHTML = `
+      <a href="${url}" target="_blank" title="Lihat">
+        <img src="${url}" style="width:110px;height:110px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb">
+      </a>`;
+    el.gallery?.appendChild(col);
+  }
+
+  // Kompres: resize ke MAX_SIDE dan turunkan kualitas JPEG sampai <= MAX_BYTES
+  function fileToCompressedDataURL(file, maxSide, maxBytes) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          // Hitung dimensi baru
+          const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+          const w = Math.max(1, Math.floor(img.width * scale));
+          const h = Math.max(1, Math.floor(img.height * scale));
+
+          const cvs = document.createElement('canvas');
+          cvs.width = w; cvs.height = h;
+          const ctx = cvs.getContext('2d');
+
+          // latar putih agar PNG transparan tidak jadi hitam saat konversi ke JPEG
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0,0,w,h);
+          ctx.drawImage(img, 0, 0, w, h);
+
+          let q = 0.92, out = cvs.toDataURL('image/jpeg', q);
+
+          // Turunkan kualitas bertahap sampai ukuran <= maxBytes atau kualitas minimal
+          while (dataURLBytes(out) > maxBytes && q > 0.5) {
+            q -= 0.07;
+            out = cvs.toDataURL('image/jpeg', q);
+          }
+
+          const bytes = dataURLBytes(out);
+          if (bytes > maxBytes) {
+            reject(new Error('Gambar terlalu besar setelah kompres. Coba ambil ulang dengan resolusi lebih rendah.'));
+          } else {
+            resolve({ dataURL: out, width: w, height: h, bytes });
+          }
+        };
+        img.onerror = () => reject(new Error('Gagal membaca gambar.'));
+        img.src = reader.result;
+      };
+      reader.onerror = () => reject(new Error('Gagal membaca berkas.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function dataURLBytes(dUrl) {
+    const base64 = dUrl.split(',')[1] || '';
+    // ukuran bytes ≈ panjang base64 * (3/4) - padding
+    let len = base64.length;
+    if (base64.endsWith('==')) len -= 2;
+    else if (base64.endsWith('=')) len -= 1;
+    return Math.floor(len * 3/4);
+  }
+
+  function fmtBytes(n) {
+    return n > 1024*1024 ? (n/1024/1024).toFixed(2)+' MB' : (n/1024).toFixed(0)+' KB';
+  }
+})();
+</script>
+

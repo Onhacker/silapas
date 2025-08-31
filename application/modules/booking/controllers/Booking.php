@@ -1033,81 +1033,100 @@ public function dokumentasi_list()
 
 public function upload_dokumentasi()
 {
+    // --- Ambil data dari POST form-urlencoded ---
     $kode = trim((string)$this->input->post('kode', true));
-    $b64  = (string)$this->input->post('image', false); // dataURL base64
+    $b64  = (string)$this->input->post('image', false);
 
+    // --- Fallback: coba body JSON ---
     if ($kode === '' || $b64 === '') {
-        return $this->json_exit(["ok"=>false, "msg"=>"Data tidak lengkap"], 400);
+        $rawIn = $this->input->raw_input_stream;
+        if ($rawIn) {
+            $j = json_decode($rawIn, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($j)) {
+                if ($kode === '') $kode = trim((string)($j['kode'] ?? ''));
+                if ($b64  === '') $b64  = (string)($j['image'] ?? '');
+            }
+        }
     }
 
-    // validasi booking
+    // --- Fallback: multipart file (FormData / input type=file) ---
+    if ($b64 === '' && !empty($_FILES)) {
+        $f = $_FILES['image'] ?? $_FILES['doc_photo'] ?? null; // terima 'image' atau 'doc_photo'
+        if ($f && isset($f['error']) && $f['error'] === UPLOAD_ERR_OK) {
+            $tmp  = $f['tmp_name'];
+            $mime = function_exists('finfo_open')
+                ? (function($p){ $fi = finfo_open(FILEINFO_MIME_TYPE); $m = finfo_file($fi,$p); finfo_close($fi); return $m; })($tmp)
+                : mime_content_type($tmp);
+            if (!in_array($mime, ['image/jpeg','image/png'], true)) {
+                return $this->json_exit(["ok"=>false, "msg"=>"Hanya JPG/PNG"], 400);
+            }
+            $data = file_get_contents($tmp);
+            if ($data === false) return $this->json_exit(["ok"=>false,"msg"=>"Gagal membaca file"],500);
+            $b64 = 'data:'.$mime.';base64,'.base64_encode($data);
+        }
+    }
+
+    // --- Validasi minimal ---
+    if ($kode === '' || $b64 === '') {
+        return $this->json_exit(["ok"=>false, "msg"=>"Data tidak lengkap (kode/image)"], 400);
+    }
+
+    // --- Validasi booking ---
     $row = $this->db->get_where('booking_tamu', ['kode_booking'=>$kode])->row_array();
     if (!$row) return $this->json_exit(["ok"=>false, "msg"=>"Booking tidak ditemukan"], 404);
 
-    // parse dataURL (jpg/png)
+    // --- Parse dataURL (jpg/png). Perbaiki spasi→plus dulu agar base64 valid ---
+    $b64 = preg_replace('/\s+/', ' ', $b64);             // normalisasi whitespace
+    $b64 = preg_replace('#^data:\s*image/([^;]+);base64,#i', 'data:image/$1;base64,', $b64);
+    $payload = substr($b64, strpos($b64, ',')+1);
+    $payload = strtr($payload, ' ', '+');                 // JAGA-JAGA: plus jadi spasi pada x-www-form-urlencoded
     if (!preg_match('#^data:image/(png|jpe?g);base64,#i', $b64, $m)) {
         return $this->json_exit(["ok"=>false, "msg"=>"Format gambar tidak valid"], 400);
     }
-    $ext  = strtolower($m[1]) === 'jpeg' ? 'jpg' : strtolower($m[1]);
-    $payload = substr($b64, strpos($b64, ',')+1);
-    $raw = base64_decode($payload, true);
-    if ($raw === false) {
-        return $this->json_exit(["ok"=>false, "msg"=>"Base64 rusak"], 400);
-    }
+    $ext = strtolower($m[1]) === 'jpeg' ? 'jpg' : strtolower($m[1]);
 
-    // batasi ukuran (mis. 5 MB)
-    if (strlen($raw) > 5 * 1024 * 1024) {
+    $bin = base64_decode($payload, true);
+    if ($bin === false) return $this->json_exit(["ok"=>false,"msg"=>"Base64 rusak"],400);
+
+    // --- Batas ukuran (5MB biner, ≈ 6.6MB base64) ---
+    if (strlen($bin) > 5 * 1024 * 1024) {
         return $this->json_exit(["ok"=>false, "msg"=>"Ukuran gambar melebihi 5MB"], 413);
     }
 
-    // verifikasi benar2 gambar
-    $info = @getimagesizefromstring($raw);
-    if ($info === false) {
-        return $this->json_exit(["ok"=>false, "msg"=>"Berkas bukan gambar"], 400);
-    }
+    // --- Verifikasi gambar ---
+    $info = @getimagesizefromstring($bin);
+    if ($info === false) return $this->json_exit(["ok"=>false,"msg"=>"Berkas bukan gambar"],400);
     list($w, $h) = $info;
 
-    // re-encode + resize (maks 1600px sisi terpanjang) buang EXIF
-    $src = @imagecreatefromstring($raw);
+    // --- Re-encode + resize max 1600px, buang EXIF ---
+    $src = @imagecreatefromstring($bin);
     if (!$src) return $this->json_exit(["ok"=>false, "msg"=>"Gagal memproses gambar"], 500);
-
     $maxSide = 1600;
     $scale = min(1, $maxSide / max($w, $h));
     $nw = max(1, (int)floor($w * $scale));
     $nh = max(1, (int)floor($h * $scale));
-
-    // siapkan kanvas (jaga transparansi untuk PNG)
     $dst = imagecreatetruecolor($nw, $nh);
     if ($ext === 'png') { imagealphablending($dst, false); imagesavealpha($dst, true); }
     imagecopyresampled($dst, $src, 0, 0, 0, 0, $nw, $nh, $w, $h);
 
-    // path & nama file
+    // --- Simpan atomik ---
     $dir = FCPATH.'uploads/foto/';
     if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
+        imagedestroy($src); imagedestroy($dst);
         return $this->json_exit(["ok"=>false, "msg"=>"Gagal membuat folder upload"], 500);
     }
-    $safeKode = preg_replace('/[^a-zA-Z0-9_\-]/','_', $kode);
-    $fname = 'dok_'.$safeKode.'_'.date('Ymd_His').'_'.substr(md5(uniqid('', true)),0,6).'.'.$ext;
+    $safeKode = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $kode);
+    $fname   = 'dok_'.$safeKode.'_'.date('Ymd_His').'_'.substr(md5(uniqid('',true)),0,6).'.'.$ext;
     $fullTmp = $dir.'.tmp_'.$fname;
     $full    = $dir.$fname;
 
-    // tulis ke file temp (atomik) + kompresi
-    $ok = false;
-    if ($ext === 'jpg') {
-        $ok = imagejpeg($dst, $fullTmp, 85);
-    } else { // png
-        $ok = imagepng($dst, $fullTmp, 6);
-    }
+    $ok = ($ext === 'jpg') ? imagejpeg($dst, $fullTmp, 85) : imagepng($dst, $fullTmp, 6);
     imagedestroy($src); imagedestroy($dst);
     if (!$ok) return $this->json_exit(["ok"=>false, "msg"=>"Gagal menyimpan berkas"], 500);
-
     @chmod($fullTmp, 0644);
-    if (!@rename($fullTmp, $full)) {
-        @unlink($fullTmp);
-        return $this->json_exit(["ok"=>false, "msg"=>"Gagal memindahkan berkas"], 500);
-    }
+    if (!@rename($fullTmp, $full)) { @unlink($fullTmp); return $this->json_exit(["ok"=>false,"msg"=>"Gagal memindahkan berkas"],500); }
 
-    // hapus foto lama (jika ada kolom foto)
+    // --- Update DB + hapus lama (jika kolom 'foto' ada) ---
     if ($this->db->field_exists('foto', 'booking_tamu')) {
         $old = $row['foto'] ?? null;
         $this->db->where('kode_booking', $kode)->update('booking_tamu', ['foto'=>$fname]);
@@ -1125,5 +1144,6 @@ public function upload_dokumentasi()
         "meta"=> ["w"=>$nw, "h"=>$nh]
     ]);
 }
+
 
 }
