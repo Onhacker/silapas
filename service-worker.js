@@ -1,10 +1,10 @@
-const CACHE_NAME = 'mvin-cache-25';
+const CACHE_NAME = 'mvin-cache-26';
 const OFFLINE_URL = '/assets/offline.html';
 const BASE_PATH = '/';
 
 const urlsToCache = [
-  '/', '/home', '/tracking', '/hal/permohonan', '/hal/alur', '/hal/kontak_capil', '/hal/kontak', '/on_login','/hal/privacy_policy',
-  '/developer/manifest?v=1',
+  '/', '/home','/hal/alur', '/booking', '/hal/kontak', '/on_login','/hal/privacy_policy',
+  '/developer/manifest?v=2',
   '/assets/offline.html',
   '/assets/admin/images/bg-login.mp4',
   '/assets/admin/js/jquery-3.1.1.min.js',
