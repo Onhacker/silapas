@@ -264,14 +264,25 @@ class Booking extends MX_Controller {
         "token_issued_at"       => date('Y-m-d H:i:s'),
         "token_revoked"         => 0
     ];
+    // $okInsert = $this->db->insert("booking_tamu", $insert);
+    // if (!$okInsert) {
+    //     $this->db->trans_rollback();
+    //     return $this->output->set_content_type('application/json')
+    //         ->set_output(json_encode([
+    //             "success"=>false,"title"=>"Gagal Menyimpan","pesan"=>"Terjadi kendala saat menyimpan data booking."
+    //         ]));
+    // }
     $okInsert = $this->db->insert("booking_tamu", $insert);
-    if (!$okInsert) {
-        $this->db->trans_rollback();
-        return $this->output->set_content_type('application/json')
-            ->set_output(json_encode([
-                "success"=>false,"title"=>"Gagal Menyimpan","pesan"=>"Terjadi kendala saat menyimpan data booking."
-            ]));
-    }
+if (!$okInsert) {
+    $e = $this->db->error(); // ['code'=>..., 'message'=>...]
+    log_message('error', 'Insert booking_tamu gagal: ('.$e['code'].') '.$e['message']);
+    return $this->output->set_content_type('application/json')
+        ->set_output(json_encode([
+            "success"=>false,
+            "title"=>"Gagal Menyimpan",
+            "pesan"=>"DB ERROR (".$e['code']."): ".$e['message']
+        ]));
+}
 
     // 6b) INSERT pendamping batch (kalau ada)
     if (!empty($pendampingRows)) {
