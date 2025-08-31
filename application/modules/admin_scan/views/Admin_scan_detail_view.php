@@ -323,9 +323,36 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
               </dd>
             </div>
             <?php if (!empty($pendamping_rows)): ?>
-  <!-- tabel daftar pendamping -->
+  <div class="kv-row row no-gutters">
+    <dt class="col-sm-3 kv-label">📋 Daftar Pendamping</dt>
+    <dd class="col-sm-9 kv-value">
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered mb-0">
+          <thead class="thead-light">
+            <tr>
+              <th style="width:60px;">No</th>
+              <th style="width:200px;">NIK</th>
+              <th>Nama</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($pendamping_rows as $i => $p): ?>
+              <tr>
+                <td class="text-center"><?= $i + 1 ?></td>
+                <td><code><?= $e($p->nik ?? '') ?></code></td>
+                <td><?= $e($p->nama ?? '') ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </dd>
+  </div>
 <?php elseif ((int)($booking->jumlah_pendamping ?? 0) > 0): ?>
-  <!-- teks: Belum ada data pendamping -->
+  <div class="kv-row row no-gutters">
+    <dt class="col-sm-3 kv-label">📋 Daftar Pendamping</dt>
+    <dd class="col-sm-9 kv-value text-muted">Belum ada data pendamping.</dd>
+  </div>
 <?php endif; ?>
 
 
