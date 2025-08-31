@@ -288,6 +288,41 @@ if (!function_exists('hari_id')) {
               </div>
             </div>
           </div>
+           <!-- Uploader Foto Dokumentasi -->
+        <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
+
+        <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
+          <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
+          <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm">
+            <i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto
+          </button>
+          <small id="pickLabel" class="text-muted">Belum ada file</small>
+        </div>
+
+        <div id="doc_preview_wrap" class="mb-2" style="display:none;">
+          <img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;">
+        </div>
+
+        <div class="d-flex align-items-center" style="gap:.5rem;">
+          <button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled>
+            <i class="mdi mdi-cloud-upload"></i> Upload
+          </button>
+          <button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;">
+            <i class="mdi mdi-close-circle-outline"></i> Batal
+          </button>
+          <small id="doc_status" class="text-muted ms-2"></small>
+        </div>
+
+        <!-- Galeri (opsional) -->
+        <div class="kv-row row no-gutters mt-3">
+          <dt class="col-sm-4 kv-label"><i class="mdi mdi-image-multiple"></i> Galeri</dt>
+          <dd class="col-sm-8"><div id="doc_gallery" class="d-flex flex-wrap" style="gap:.75rem;"></div></dd>
+        </div>
+
+      </div>
+    </div><!-- /row -->
+  </div>
+</div>
 
         </dl>
       </div>
@@ -352,41 +387,7 @@ if (!function_exists('hari_id')) {
   </a>
 </div>
 
-        <!-- Uploader Foto Dokumentasi -->
-        <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
-
-        <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
-          <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
-          <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm">
-            <i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto
-          </button>
-          <small id="pickLabel" class="text-muted">Belum ada file</small>
-        </div>
-
-        <div id="doc_preview_wrap" class="mb-2" style="display:none;">
-          <img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;">
-        </div>
-
-        <div class="d-flex align-items-center" style="gap:.5rem;">
-          <button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled>
-            <i class="mdi mdi-cloud-upload"></i> Upload
-          </button>
-          <button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;">
-            <i class="mdi mdi-close-circle-outline"></i> Batal
-          </button>
-          <small id="doc_status" class="text-muted ms-2"></small>
-        </div>
-
-        <!-- Galeri (opsional) -->
-        <div class="kv-row row no-gutters mt-3">
-          <dt class="col-sm-4 kv-label"><i class="mdi mdi-image-multiple"></i> Galeri</dt>
-          <dd class="col-sm-8"><div id="doc_gallery" class="d-flex flex-wrap" style="gap:.75rem;"></div></dd>
-        </div>
-
-      </div>
-    </div><!-- /row -->
-  </div>
-</div>
+       
 
 <!-- Modal Surat Tugas -->
 <?php if ($surat_url): ?>
