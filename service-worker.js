@@ -76,7 +76,15 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
-
+   if (url.pathname.endsWith('api/get_menu_desktop')) {
+    event.respondWith(
+      fetch(new Request(event.request, { cache: 'no-store', credentials: 'include' }))
+        .catch(() => new Response(JSON.stringify({ success:false, menu:'' }), {
+          headers: { 'Content-Type': 'application/json' }
+        }))
+    );
+    return; // jangan teruskan ke strategi default
+  }
   if (req.method !== 'GET') return;
 
   const pathname = url.pathname.split('?')[0];

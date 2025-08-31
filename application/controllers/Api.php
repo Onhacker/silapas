@@ -11,14 +11,26 @@ class Api extends MX_Controller {
 
 
     public function get_menu_desktop()
-    {
+{
     if (!$this->session->userdata("admin_login")) {
+        $this->output
+            ->set_content_type('application/json')
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private')
+            ->set_header('Pragma: no-cache')
+            ->set_header('Expires: 0')
+            ->set_header('Vary: Cookie'); // penting untuk skenario login vs non-login
         echo json_encode(["success" => false, "menu" => ""]);
         return;
     }
 
     $this->load->library('user_agent');
     if ($this->agent->is_mobile()) {
+        $this->output
+            ->set_content_type('application/json')
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private')
+            ->set_header('Pragma: no-cache')
+            ->set_header('Expires: 0')
+            ->set_header('Vary: Cookie');
         echo json_encode(["success" => true, "menu" => ""]);
         return;
     }
@@ -29,53 +41,25 @@ class Api extends MX_Controller {
     $is_admin = ($this->session->userdata('admin_level') === 'admin');
     $is_super = $is_admin && ($this->session->userdata('admin_username') === 'admin');
 
-    $MENU_DEF = [
-        [
-            'label'   => 'Statistik',
-            'url'     => site_url('admin_dashboard'),
-            'icon'    => 'fe-activity',
-            'require' => ['statistik','dashboard','admin_dashboard'],
-        ],
-        [
-            'label'   => 'Scan',
-            'url'     => site_url('admin_scan'),
-            'icon'    => 'mdi mdi-qrcode-scan',
-            'require' => ['checkin/checkout','scan qr','scan'],
-        ],
-        [
-            'label'   => 'Monitoring',
-            'url'     => site_url('admin_dashboard/monitor'),
-            'icon'    => 'fe-eye',
-            'require' => ['monitoring','monitor'],
-        ],
-        [
-            'label'   => 'Data',
-            'url'     => site_url('admin_permohonan'),
-            'icon'    => 'fe-eye',
-            'require' => ['admin_permohonan','admin_permohonan'],
-        ],
-    ];
+    $MENU_DEF = [/* ... tetap ... */];
 
     if ($is_super) {
-        $MENU_DEF[] = [
-            'label' => 'Master',
-            'icon'  => 'fe-git-commit',
-            'children' => [
-                // [ 'label'=>'Master Permohonan', 'url'=>site_url('master_permohonan'), 'require'=>'master permohonan' ],
-                // [ 'label'=>'Master Syarat',     'url'=>site_url('master_syarat'),     'require'=>'master syarat' ],
-                // [ 'label'=>'Master Inputan',    'url'=>site_url('master_inputan'),    'require'=>'master inputan' ],
-                // [ 'label'=>'Manajemen User Capil','url'=>site_url('admin_user/capil'), 'require'=>['manajemen user capil','user capil'] ],
-                [ 'label'=>'Manajemen User','url'=>site_url('admin_user'),        'require'=>['manajemen user','user '] ],
-            ]
-        ];
+        $MENU_DEF[] = [/* ... tetap ... */];
     }
 
-    // Penting: KEMBALIKAN HANYA LI TANPA UL ROOT
     $html = build_menu($MENU_DEF, [
         'li_has_child_class' => 'has-submenu',
         'li_active_class'    => 'active-menu',
         'child_ul_class'     => 'submenu',
     ]);
+
+    // header anti-cache untuk respons sukses juga
+    $this->output
+        ->set_content_type('application/json')
+        ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private')
+        ->set_header('Pragma: no-cache')
+        ->set_header('Expires: 0')
+        ->set_header('Vary: Cookie');
 
     echo json_encode([
         "success" => true,
