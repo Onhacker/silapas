@@ -161,26 +161,26 @@ if (!empty($filters['unit_tujuan'])) {
 
 public function detail($kode_booking = null)
 {
-    if (empty($kode_booking)) {
-        show_404();
-    }
+    if (empty($kode_booking)) { show_404(); }
 
-    // Ambil detail
     $row = $this->mbt->get_detail_by_kode($kode_booking);
-    if (!$row) {
-        show_404();
-    }
+    if (!$row) { show_404(); }
+
+    // ⬇️ Tambahan: ambil pendamping
+    $pendamping_rows = $this->mbt->get_pendamping_by_kode($kode_booking);
+
     $data['controller'] = get_class($this);
-     $data['title']      = 'Detail Booking: '.$kode_booking;
+    $data['title']      = 'Detail Booking: '.$kode_booking;
     $data['deskripsi']  = 'Rincian lengkap data booking tamu';
     $data['subtitle']   = 'Detail Booking: '.$kode_booking;
 
-    $data['row']        = $row;
+    $data['row']             = $row;
+    $data['pendamping_rows'] = $pendamping_rows; // ⬅️ kirim ke view
 
-    // Render view detail
     $data['content'] = $this->load->view('Admin_permohonan_detail', $data, true);
     $this->render($data);
 }
+
 
 public function lampiran($jenis = '', $kode = '')
 {

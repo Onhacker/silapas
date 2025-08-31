@@ -135,6 +135,7 @@ class M_admin_permohonan extends CI_Model {
 
     public function get_detail_by_kode($kode_booking)
     {
+
         return $this->db
             ->select('bt.*, u.nama_unit AS unit_tujuan_nama, u.nama_pejabat AS pejabat_unit', false)
             ->from('booking_tamu bt')
@@ -145,4 +146,13 @@ class M_admin_permohonan extends CI_Model {
             ->get()
             ->row();
     }
+
+    public function get_pendamping_by_kode($kode_booking)
+{
+    return $this->db
+        ->order_by('id_pendamping', 'ASC')
+        ->get_where('booking_pendamping', ['kode_booking' => $kode_booking])
+        ->result();
+}
+
 }

@@ -142,6 +142,43 @@ if (is_file($qr_abs)) {
                 </tr>
 
                 <tr><th>👥 Jumlah Pendamping</th><td><?php echo htmlspecialchars($r->jumlah_pendamping ?? '0'); ?></td></tr>
+                <?php
+  // jika di view belum ada $r, kamu bisa set $r = $row; di bagian atas view.
+  $pendamping_rows = $pendamping_rows ?? [];
+?>
+
+<?php if (!empty($pendamping_rows)): ?>
+<tr>
+  <th>📋 Daftar Pendamping</th>
+  <td>
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered mb-0">
+        <thead class="thead-light">
+          <tr>
+            <th style="width:60px;">No</th>
+            <th style="width:200px;">NIK</th>
+            <th>Nama</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($pendamping_rows as $i => $p): ?>
+            <tr>
+              <td class="text-center"><?= $i + 1 ?></td>
+              <td><code><?= htmlspecialchars($p->nik ?? '', ENT_QUOTES, 'UTF-8') ?></code></td>
+              <td><?= htmlspecialchars($p->nama ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </td>
+</tr>
+<?php elseif ((int)($r->jumlah_pendamping ?? 0) > 0): ?>
+<tr>
+  <th>📋 Daftar Pendamping</th>
+  <td class="text-muted">Belum ada data pendamping.</td>
+</tr>
+<?php endif; ?>
 
                 <!-- Lampiran -->
                 <tr>
