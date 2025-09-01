@@ -289,6 +289,38 @@ public function checkout_api(){
     $pdf->Output($filename, $dl ? 'D' : 'I');
 }
 
+public function pernyataan_pdf($kode_booking)
+{
+    // Ambil data
+    $row = $this->db->get_where('booking_tamu', ['kode_booking' => $kode_booking])->row();
+    if (!$row) show_error('Booking tidak ditemukan.', 404);
+
+    $data['booking'] = $row;
+    // pastikan path view benar (admin_scan/booking_pdf)
+    $html = $this->load->view('admin_scan/pernyataan_pdf', $data, TRUE);
+
+    $this->load->library('pdf'); // TCPDF wrapper
+
+    // A5 Landscape = 210mm x 148mm => setengah A4 (tingginya setengah)
+    $pdf = new Pdf('P', 'mm', 'F4', true, 'UTF-8', false);
+
+    // Hilangkan header/footer default agar tidak makan ruang
+    if (method_exists($pdf, 'setPrintHeader')) $pdf->setPrintHeader(false);
+    if (method_exists($pdf, 'setPrintFooter')) $pdf->setPrintFooter(false);
+
+    // Margin kecil dan tanpa auto page break agar tak “lompat” ke halaman 2
+    $pdf->SetMargins(10, 10, 10);
+    $pdf->SetAutoPageBreak(false, 6);
+
+    $pdf->AddPage();
+    $pdf->writeHTML($html, true, false, true, false, '');
+
+    // tampilkan inline kalau dipanggil dengan ?inline=1
+    $inline = (int)$this->input->get('inline');
+    // $pdf->Output('Ticket_'.$kode_booking.'.pdf', $inline ? 'I' : 'D');
+    $pdf->Output($filename, $dl ? 'D' : 'I');
+}
+
 
 	// Tambahkan ke class Admin_scan
 public function upload_doc_photo()

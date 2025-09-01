@@ -142,7 +142,7 @@ $printed_at = fmt_hari_tanggal(time(), true);
         <table class="meta">
           <tr><td class="k">Nama Tamu</td>     <td class="v"><?= e($booking->nama_tamu) ?></td></tr>
           <tr><td class="k">Jabatan</td>       <td class="v"><?= e($booking->jabatan) ?></td></tr>
-          <tr><td class="k">NIK</td>           <td class="v"><?= e($booking->nik) ?></td></tr>
+          <tr><td class="k">NIK/NIP/NRP</td>           <td class="v"><?= e($booking->nik) ?></td></tr>
           <tr><td class="k">No. HP</td>        <td class="v"><?= e($booking->no_hp) ?></td></tr>
           <tr><td class="k">Instansi Asal</td> <td class="v"><?= e($instansi_asal) ?></td></tr>
           <tr><td class="k">Unit Tujuan</td>   <td class="v"><?= e($unit_nama) ?></td></tr>

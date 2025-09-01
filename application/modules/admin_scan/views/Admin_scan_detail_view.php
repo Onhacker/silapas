@@ -71,8 +71,14 @@ if (!empty($booking->checkin_at) && !empty($booking->checkout_at)) {
   $durasi_text = ($jam>0? $jam.' jam ' : '').$mnt.' menit';
 }
 
-// PDF URL (admin-only, tanpa token)
+// PDF tiket & pernyataan
 $pdf_url = site_url('admin_scan/print_pdf/'.rawurlencode($booking->kode_booking ?? '')).'?inline=1&ts='.time();
+
+// pastikan variabel pernyataan ada (pakai nama $pernyataan_pdf seperti di embed)
+$pernyataan_pdf = $pernyataan_pdf
+  ?? ($pdf_pernyataan ?? null)
+  ?? site_url('admin_scan/pernyataan_pdf/'.rawurlencode($booking->kode_booking ?? '')).'?inline=1&ts='.time();
+
 
 // Jadwal kunjungan (hari + tanggal + jam)
 $jadwal_text = '-';
@@ -157,10 +163,200 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
     </div>
   </div>
 
-  <!-- BARIS ATAS: Kamera (kiri) & PDF (kanan) -->
+  <!-- ======================== BARIS ATAS ======================== -->
+  <!-- Detail (kiri) & Kamera (kanan) -->
   <div class="row">
-    <!-- Kamera Dokumentasi -->
-    <div class="col-lg-6">
+    <!-- Kiri: DETAIL BOOKING -->
+    <div class="col-lg-7">
+      <div class="card kv-card shadow-sm mb-3">
+        <div class="card-body">
+          <div class="kv-head pb-3 mb-3">
+            <h6 class="mb-0"><i class="mdi mdi-information-outline"></i> Detail Booking</h6>
+          </div>
+
+          <div class="row">
+            <div class="col-12">
+              <dl class="mb-0">
+
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">👤 Nama Tamu</dt>
+                  <dd class="col-sm-9 kv-value"><?= $e($booking->nama_tamu ?? '-') ?></dd>
+                </div>
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">📍 Alamat</dt>
+                  <dd class="col-sm-9 kv-value"><?= $e($booking->alamat ?? '-') ?></dd>
+                </div>
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">🎂 Tempat/Tanggal Lahir</dt>
+                  <dd class="col-sm-9 kv-value"><?= $e($booking->tempat_lahir ?? '-') ?>, <?= tgl_view($e($booking->tanggal_lahir ?? '-')) ?></dd>
+                </div>
+
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">🧰 Jabatan</dt>
+                  <dd class="col-sm-9 kv-value"><?= $e($booking->jabatan ?? '-') ?></dd>
+                </div>
+
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">🪪 NIK/NIP/NRP</dt>
+                  <dd class="col-sm-9 kv-value">
+                    <?= $e($booking->nik ?? '-') ?>
+                    <?php if (!empty($booking->nik)): ?>
+                      <button type="button" class="btn btn-light btn-sm ml-1 btn-copy" data-clip="<?= $e($booking->nik) ?>">
+                        <i class="mdi mdi-content-copy"></i> Salin
+                      </button>
+                    <?php endif; ?>
+                  </dd>
+                </div>
+
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">📞 No. HP</dt>
+                  <dd class="col-sm-9 kv-value">
+                    <?= $e($booking->no_hp ?? '-') ?>
+                    <?php if ($wa_digits): ?>
+                      <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $wa_digits ?>">
+                        <i class="mdi mdi-whatsapp"></i>
+                      </a>
+                    <?php endif; ?>
+                  </dd>
+                </div>
+
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">🏷️ Instansi Asal</dt>
+                  <dd class="col-sm-9 kv-value">
+                    <?= $e(($booking->target_instansi_nama ?? '') ?: (($booking->instansi ?? '') ?: '-')) ?>
+                  </dd>
+                </div>
+
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">🎯 Unit Tujuan</dt>
+                  <dd class="col-sm-9 kv-value"><?= $e($unit_nama) ?></dd>
+                </div>
+
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">👔 Nama <?= $e($unit_nama) ?></dt>
+                  <dd class="col-sm-9 kv-value"><?= $e($booking->nama_petugas_instansi ?? '-') ?></dd>
+                </div>
+
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">📝 Keperluan</dt>
+                  <dd class="col-sm-9 kv-value">
+                    <div class="keperluan-box"><?= nl2br($e($booking->keperluan ?? '-')) ?></div>
+                  </dd>
+                </div>
+
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">📅 Jadwal Kunjungan</dt>
+                  <dd class="col-sm-9 kv-value"><?= $e($jadwal_text) ?></dd>
+                </div>
+
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">👥 Pendamping</dt>
+                  <dd class="col-sm-9 kv-value">
+                    <span class="badge badge-pill badge-primary" style="font-size:.9rem;">
+                      <?= (int)($booking->jumlah_pendamping ?? 0) ?> orang
+                    </span>
+                  </dd>
+                </div>
+
+                <?php if (!empty($pendamping_rows)): ?>
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">📋 Daftar Pendamping</dt>
+                  <dd class="col-sm-9 kv-value">
+                    <div class="table-responsive">
+                      <table class="table table-sm table-bordered mb-0">
+                        <thead class="thead-light">
+                          <tr>
+                            <th style="width:60px;">No</th>
+                            <th style="width:200px;">NIK</th>
+                            <th>Nama</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php foreach ($pendamping_rows as $i => $p): ?>
+                            <tr>
+                              <td class="text-center"><?= $i + 1 ?></td>
+                              <td><code><?= $e($p->nik ?? '') ?></code></td>
+                              <td><?= $e($p->nama ?? '') ?></td>
+                            </tr>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    </div>
+                  </dd>
+                </div>
+                <?php elseif ((int)($booking->jumlah_pendamping ?? 0) > 0): ?>
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">📋 Daftar Pendamping</dt>
+                  <dd class="col-sm-9 kv-value text-muted">Belum ada data pendamping.</dd>
+                </div>
+                <?php endif; ?>
+
+                <?php if (!empty($checkin_text)): ?>
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">⏱️ Check-in</dt>
+                  <dd class="col-sm-9 kv-value">
+                    <?= $e($checkin_text) ?>
+                    <?php if (!empty($petugas_checkin)): ?>
+                      <div class="small text-muted">👮 Petugas: <?= $e($petugas_checkin) ?></div>
+                    <?php endif; ?>
+                  </dd>
+                </div>
+                <?php endif; ?>
+
+                <?php if (!empty($checkout_text)): ?>
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">✅ Checkout</dt>
+                  <dd class="col-sm-9 kv-value">
+                    <?= $e($checkout_text) ?>
+                    <?php if (!empty($petugas_checkout)): ?>
+                      <div class="small text-muted">👮 Petugas: <?= $e($petugas_checkout) ?></div>
+                    <?php endif; ?>
+                  </dd>
+                </div>
+                <?php endif; ?>
+
+                <?php if (!empty($durasi_text)): ?>
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">🕒 Durasi</dt>
+                  <dd class="col-sm-9 kv-value"><?= $e($durasi_text) ?></dd>
+                </div>
+                <?php endif; ?>
+
+                <div class="kv-row row no-gutters">
+                  <dt class="col-sm-3 kv-label">🖼️ Foto</dt>
+                  <dd class="col-sm-9 kv-value">
+                    <div id="lampiranFotoBox">
+                      <?php if (!empty($foto_url)): ?>
+                        <img
+                          src="<?= $foto_url ?>"
+                          alt="Foto Lampiran"
+                          class="img-thumbnail js-lampiran-foto"
+                          style="max-height:120px;object-fit:cover;cursor:zoom-in;display:block"
+                          data-full="<?= $foto_url ?>"
+                        >
+                        <a class="btn btn-sm btn-outline-secondary mt-2" href="<?= $foto_url ?>" download>
+                          <i class="mdi mdi-download"></i> Unduh Foto
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2 ml-1"
+                                data-toggle="modal" data-target="#modalFotoLampiran">
+                          <i class="mdi mdi-magnify-plus"></i> Perbesar
+                        </button>
+                      <?php else: ?>
+                        <div class="text-muted">Belum ada foto lampiran.</div>
+                      <?php endif; ?>
+                    </div>
+                  </dd>
+                </div>
+
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kanan: Kamera Dokumentasi -->
+    <div class="col-lg-5">
       <div class="card doc-card shadow-sm mb-3 cam-card">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
@@ -214,8 +410,12 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
         <?php endif; ?>
       </div>
     </div>
+  </div>
 
-    <!-- PDF Ticket -->
+  <!-- ======================== BARIS BAWAH ======================== -->
+  <!-- PDF Ticket (kiri) & Surat Pernyataan (kanan) -->
+  <div class="row">
+    <!-- Kiri: PDF Ticket -->
     <div class="col-lg-6">
       <div class="card shadow-sm pdf-card mb-3">
         <div class="card-body">
@@ -238,240 +438,27 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- DETAIL FULL WIDTH -->
-  <div class="card kv-card shadow-sm mb-3">
-    <div class="card-body">
-      <div class="kv-head pb-3 mb-3">
-        <h6 class="mb-0"><i class="mdi mdi-information-outline"></i> Detail Booking</h6>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
-          <dl class="mb-0">
-
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">👤 Nama Tamu</dt>
-              <dd class="col-sm-9 kv-value"><?= $e($booking->nama_tamu ?? '-') ?></dd>
-            </div>
-
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">🧰 Jabatan</dt>
-              <dd class="col-sm-9 kv-value"><?= $e($booking->jabatan ?? '-') ?></dd>
-            </div>
-
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">🪪 NIK</dt>
-              <dd class="col-sm-9 kv-value">
-                <?= $e($booking->nik ?? '-') ?>
-                <?php if (!empty($booking->nik)): ?>
-                  <button type="button" class="btn btn-light btn-sm ml-1 btn-copy" data-clip="<?= $e($booking->nik) ?>">
-                    <i class="mdi mdi-content-copy"></i> Salin
-                  </button>
-                <?php endif; ?>
-              </dd>
-            </div>
-
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">📞 No. HP</dt>
-              <dd class="col-sm-9 kv-value">
-                <?= $e($booking->no_hp ?? '-') ?>
-                <?php if ($wa_digits): ?>
-                  <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $wa_digits ?>">
-                    <i class="mdi mdi-whatsapp"></i>
-                  </a>
-                <?php endif; ?>
-              </dd>
-            </div>
-
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">🏷️ Instansi Asal</dt>
-              <dd class="col-sm-9 kv-value">
-                <?= $e(($booking->target_instansi_nama ?? '') ?: (($booking->instansi ?? '') ?: '-')) ?>
-              </dd>
-            </div>
-
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">🎯 Unit Tujuan</dt>
-              <dd class="col-sm-9 kv-value"><?= $e($unit_nama) ?></dd>
-            </div>
-
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">👔 Nama <?= $e($unit_nama) ?></dt>
-              <dd class="col-sm-9 kv-value"><?= $e($booking->nama_petugas_instansi ?? '-') ?></dd>
-            </div>
-
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">📝 Keperluan</dt>
-              <dd class="col-sm-9 kv-value">
-                <div class="keperluan-box"><?= nl2br($e($booking->keperluan ?? '-')) ?></div>
-              </dd>
-            </div>
-
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">📅 Jadwal Kunjungan</dt>
-              <dd class="col-sm-9 kv-value"><?= $e($jadwal_text) ?></dd>
-            </div>
-
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">👥 Pendamping</dt>
-              <dd class="col-sm-9 kv-value">
-                <span class="badge badge-pill badge-primary" style="font-size:.9rem;">
-                  <?= (int)($booking->jumlah_pendamping ?? 0) ?> orang
-                </span>
-              </dd>
-            </div>
-            <?php if (!empty($pendamping_rows)): ?>
-              <div class="kv-row row no-gutters">
-                <dt class="col-sm-3 kv-label">📋 Daftar Pendamping</dt>
-                <dd class="col-sm-9 kv-value">
-                  <div class="table-responsive">
-                    <table class="table table-sm table-bordered mb-0">
-                      <thead class="thead-light">
-                        <tr>
-                          <th style="width:60px;">No</th>
-                          <th style="width:200px;">NIK</th>
-                          <th>Nama</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <?php foreach ($pendamping_rows as $i => $p): ?>
-                          <tr>
-                            <td class="text-center"><?= $i + 1 ?></td>
-                            <td><code><?= $e($p->nik ?? '') ?></code></td>
-                            <td><?= $e($p->nama ?? '') ?></td>
-                          </tr>
-                        <?php endforeach; ?>
-                      </tbody>
-                    </table>
-                  </div>
-                </dd>
-              </div>
-              <?php elseif ((int)($booking->jumlah_pendamping ?? 0) > 0): ?>
-                <div class="kv-row row no-gutters">
-                  <dt class="col-sm-3 kv-label">📋 Daftar Pendamping</dt>
-                  <dd class="col-sm-9 kv-value text-muted">Belum ada data pendamping.</dd>
-                </div>
-              <?php endif; ?>
-
-
-            <?php if ($checkin_text): ?>
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">⏱️ Check-in</dt>
-              <dd class="col-sm-9 kv-value">
-                <?= $e($checkin_text) ?>
-                <?php if ($petugas_checkin): ?>
-                  <div class="small text-muted">👮 Petugas: <?= $e($petugas_checkin) ?></div>
-                <?php endif; ?>
-              </dd>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($checkout_text): ?>
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">✅ Checkout</dt>
-              <dd class="col-sm-9 kv-value">
-                <?= $e($checkout_text) ?>
-                <?php if ($petugas_checkout): ?>
-                  <div class="small text-muted">👮 Petugas: <?= $e($petugas_checkout) ?></div>
-                <?php endif; ?>
-              </dd>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($durasi_text): ?>
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">🕒 Durasi</dt>
-              <dd class="col-sm-9 kv-value"><?= $e($durasi_text) ?></dd>
-            </div>
-            <?php endif; ?>
-
-            <?php if (!empty($surat_url)): ?>
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">📄 Surat Tugas</dt>
-              <dd class="col-sm-9 kv-value">
-                <?php
-                  $kode_safe    = preg_replace('/[^a-zA-Z0-9_\-]/','_', $booking->kode_booking ?? 'BOOK');
-                  $modalSuratID = 'modalSuratTugas_'.$kode_safe;
-                  $path   = parse_url($surat_url ?? '', PHP_URL_PATH) ?: '';
-                  $ext    = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-                  $is_pdf = in_array($ext, ['pdf']);
-                  $is_img = in_array($ext, ['jpg','jpeg','png','gif','webp']);
-                ?>
-                <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#<?= $modalSuratID ?>">
-                  <i class="mdi mdi-file-document"></i> Lihat
-                </button>
-                <!-- Unduh di bawah pratinjau foto? Surat tetap tombol biasa -->
-                <a class="btn btn-sm btn-outline-secondary ml-1" href="<?= $surat_url ?>" download>
-                  <i class="mdi mdi-download"></i> Unduh
+    <!-- Kanan: SURAT PERNYATAAN (PDF) -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm pdf-card mb-3">
+        <div class="card-body">
+          <h6 class="mb-2 d-flex align-items-center">
+            <i class="mdi mdi-file-pdf-box mr-1"></i> Surat Pernyataan (PDF)
+          </h6>
+          <div class="pdf-frame">
+            <object data="<?= $pernyataan_pdf ?>" type="application/pdf">
+              <div class="p-3 bg-white">
+                <div class="mb-2 font-weight-bold">Pratinjau PDF tidak didukung browser ini.</div>
+                <a href="<?= $pernyataan_pdf ?>" target="_blank" class="btn btn-sm btn-outline-primary">
+                  Buka PDF di tab baru
                 </a>
-
-                <!-- Modal pratinjau Surat Tugas -->
-                <div class="modal fade" id="<?= $modalSuratID ?>" tabindex="-1" role="dialog" aria-hidden="true">
-                  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                      <div class="modal-header py-2">
-                        <h6 class="modal-title mb-0"><i class="mdi mdi-file-document"></i> Surat Tugas</h6>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
-                          <span aria-hidden="true">&times;</span>
-                        </button>
-                      </div>
-                      <div class="modal-body p-0" style="background:#f8f9fa;">
-                        <?php if ($is_pdf): ?>
-                          <object data="<?= $surat_url ?>#view=FitH" type="application/pdf" style="width:100%;height:80vh;border:0;">
-                            <div class="p-3">
-                              Browser Anda tidak mendukung pratinjau PDF.
-                              <a class="btn btn-sm btn-primary ml-1" href="<?= $surat_url ?>" target="_blank" rel="noopener">Buka di tab baru</a>
-                            </div>
-                          </object>
-                        <?php elseif ($is_img): ?>
-                          <img src="<?= $surat_url ?>" class="img-fluid d-block mx-auto" style="max-height:80vh;object-fit:contain" alt="Surat Tugas">
-                        <?php else: ?>
-                          <div class="p-4">Format file tidak didukung untuk pratinjau. Silakan unduh berkas.</div>
-                        <?php endif; ?>
-                      </div>
-                      <div class="modal-footer py-2">
-                        <a class="btn btn-outline-secondary" href="<?= $surat_url ?>" download>
-                          <i class="mdi mdi-download"></i> Unduh
-                        </a>
-                        <button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </dd>
-            </div>
-            <?php endif; ?>
-
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-3 kv-label">🖼️ Foto</dt>
-              <dd class="col-sm-9 kv-value">
-                <div id="lampiranFotoBox">
-                  <?php if (!empty($foto_url)): ?>
-                    <img
-                      src="<?= $foto_url ?>"
-                      alt="Foto Lampiran"
-                      class="img-thumbnail js-lampiran-foto"
-                      style="max-height:120px;object-fit:cover;cursor:zoom-in;display:block"
-                      data-full="<?= $foto_url ?>"
-                    >
-                    <!-- Tombol unduh di bawah foto -->
-                    <a class="btn btn-sm btn-outline-secondary mt-2" href="<?= $foto_url ?>" download>
-                      <i class="mdi mdi-download"></i> Unduh Foto
-                    </a>
-                    <button type="button" class="btn btn-sm btn-outline-primary mt-2 ml-1"
-                            data-toggle="modal" data-target="#modalFotoLampiran">
-                      <i class="mdi mdi-magnify-plus"></i> Perbesar
-                    </button>
-                  <?php else: ?>
-                    <div class="text-muted">Belum ada foto lampiran.</div>
-                  <?php endif; ?>
-                </div>
-              </dd>
-            </div>
-
-          </dl>
+              </div>
+            </object>
+          </div>
+          <small class="text-muted d-block mt-2">
+            Catatan: Jika PDF tidak otomatis muncul, klik “Buka PDF di tab baru”.
+          </small>
         </div>
       </div>
     </div>

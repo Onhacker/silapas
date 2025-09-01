@@ -163,6 +163,30 @@ if (!function_exists('hari_id')) {
               </button>
             </dd>
           </div>
+         <style>
+  .kv-label .ico {
+    display:inline-block; width:1.25em; text-align:center; margin-right:.4rem;
+  }
+</style>
+
+<div class="kv-row row no-gutters">
+  <dt class="col-sm-4 kv-label">
+    <span class="ico" aria-hidden="true">📍</span> Alamat
+  </dt>
+  <dd class="col-sm-8 kv-value">
+    <?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?>
+  </dd>
+</div>
+
+<div class="kv-row row no-gutters">
+  <dt class="col-sm-4 kv-label">
+    <span class="ico" aria-hidden="true">🎂</span> Tempat/Tanggal Lahir
+  </dt>
+  <dd class="col-sm-8 kv-value">
+    <?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?>
+  </dd>
+</div>
+
 
           <div class="kv-row row no-gutters align-items-center">
             <dt class="col-sm-4 kv-label">📱 No. HP</dt>
@@ -185,7 +209,7 @@ if (!function_exists('hari_id')) {
             <dd class="col-sm-8"><div class="longtext"><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?></div></dd>
           </div>
 
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">📅 Tanggal</dt><dd class="col-sm-8 kv-value"><?= $hari_tgl ?></dd></div>
+          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">📅 Tanggal Kunjungan</dt><dd class="col-sm-8 kv-value"><?= $hari_tgl ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏰ Jam</dt><dd class="col-sm-8 kv-value"><?= $jam ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👥 Jumlah Pendamping</dt><dd class="col-sm-8 kv-value"><span class="badge badge-pill badge-primary" style="font-size:.9rem;"><?= (int)$booking->jumlah_pendamping ?> orang</span></dd></div>
 

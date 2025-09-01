@@ -256,6 +256,10 @@ class Booking extends MX_Controller {
             "tanggal"               => $tanggal,
             "jam"                   => $jam,
             "foto"                  => $foto,
+            // $mysqlDate = $this->normalize_date_mysql($posted['tanggal'] ?? '');
+            "tanggal_lahir"         => $this->normalize_date_mysql($data['tanggal_lahir'] ?? ''),
+            "tempat_lahir"         => $data["tempat_lahir"],
+            "alamat"                => $data["alamat"],
             "status"                => "approved",
             "access_token"          => $access_token,
             "token_issued_at"       => date('Y-m-d H:i:s'),
@@ -361,6 +365,33 @@ class Booking extends MX_Controller {
     /** =========================
      *  WA & Util
      *  ========================= */
+    // helper: parse berbagai format jadi Y-m-d
+private function normalize_date_mysql(?string $s): ?string {
+    if (!$s) return null;
+    $s = trim($s);
+    // Samakan delimiter
+    $s = str_replace(['/', '.', ' '], '-', $s);
+
+    $formats = [
+        'Y-m-d',   // 2025-10-04 (HTML5 date input)
+        'd-m-Y',   // 04-10-2025
+        'm-d-Y',   // 10-04-2025 (kalau memang dipakai)
+        'd-m-y',   // 04-10-25
+    ];
+
+    foreach ($formats as $fmt) {
+        $dt = DateTime::createFromFormat($fmt, $s);
+        // Pastikan presisi format (tidak “auto-correct”)
+        $errors = DateTime::getLastErrors();
+        if ($dt && empty($errors['warning_count']) && empty($errors['error_count'])) {
+            // Confirm kembali sama persis (menghindari 04-13-2025 dst)
+            if ($dt->format($fmt) === $s) {
+                return $dt->format('Y-m-d');
+            }
+        }
+    }
+    return null; // gagal parse
+}
 
     public function wa_notify()
     {
@@ -646,13 +677,19 @@ class Booking extends MX_Controller {
         // Identitas tamu
         $this->form_validation->set_rules('nama_tamu','Nama Tamu','required|trim|min_length[3]');
         $this->form_validation->set_rules('jabatan','Jabatan','required|trim');
+        $this->form_validation->set_rules('tempat_lahir','Tempat Lahir','required|trim');
+        $this->form_validation->set_rules('alamat','Alamat','required|trim');
+        $this->form_validation->set_rules('tanggal_lahir','Tanggal Lahir','required|trim');
 
         // NIK 16 digit
+        // NIK 16 | NIP 18/9 | NRP 8–9 digit
         $this->form_validation->set_rules(
-            'nik','NIK',
-            'required|trim|regex_match[/^\d{16}$/]',
-            ['regex_match' => '* %s harus 16 digit angka']
+            'nik',
+            'NIK/NIP/NRP',
+            'required|trim|regex_match[/^(?:\d{16}|\d{18}|\d{8,9})$/]',
+            ['regex_match' => '* %s harus: NIK 16 digit, NIP 18/9 digit, atau NRP 8–9 digit (angka saja)']
         );
+
 
         // No HP 10–13 digit
         $this->form_validation->set_rules(

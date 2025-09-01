@@ -43,30 +43,113 @@
             <div class="header-title">Data Tamu</div>
             <div class="row">
               <div class="col-md-6">
-                <div class="form-group mb-3">
+                <div class="form-group mb-2">
                   <label for="nama_tamu" class="form-label label-required">Nama Tamu</label>
                   <input type="text" id="nama_tamu" name="nama_tamu" class="form-control" placeholder="Nama lengkap" required>
                 </div>
               </div>
 
               <div class="col-md-6">
-                <div class="form-group mb-3">
-                  <label for="nik" class="form-label label-required">NIK</label>
-                  <input type="text" id="nik" name="nik" class="form-control"
-                         placeholder="16 digit NIK" inputmode="numeric" pattern="\d{16}" maxlength="16" required>
-                  <small class="help-hint">Masukkan tepat 16 digit.</small>
+                <div class="form-group mb-2">
+  <label for="id_number" class="form-label label-required">NIK/NIP/NRP</label>
+  <input
+    type="text"
+    id="id_number"
+    name="nik"                    
+    class="form-control"
+    placeholder="NIK 16 / NIP 18 atau 9 / NRP 8–9"
+    inputmode="numeric"
+    pattern="(?:\d{8,9}|\d{16}|\d{18})" 
+    maxlength="18"                     
+    required>
+  <small id="id_help" class="help-hint">
+    Boleh: <b>NIK</b> 16 digit • <b>NIP</b> 18 atau 9 digit • <b>NRP</b> 8–9 digit.
+  </small>
+</div>
+
+<script>
+  (function(){
+    const input = document.getElementById('id_number');
+    const help  = document.getElementById('id_help');
+    // sama dengan pattern di atribut (tanpa ^$ karena pattern HTML sudah implicit full-match)
+    const rx = /^(?:\d{8,9}|\d{16}|\d{18})$/;
+
+    // hanya angka + batasi 18 digit
+    function sanitize() {
+      const digits = (input.value || '').replace(/\D/g, '').slice(0, 18);
+      if (digits !== input.value) input.value = digits;
+    }
+
+    // pesan validasi yang jelas
+    function setValidity() {
+      if (!input.value) { input.setCustomValidity('Wajib diisi'); return; }
+      if (!rx.test(input.value)) {
+        input.setCustomValidity(
+          'Format tidak valid. Isi salah satu: NIK 16 digit, NIP 18/9 digit, atau NRP 8–9 digit.'
+        );
+      } else {
+        input.setCustomValidity('');
+      }
+    }
+
+    input.addEventListener('input', () => { sanitize(); setValidity(); });
+    input.addEventListener('invalid', setValidity);
+    // inisialisasi
+    sanitize(); setValidity();
+  })();
+</script>
+
+              </div>
+              <div class="col-md-6">
+                <div class="form-group mb-2">
+                  <label for="alamat" class="form-label label-required">Alamat Tamu</label>
+                  <input type="text" id="alamat" name="alamat" class="form-control" placeholder="Nama lengkap" required>
+                  <small class="help-hint">Alamat sesuai KTP.</small>
+
                 </div>
               </div>
+              <div class="col-md-6">
+  <div class="form-group mb-2">
+    <label class="form-label label-required mb-1">Tempat / Tanggal Lahir</label>
+    <div class="row">
+      <!-- KIRI: Tempat lahir -->
+      <div class="col-6">
+        <input type="text"
+               class="form-control"
+               id="tempat_lahir"
+               name="tempat_lahir"
+               placeholder="Tempat lahir (mis. Makassar)"
+               required
+               autocomplete="off">
+        <div class="invalid-feedback">Tempat lahir wajib diisi.</div>
+      </div>
+
+      <!-- KANAN: Tanggal lahir -->
+      <div class="col-6">
+        <input type="date"
+               class="form-control"
+               id="tanggal_lahir"
+               name="tanggal_lahir"
+               required
+               max="<?= date('Y-m-d') ?>">
+        <div class="invalid-feedback">Tanggal lahir wajib diisi.</div>
+      </div>
+    </div>
+    <small class="form-text text-muted">Contoh: Makassar — 21-02-1990</small>
+  </div>
+</div>
+
+            <!-- </div> -->
 
               <div class="col-md-6">
-                <div class="form-group mb-3">
+                <div class="form-group mb-2">
                   <label for="jabatan" class="form-label label-required">Jabatan</label>
                   <input type="text" id="jabatan" name="jabatan" class="form-control" placeholder="Contoh: Staf / Kepala Seksi" required>
                 </div>
               </div>
 
               <div class="col-md-6">
-                <div class="form-group mb-3">
+                <div class="form-group mb-2">
                   <label for="no_hp" class="form-label label-required">No. HP</label>
                   <input type="text" id="no_hp" name="no_hp" class="form-control"
                          placeholder="08xxxxxxxxxx" inputmode="numeric" minlength="10" maxlength="13" required>
@@ -76,7 +159,7 @@
 
               <div class="col-md-12">
                 <!-- ====== Jumlah Pendamping + Panel Inline ====== -->
-                <div class="form-group mb-3">
+                <div class="form-group mb-2">
                   <label for="jumlah_pendamping" class="form-label">Jumlah Pendamping</label>
                   <div class="input-group input-group-sm nifty-stepper">
                     <div class="input-group-prepend">
@@ -102,7 +185,7 @@
                 </div>
 
                 <!-- Panel inline pendamping -->
-                <div id="pendampingWrap" class="card border mb-3 d-none">
+                <div id="pendampingWrap" class="card border mb-2 d-none">
                   <div class="card-body p-2">
                     <!-- Info kuota -->
                     <div class="d-flex align-items-center justify-content-between mb-2">
@@ -115,7 +198,7 @@
                     <!-- Form baris pendamping -->
                     <div class="row">
                       <div class="col-md-4">
-                        <label class="form-label mb-1">NIK Pendamping</label>
+                        <label class="form-label mb-1">NIK/NIP/NRP Pendamping</label>
                         <input type="text" id="pd_nik" class="form-control form-control-sm"
                                placeholder="16 digit NIK" maxlength="16" inputmode="numeric">
                         <small class="text-muted">Wajib 16 digit & unik.</small>
@@ -139,7 +222,7 @@
                         <thead class="thead-light">
                           <tr>
                             <th style="width:60px">No</th>
-                            <th style="width:180px">NIK</th>
+                            <th style="width:180px">NIK/NIP/NRP</th>
                             <th>Nama</th>
                             <th style="width:150px">Aksi</th>
                           </tr>
@@ -168,7 +251,7 @@
             <div class="header-title">Asal Instansi</div>
             <div class="row">
               <div class="col-md-6">
-                <div class="form-group mb-3">
+                <div class="form-group mb-2">
                   <label for="kategori" class="form-label label-required">Kategori Instansi</label>
                   <select id="kategori" name="kategori" class="form-control" required>
                     <option value="">-- Pilih Kategori --</option>
@@ -189,7 +272,7 @@
 
               <div class="col-md-6">
                 <!-- MODE SELECT (default) -->
-                <div class="form-group mb-3" id="instansi_select_wrap">
+                <div class="form-group mb-2" id="instansi_select_wrap">
                   <label for="instansi" class="form-label label-required">Instansi</label>
                   <select id="instansi" name="instansi_id" class="form-control" required disabled>
                     <option value="">-- Pilih Instansi --</option>
@@ -198,7 +281,7 @@
                 </div>
 
                 <!-- MODE MANUAL (muncul saat kategori = Lainnya) -->
-                <div class="form-group mb-3 d-none" id="instansi_manual_wrap">
+                <div class="form-group mb-2 d-none" id="instansi_manual_wrap">
                   <label for="instansi_manual" class="form-label label-required">Nama Instansi</label>
                   <input type="text" id="instansi_manual" name="target_instansi_nama"
                          class="form-control" placeholder="Tulis nama instansi">
@@ -211,7 +294,7 @@
 
             <!-- ====== Tujuan di Lapas ====== -->
             <div class="header-title">Unit Tujuan Lapas</div>
-            <div class="form-group mb-3">
+            <div class="form-group mb-2">
               <label for="unit_tujuan" class="form-label label-required">Unit Tujuan</label>
               <select id="unit_tujuan" name="unit_tujuan" class="form-control" title="-- Pilih Unit --" required>
                 <?php 
@@ -242,14 +325,14 @@
             <div class="header-title">Jadwal Kunjungan</div>
             <div class="row">
               <div class="col-md-6">
-                <div class="form-group mb-3">
+                <div class="form-group mb-2">
                   <label for="tanggal" class="form-label label-required">Tanggal Kunjungan</label>
                   <input type="date" id="tanggal" name="tanggal" class="form-control" required>
                   <small id="tanggal-info" class="form-text text-muted"></small>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="form-group mb-3">
+                <div class="form-group mb-2">
                   <label for="jam" class="form-label label-required">Jam Kunjungan</label>
                   <input type="time" id="jam" name="jam" class="form-control" disabled required>
                   <small id="jam-info" class="form-text text-muted"></small>
@@ -263,14 +346,14 @@
             <div class="header-title">Keperluan & Lampiran</div>
             <div class="row">
               <div class="col-md-6">
-                <div class="form-group mb-3">
+                <div class="form-group mb-2">
                   <label for="keperluan" class="form-label">Keperluan Kunjungan</label>
                   <textarea id="keperluan" name="keperluan" class="form-control" rows="3" placeholder="Tuliskan keperluan kunjungan"></textarea>
                 </div>
               </div>
 
               <div class="col-md-6">
-                <div class="form-group mb-3">
+                <div class="form-group mb-2">
                   <label class="form-label">Surat Tugas (Opsional)</label>
                   <div class="custom-file">
                     <input type="file" class="custom-file-input" name="surat_tugas" id="surat_tugas">
