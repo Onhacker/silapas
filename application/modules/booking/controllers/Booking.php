@@ -368,15 +368,32 @@ class Booking extends MX_Controller {
 
     public function wa_notify()
 {
-    $token = $this->input->post('t', TRUE) ?: $this->input->get('t', TRUE);
+    $token = trim((string)($this->input->post('t', TRUE) ?: $this->input->get('t', TRUE)));
+    $kode  = trim((string)$this->input->get('k', TRUE)); // ← baru: dukung kode_booking
     $debug = (int)$this->input->get('debug', TRUE) === 1;
     $log   = [];
 
-    if (!$token) return $this->json_exit(['ok'=>false,'err'=>'missing token'], 422);
+    if ($token !== '') {
+        $b = $this->db->get_where('booking_tamu', ['access_token' => $token])->row();
+    } elseif ($kode !== '') {
+        $b = $this->db->get_where('booking_tamu', ['kode_booking' => $kode])->row();
+    } else {
+        return $this->json_exit(['ok'=>false,'err'=>'missing token or kode (pakai ?t=token atau ?k=kode_booking)'], 422);
+    }
 
-    $b = $this->db->get_where('booking_tamu', ['access_token' => $token])->row();
-    if (!$b) return $this->json_exit(['ok'=>false,'err'=>'not found'], 404);
-
+    if (!$b) {
+        if ($debug) {
+            $last = $this->db->select('kode_booking, access_token, created_at', false)
+                             ->order_by('id','DESC')->limit(5)->get('booking_tamu')->result_array();
+            return $this->json_exit([
+                'ok'=>false,
+                'err'=>'not found',
+                'hint'=>'pakai ?t=access_token atau ?k=kode_booking',
+                'peek_last'=>$last
+            ], 404);
+        }
+        return $this->json_exit(['ok'=>false,'err'=>'not found'], 404);
+    }
     if ((int)$b->token_revoked === 1)    return $this->json_exit(['ok'=>true,'skip'=>'token revoked']);
     if (!empty($b->checkout_at))         return $this->json_exit(['ok'=>true,'skip'=>'already checkout']);
 
