@@ -119,7 +119,7 @@
             </div>
             <div class="kepala">
                 <h4 class="mb-1">
-                    <span class="header-title2"><?php echo ($rec->nama_website)." Makassar" ?>
+                    <span class="header-title2"><?php echo ($rec->nama_website)." ".strtoupper($rec->kabupaten) ?>
 
                 </a>
             </h4>
@@ -196,8 +196,8 @@
         </div>
         <div class="logo-text">
             <!-- <span class="header-title-top white-shadow-text"><?php echo $rec->nama_website ?></span> -->
-            <span class="header-title-top white-shadow-text">SiLapas</span>
-            <span class="header-title-bottom white-shadow-text">Kota Makassar</span>
+            <span class="header-title-top white-shadow-text">SILATURAHMI</span>
+            <span class="header-title-bottom white-shadow-text">Makassar</span>
         </div>
     </div>
 </div>

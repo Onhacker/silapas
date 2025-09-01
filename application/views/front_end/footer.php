@@ -94,7 +94,7 @@
   <div class="row">
     <div class="col-12">
       <div class="card-box-carbul">
-        <h3 class=" text-center"><strong><?php echo $rec->nama_website ?></strong></h3>
+        <h3 class=" text-center"><strong><?php echo $rec->nama_website." ".strtoupper($rec->kabupaten) ?></strong></h3>
         <p class="boxed-text-l text-center mb-1">
           <?php echo $rec->meta_keyword ?>
         </p>

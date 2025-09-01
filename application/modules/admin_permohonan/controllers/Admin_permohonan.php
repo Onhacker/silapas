@@ -133,8 +133,8 @@ if (!empty($filters['unit_tujuan'])) {
 
     // Buat PDF
     $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
-    $pdf->SetCreator('SILAPAS');
-    $pdf->SetAuthor('SILAPAS');
+    $pdf->SetCreator('SILATURAHMI');
+    $pdf->SetAuthor('SILATURAHMI');
     $pdf->SetTitle('Laporan Booking Tamu');
     $pdf->SetSubject('Laporan Booking Tamu');
 

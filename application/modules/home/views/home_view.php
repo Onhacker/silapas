@@ -35,9 +35,9 @@
 
     <div class="col-xl-8">
      <div class="card-box ribbon-box d-none d-md-block">
-      <div class="ribbon-two ribbon-two-blue"><span>SiLapas</span></div>
+      <div class="ribbon-two ribbon-two-blue"><span>SILATURAHMI</span></div>
       <p class="mb-2" style="margin-left:22px; margin-top: 12px">
-        Sistem Informasi Layanan Kunjungan Tamu yang memudahkan proses pendaftaran, pengelolaan jadwal, serta pemantauan kunjungan secara transparan dan real-time di Lapas Kelas I Makassar.
+        Sistem Layanan Tamu Resmi Antar Instansi yang Humanis, Modern, dan Integratif yang memudahkan proses pendaftaran, pengelolaan jadwal, serta pemantauan kunjungan secara transparan dan real-time di Lapas Kelas I Makassar.
       </p>
     </div>
 
@@ -181,9 +181,9 @@ if (!$basePath) $basePath = '/';
 
 
 <div class="card-box ribbon-box d-block d-md-none">
- <div class="ribbon-two ribbon-two-blue"><span>SiLapas</span></div>
+ <div class="ribbon-two ribbon-two-blue"><span>SILATURAHMI</span></div>
  <p class="mb-2" style="margin-left:22px; margin-top: 12px">
-  Sistem Informasi Layanan Kunjungan Tamu yang memudahkan proses pendaftaran, pengelolaan jadwal, serta pemantauan kunjungan secara transparan dan real-time di Lapas Kelas I Makassar.
+  Sistem Layanan Tamu Resmi Antar Instansi yang Humanis, Modern, dan Integratif yang memudahkan proses pendaftaran, pengelolaan jadwal, serta pemantauan kunjungan secara transparan dan real-time di Lapas Kelas I Makassar.
 </p>
 </div>
 

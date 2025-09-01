@@ -22,8 +22,8 @@ class Developer extends MX_Controller {
         header('Content-Type: application/json');
         $manifest = [
             "id" => "/",
-            "name" => "Silapas Makassar",
-            "short_name" => "Silapas Makassar",
+            "name" => "Silaturahmi Makassar",
+            "short_name" => "Silaturahmi Makassar",
             "start_url" => site_url("/home"),
             "display" => "standalone",
             "display_override" => ["window-controls-overlay", "standalone"],
@@ -45,7 +45,7 @@ class Developer extends MX_Controller {
                     "label" => "Icon 512x512"
                 ]
             ],
-            "description" => "Silapas adalah platform digital untuk pelayanan Kunjungan Tamu Lapas Kelas I Makassar.",
+            "description" => "Silaturahmi Makassar adalah platform digital untuk pelayanan Kunjungan Tamu Lapas Kelas I Makassar.",
             "developer" => [
                 "name" => "PT. MVIN",
                 "url" => "https://mediaverse.com"

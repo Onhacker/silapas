@@ -17,7 +17,7 @@ class Hal extends MX_Controller {
 
 	function alur(){
 		$data["title"] = "Alur Permohonan Kunjungan";
-		$data["deskripsi"] = "Alur permohonan Kunjungan Silapas Makassar merupakan rangkaian tahapan yang harus dilalui oleh pemohon untuk mengajukan suatu permohonan kunjungan kepada Lapas Kelas I Makassar.";
+		$data["deskripsi"] = "Alur permohonan Kunjungan Silaturahmi Makassar merupakan rangkaian tahapan yang harus dilalui oleh pemohon untuk mengajukan suatu permohonan kunjungan kepada Lapas Kelas I Makassar.";
 		$data["prev"] = base_url("assets/images/flow.webp");
 		$data["rec"] = $this->fm->web_me();
 		$this->load->view('hal_view',$data);
