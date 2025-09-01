@@ -106,8 +106,7 @@ class Ram_model extends CI_model{
     function user_faskes(){
         $this->db->where("blokir", "N");
         $this->db->where("username", $this->session->userdata("admin_username"));
-        $this->db->from("users");
-        $this->db->join("fasilitas_kesehatan", "fasilitas_kesehatan.id = users.id_desa"); // Join condition added here
+        $this->db->from("users"); // Join condition added here
         $this->db->select("*");
         $user = $this->db->get()->row();
         // echo $this->db->last_query();
