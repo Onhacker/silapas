@@ -399,7 +399,7 @@ class Booking extends MX_Controller {
 
     // ===== Data bantu =====
     $unit_row = $this->db
-  ->select("id,nama_unit,nama_pejabat,COALESCE(parent_id,parent) AS parent_id", false)
+  ->select("id,nama_unit,nama_pejabat,COALESCE(parent_id,id) AS parent_id", false)
   ->get_where('unit_tujuan', ['id'=>(int)$b->unit_tujuan])
   ->row();
 
