@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mvin-cache-28';
+const CACHE_NAME = 'mvin-cache-29';
 const OFFLINE_URL = '/assets/offline.html';
 const BASE_PATH = '/';
 
