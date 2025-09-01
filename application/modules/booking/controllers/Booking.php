@@ -381,8 +381,15 @@ class Booking extends MX_Controller {
     if (!empty($b->checkout_at))         return $this->json_exit(['ok'=>true,'skip'=>'already checkout']);
 
     // ===== Data bantu =====
-    $unit_row = $this->db->select('id,nama_unit,nama_pejabat,parent_id')
-                         ->get_where('unit_tujuan', ['id'=>(int)$b->unit_tujuan])->row();
+    $unit_row = $this->db
+  ->select("id,nama_unit,nama_pejabat,COALESCE(parent_id,parent) AS parent_id", false)
+  ->get_where('unit_tujuan', ['id'=>(int)$b->unit_tujuan])
+  ->row();
+
+// $unit_nama_db    = $unit_row->nama_unit   ?? '-';
+// $unit_pejabat_db = $unit_row->nama_pejabat?? '';
+// $parent_id       = $unit_row->parent_id   ?? null;
+
 
     $unit_nama_db    = $unit_row->nama_unit   ?? '-';
     $unit_pejabat_db = $unit_row->nama_pejabat?? '';
@@ -452,46 +459,55 @@ class Booking extends MX_Controller {
     }
 
     // ===== 3) TEMBUSAN ke UNIT INDUK (parent) =====
-    if (!empty($parent_id)) {
-        [$hp_parent, $nama_parent, $pej_parent] = $this->_get_unit_contact((int)$parent_id);
+    // ===== 3) TEMBUSAN ke UNIT INDUK (parent) =====
+if (!empty($parent_id)) {
+    $p = $this->db->select('id,nama_unit,nama_pejabat,no_hp')
+                  ->get_where('unit_tujuan', ['id'=>(int)$parent_id])->row();
 
-        if (!empty($hp_parent)) {
-            $same_number       = isset($hp_unit) && (preg_replace('/\D+/','',$hp_unit) === preg_replace('/\D+/','',$hp_parent));
-            $can_stamp_parent  = $this->db->field_exists('wa_parent_sent_at', 'booking_tamu');
-            $already_sent_cc   = $can_stamp_parent && !empty($b->wa_parent_sent_at);
-            $should_send_cc    = !$same_number && !$already_sent_cc;
+    if ($p && !empty($p->no_hp)) {
+        $hp_parent = method_exists($this, '_normalize_msisdn_id')
+            ? $this->_normalize_msisdn_id($p->no_hp)
+            : $p->no_hp;
 
-            if ($should_send_cc) {
-                $ok_cc = $this->_send_wa_info_unit($hp_parent, [
-                    'kode'             => $b->kode_booking,
-                    'nama'             => $b->nama_tamu,
-                    'instansi_asal'    => $instansi,
-                    'unit_nama'        => $nama_parent ?: '-',
-                    'unit_pejabat'     => $pej_parent ?: '',
-                    'child_unit_nama'  => $unit_nama ?: ($unit_nama_db ?: '-'),
-                    'tanggal'          => $b->tanggal,
-                    'jam'              => $b->jam,
-                    'pendamping'       => (int)$b->jumlah_pendamping,
-                    'keperluan'        => $b->keperluan ?: '-',
-                    'redirect_url'     => $redir,
-                    'qr_url'           => $qr_url,
-                    'is_cc'            => true, // <— ini yang bikin header “TEMBUSAN”
-                ]);
-                $log[] = ['send_parent'=>['to'=>$hp_parent,'ok'=>$ok_cc]];
-                if ($ok_cc && $can_stamp_parent) {
-                    $this->db->where('access_token', $token)
-                             ->where('wa_parent_sent_at IS NULL', NULL, FALSE)
-                             ->update('booking_tamu', ['wa_parent_sent_at' => date('Y-m-d H:i:s')]);
-                }
-            } else {
-                $log[] = ['send_parent'=>'skipped: same number or already stamped'];
+        // kalau nomornya sama dg unit tujuan, tetap kirim (ubah ke false jika mau skip)
+        $allow_duplicate_cc = true;
+        $same_number = isset($hp_unit)
+            && (preg_replace('/\D+/','',$hp_unit) === preg_replace('/\D+/','',$hp_parent));
+
+        $can_stamp_parent = $this->db->field_exists('wa_parent_sent_at', 'booking_tamu');
+        $already_sent_cc  = $can_stamp_parent && !empty($b->wa_parent_sent_at);
+        $should_send_cc   = ($allow_duplicate_cc || !$same_number) && !$already_sent_cc;
+
+        if ($should_send_cc) {
+            $ok_cc = $this->_send_wa_info_unit($hp_parent, [
+                'kode'            => $b->kode_booking,
+                'nama'            => $b->nama_tamu,
+                'instansi_asal'   => $instansi,
+                'unit_nama'       => $p->nama_unit ?: '-',        // → “Kepada Yth.”
+                'unit_pejabat'    => $p->nama_pejabat ?: '',
+                'child_unit_nama' => $unit_nama_db,               // unit tujuan aslinya
+                'tanggal'         => $b->tanggal,
+                'jam'             => $b->jam,
+                'pendamping'      => (int)$b->jumlah_pendamping,
+                'keperluan'       => $b->keperluan ?: '-',
+                'redirect_url'    => $redir,
+                'qr_url'          => $qr_url,
+                'is_cc'           => true,                         // header “TEMBUSAN”
+            ]);
+
+            if ($ok_cc && $can_stamp_parent) {
+                $this->db->where('access_token', $token)
+                         ->where('wa_parent_sent_at IS NULL', NULL, FALSE)
+                         ->update('booking_tamu', ['wa_parent_sent_at' => date('Y-m-d H:i:s')]);
             }
-        } else {
-            $log[] = ['send_parent'=>'skipped: no phone'];
         }
     } else {
-        $log[] = ['send_parent'=>'skipped: no parent'];
+        log_message('debug', 'Parent tanpa no_hp; unit_id='.$parent_id);
     }
+} else {
+    log_message('debug', 'Unit ini tidak punya parent_id (unit_id='.$b->unit_tujuan.')');
+}
+
 
     if ($debug) return $this->json_exit(['ok'=>true,'debug'=>$log], 200);
     return $this->json_exit(['ok'=>true]);
