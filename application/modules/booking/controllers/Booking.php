@@ -397,24 +397,35 @@ class Booking extends MX_Controller {
     if ((int)$b->token_revoked === 1)    return $this->json_exit(['ok'=>true,'skip'=>'token revoked']);
     if (!empty($b->checkout_at))         return $this->json_exit(['ok'=>true,'skip'=>'already checkout']);
 
-    // ===== Data bantu =====
+   // ===== Data bantu =====
     $unit_row = $this->db
-  ->select("id,nama_unit,nama_pejabat,COALESCE(parent_id,id) AS parent_id", false)
-  ->get_where('unit_tujuan', ['id'=>(int)$b->unit_tujuan])
-  ->row();
+      ->select('id, nama_unit, nama_pejabat, parent_id, no_hp', false) // ambil no_hp juga
+      ->get_where('unit_tujuan', ['id' => (int)$b->unit_tujuan])
+      ->row();
 
-// $unit_nama_db    = $unit_row->nama_unit   ?? '-';
-// $unit_pejabat_db = $unit_row->nama_pejabat?? '';
-// $parent_id       = $unit_row->parent_id   ?? null;
+    $unit_nama_db     = $unit_row->nama_unit    ?? '-';
+    $unit_pejabat_db  = $unit_row->nama_pejabat ?? '';
+    $parent_id        = $unit_row->parent_id    ?? null;
 
-
-    $unit_nama_db    = $unit_row->nama_unit   ?? '-';
-    $unit_pejabat_db = $unit_row->nama_pejabat?? '';
-    $parent_id       = $unit_row->parent_id   ?? null;
+    // Ambil no HP unit tujuan langsung dari row (prioritas no_hp)
+    $hp_unit = null;
+    if ($unit_row) {
+        $hp_unit = $this->_extract_phone_from_row($unit_row); // <-- fungsi baru di bawah
+    }
+    // fallback kalau kolom/isi beda
+    if (!$hp_unit) {
+        list($hp_unit_fallback, $nm_fallback, $pej_fallback) = $this->_get_unit_contact((int)$b->unit_tujuan);
+        if ($hp_unit_fallback) {
+            $hp_unit        = $hp_unit_fallback;
+            $unit_nama_db   = $unit_nama_db ?: ($nm_fallback ?: '-');
+            $unit_pejabat_db= $unit_pejabat_db ?: ($pej_fallback ?: '');
+        }
+    }
 
     $qr_url   = base_url('uploads/qr/qr_'.$b->kode_booking.'.png');
     $redir    = site_url('booking/booked?t='.urlencode($b->access_token));
     $instansi = $b->target_instansi_nama ?: ($b->instansi ?: '-');
+
 
     // ===== 1) Kirim ke TAMU (sekali saja) =====
     if (empty($b->wa_sent_at)) {
@@ -442,88 +453,94 @@ class Booking extends MX_Controller {
 
     // ===== 2) Kirim ke UNIT TUJUAN (sekali saja jika punya kolom cap) =====
     [$hp_unit, $unit_nama, $unit_pej] = $this->_get_unit_contact((int)$b->unit_tujuan);
-    if (!empty($hp_unit)) {
-        $can_stamp_unit   = $this->db->field_exists('wa_unit_sent_at', 'booking_tamu');
-        $should_send_unit = !( $can_stamp_unit && !empty($b->wa_unit_sent_at) );
-
-        if ($should_send_unit) {
-            $ok_unit = $this->_send_wa_info_unit($hp_unit, [
-                'kode'             => $b->kode_booking,
-                'nama'             => $b->nama_tamu,
-                'instansi_asal'    => $instansi,
-                'unit_nama'        => $unit_nama ?: ($unit_nama_db ?: '-'),
-                'unit_pejabat'     => $unit_pej ?: $unit_pejabat_db,
-                'child_unit_nama'  => $unit_nama ?: ($unit_nama_db ?: '-'), // unit tujuan asli
-                'tanggal'          => $b->tanggal,
-                'jam'              => $b->jam,
-                'pendamping'       => (int)$b->jumlah_pendamping,
-                'keperluan'        => $b->keperluan ?: '-',
-                'redirect_url'     => $redir,
-                'qr_url'           => $qr_url,
-                'is_cc'            => false,
-            ]);
-            $log[] = ['send_unit'=>['to'=>$hp_unit,'ok'=>$ok_unit]];
-            if ($ok_unit && $can_stamp_unit) {
-                $this->db->where('access_token', $token)
-                         ->where('wa_unit_sent_at IS NULL', NULL, FALSE)
-                         ->update('booking_tamu', ['wa_unit_sent_at' => date('Y-m-d H:i:s')]);
-            }
-        } else {
-            $log[] = ['send_unit'=>'skipped: already stamped'];
+    // ===== 2) Kirim ke UNIT TUJUAN (ID) =====
+if (!empty($hp_unit)) {
+    $can_stamp_unit   = $this->db->field_exists('wa_unit_sent_at', 'booking_tamu');
+    $already_unit     = $can_stamp_unit && !empty($b->wa_unit_sent_at);
+    if (!$already_unit) {
+        $ok_unit = $this->_send_wa_info_unit($hp_unit, [
+            'kode'            => $b->kode_booking,
+            'nama'            => $b->nama_tamu,
+            'instansi_asal'   => $instansi,
+            'unit_nama'       => $unit_nama_db,       // kepada Yth.
+            'unit_pejabat'    => $unit_pejabat_db,    // kepada Yth.
+            'child_unit_nama' => $unit_nama_db,       // unit tujuan (untuk baris detail)
+            'tanggal'         => $b->tanggal,
+            'jam'             => $b->jam,
+            'pendamping'      => (int)$b->jumlah_pendamping,
+            'keperluan'       => $b->keperluan ?: '-',
+            'redirect_url'    => $redir,
+            'qr_url'          => $qr_url,
+            'is_cc'           => false,
+        ]);
+        $log[] = ['send_unit'=>['to'=>$hp_unit,'ok'=>$ok_unit]];
+        if ($ok_unit && $can_stamp_unit) {
+            $this->db->where('access_token', $token)
+                     ->where('wa_unit_sent_at IS NULL', NULL, FALSE)
+                     ->update('booking_tamu', ['wa_unit_sent_at' => date('Y-m-d H:i:s')]);
         }
     } else {
-        $log[] = ['send_unit'=>'skipped: no phone'];
+        $log[] = ['send_unit'=>'skipped: already stamped'];
+    }
+} else {
+    $log[] = ['send_unit'=>'skipped: no phone'];
+}
+
+
+    // ===== 3) TEMBUSAN ke UNIT INDUK (parent) =====
+    // ===== 3) TEMBUSAN ke UNIT INDUK (parent) =====
+// ===== 3) TEMBUSAN ke UNIT INDUK (parent_id) =====
+if (!empty($parent_id)) {
+    $parent_row = $this->db
+        ->select('id, nama_unit, nama_pejabat, no_hp', false)
+        ->get_where('unit_tujuan', ['id' => (int)$parent_id])->row();
+
+    $hp_parent = $this->_extract_phone_from_row($parent_row);
+    if (!$hp_parent && $parent_row) {
+        list($hp_parent_fb, $nm_parent_fb, $pej_parent_fb) = $this->_get_unit_contact((int)$parent_row->id);
+        if ($hp_parent_fb) {
+            $hp_parent            = $hp_parent_fb;
+            $parent_row->nama_unit   = $parent_row->nama_unit   ?: $nm_parent_fb;
+            $parent_row->nama_pejabat= $parent_row->nama_pejabat?: $pej_parent_fb;
+        }
     }
 
-    // ===== 3) TEMBUSAN ke UNIT INDUK (parent) =====
-    // ===== 3) TEMBUSAN ke UNIT INDUK (parent) =====
-if (!empty($parent_id)) {
-    $p = $this->db->select('id,nama_unit,nama_pejabat,no_hp')
-                  ->get_where('unit_tujuan', ['id'=>(int)$parent_id])->row();
-
-    if ($p && !empty($p->no_hp)) {
-        $hp_parent = method_exists($this, '_normalize_msisdn_id')
-            ? $this->_normalize_msisdn_id($p->no_hp)
-            : $p->no_hp;
-
-        // kalau nomornya sama dg unit tujuan, tetap kirim (ubah ke false jika mau skip)
-        $allow_duplicate_cc = true;
-        $same_number = isset($hp_unit)
-            && (preg_replace('/\D+/','',$hp_unit) === preg_replace('/\D+/','',$hp_parent));
-
+    if (!empty($hp_parent)) {
         $can_stamp_parent = $this->db->field_exists('wa_parent_sent_at', 'booking_tamu');
-        $already_sent_cc  = $can_stamp_parent && !empty($b->wa_parent_sent_at);
-        $should_send_cc   = ($allow_duplicate_cc || !$same_number) && !$already_sent_cc;
+        $already_parent   = $can_stamp_parent && !empty($b->wa_parent_sent_at);
 
-        if ($should_send_cc) {
+        if (!$already_parent) {
             $ok_cc = $this->_send_wa_info_unit($hp_parent, [
                 'kode'            => $b->kode_booking,
                 'nama'            => $b->nama_tamu,
                 'instansi_asal'   => $instansi,
-                'unit_nama'       => $p->nama_unit ?: '-',        // → “Kepada Yth.”
-                'unit_pejabat'    => $p->nama_pejabat ?: '',
-                'child_unit_nama' => $unit_nama_db,               // unit tujuan aslinya
+                'unit_nama'       => $parent_row->nama_unit ?? '-',     // kepada Yth. (parent)
+                'unit_pejabat'    => $parent_row->nama_pejabat ?? '',
+                'child_unit_nama' => $unit_nama_db,                      // unit tujuan asli (anak)
                 'tanggal'         => $b->tanggal,
                 'jam'             => $b->jam,
                 'pendamping'      => (int)$b->jumlah_pendamping,
                 'keperluan'       => $b->keperluan ?: '-',
                 'redirect_url'    => $redir,
                 'qr_url'          => $qr_url,
-                'is_cc'           => true,                         // header “TEMBUSAN”
+                'is_cc'           => true,
             ]);
-
+            $log[] = ['send_parent'=>['to'=>$hp_parent,'ok'=>$ok_cc]];
             if ($ok_cc && $can_stamp_parent) {
                 $this->db->where('access_token', $token)
                          ->where('wa_parent_sent_at IS NULL', NULL, FALSE)
                          ->update('booking_tamu', ['wa_parent_sent_at' => date('Y-m-d H:i:s')]);
             }
+        } else {
+            $log[] = ['send_parent'=>'skipped: already stamped'];
         }
     } else {
-        log_message('debug', 'Parent tanpa no_hp; unit_id='.$parent_id);
+        $log[] = ['send_parent'=>'skipped: no phone'];
     }
 } else {
-    log_message('debug', 'Unit ini tidak punya parent_id (unit_id='.$b->unit_tujuan.')');
+    $log[] = ['send_parent'=>'skipped: no parent'];
 }
+
 
 
     if ($debug) return $this->json_exit(['ok'=>true,'debug'=>$log], 200);
@@ -564,6 +581,21 @@ private function _normalize_msisdn_id(string $msisdn): string
 
 
 
+private function _extract_phone_from_row($row): ?string
+{
+    if (!$row) return null;
+    // urutan prioritas: no_hp (sesuai struktur tabelmu), lalu beberapa alias umum
+    foreach (['no_hp','wa','whatsapp','wa_number','no_wa','no_whatsapp','hp','telepon','telp','phone'] as $col) {
+        if (isset($row->$col) && trim((string)$row->$col) !== '') {
+            $num = trim((string)$row->$col);
+            if (method_exists($this, '_normalize_msisdn_id')) {
+                $num = $this->_normalize_msisdn_id($num);
+            }
+            return $num;
+        }
+    }
+    return null;
+}
 
 
     private function json_exit($payload, int $status = 200, array $headers = [])
