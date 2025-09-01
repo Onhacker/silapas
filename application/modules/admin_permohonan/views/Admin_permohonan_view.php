@@ -46,6 +46,8 @@
                     <option value="approved">Approved</option>
                     <option value="checked_in">Checked-in</option>
                     <option value="checked_out">Checked-out</option>
+                    <option value="expired">Expired</option>
+                    <option value="checked_out">Rejected</option>
                   </select>
                 </div>
               </div>

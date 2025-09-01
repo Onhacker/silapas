@@ -106,7 +106,7 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Daftar Booking & Sedang Berkunjung'
         <div class="card-body d-flex flex-wrap justify-content-between align-items-center board-head pb-2">
           <div class="d-flex align-items-center" style="gap:1rem;">
             <div>
-  <div class="text-muted small mb-1">Ruang Lingkup</div>
+  <div class="text-dark small mb-1">Ruang Lingkup</div>
   <div class="scope-wrap">
     <span class="scope-icon"><i class="mdi mdi-office-building-marker-outline"></i></span>
     <span id="infoScope" class="scope-text">Lapas Kelas I Makassar</span>
@@ -116,11 +116,17 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Daftar Booking & Sedang Berkunjung'
 
             <!-- Server Time: sudah dibesarkan & dipercantik -->
             <div>
-              <div class="text-muted small mb-1">Server Time</div>
+              <div class="text-dark small mb-1">Server Time</div>
               <div class="server-time-wrap">
                 <span class="server-time-icon"><i class="mdi mdi-clock-outline"></i></span>
                 <span id="infoTime" class="server-time">--:--:--</span>
+                
               </div>
+               <button id="btnRefresh" class="btn ml-2" style="background-color: black">
+              
+              <span class="badge-live " id="stateBadge"><strong>Live</strong></span>
+
+            </button>
             </div>
 
             <div class="card-body pt-3">
@@ -139,18 +145,14 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Daftar Booking & Sedang Berkunjung'
 
           <div class="d-flex align-items-center" style="gap:1rem;">
             <div class="text-center">
-              <div class="text-muted small">Jumlah Sudah Booking</div>
+              <div class="text-dark small">Jumlah Sudah Booking</div>
               <div id="countBooked" class="count">0</div>
             </div>
             <div class="text-center">
-              <div class="text-muted small">Sedang Berkunjung</div>
+              <div class="text-dark small">Sedang Berkunjung</div>
               <div id="countVisit" class="count">0</div>
             </div>
-            <button id="btnRefresh" class="btn btn-dark ml-2">
-              
-              <span class="  badge-live " id="stateBadge"><strong>Live</strong></span>
-
-            </button>
+           
           </div>
         </div>
       </div>
@@ -177,8 +179,9 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Daftar Booking & Sedang Berkunjung'
             <div class="form-inline">
               <label class="mr-2 small text-muted">Baris</label>
               <select id="perPage" class="form-control form-control-sm">
+                <option value="5" selected>5</option>
                 <option value="10">10</option>
-                <option value="15" selected>15</option>
+                <option value="15" >15</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
               </select>
