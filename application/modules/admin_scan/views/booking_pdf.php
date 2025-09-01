@@ -186,7 +186,7 @@ $printed_at = fmt_hari_tanggal(time(), true);
   </div>
 
   <div class="foot">
-    Sistem Antrian Tamu • <?= e(base_url()) ?>
+    SILATURAHMI (Sistem Layanan Tamu Resmi Antar Instansi Yang Humanis, Modern, Dan Integratif) Makassar • <?= e(base_url()) ?>
   </div>
 
 </body>

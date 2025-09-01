@@ -254,7 +254,7 @@
                 </p>
 
                 <p class="lead" data-aos="fade-right" data-aos-delay="1100">
-                    Kabupaten <?php echo ucwords(strtolower($rec->kabupaten)) ?>
+                    Kota <?php echo ucwords(strtolower($rec->kabupaten)) ?>
                 </p>
             </div>
         </div>
@@ -266,7 +266,7 @@
                 <div class="card-body">
                     <div class="text-center">
                         <img src="<?php echo base_url('assets/images/' . $rec->gambar) ?>" alt="Logo" height="50">
-                        <h3 class="mt-2"><?php echo $rec->nama_website ?> <?php echo ucwords(strtolower($rec->kabupaten)) ?></h3>
+                        <h3 class="mt-2"><?php echo $rec->nama_website ?> <?php echo (strtoupper($rec->kabupaten)) ?></h3>
                     </div>
 
                     <form id="frm" method="post" class="mt-3">
