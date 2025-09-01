@@ -532,6 +532,7 @@ private function _normalize_msisdn_id(string $msisdn): string
 
 
 
+
     private function json_exit($payload, int $status = 200, array $headers = [])
     {
         if (!is_string($payload)) {
@@ -1016,40 +1017,8 @@ private function _normalize_msisdn_id(string $msisdn): string
                  ]);
     }
 
-    private function _get_unit_contact(int $unit_id): array
-    {
-        $table = 'unit_tujuan';
-        $candidates = ['no_wa','wa','no_hp','telp','kontak_wa','phone'];
-        $fields = [];
+    
 
-        foreach ($candidates as $c) {
-            if ($this->db->field_exists($c, $table)) {
-                $fields[] = $c;
-            }
-        }
-
-        $this->db->select('nama_unit');
-        foreach ($fields as $f) $this->db->select($f);
-        $row = $this->db->get_where($table, ['id' => $unit_id])->row();
-
-        $unit_nama = $row ? $row->nama_unit : '-';
-        $hp = null;
-        if ($row) {
-            foreach ($fields as $f) {
-                if (!empty($row->{$f})) { $hp = $row->{$f}; break; }
-            }
-        }
-        return [$hp, $unit_nama];
-    }
-
-    private function _normalize_msisdn_id($hp)
-    {
-        $hp = preg_replace('/\D+/', '', (string)$hp);
-        if ($hp === '') return '';
-        if (strpos($hp,'62') === 0) return $hp;
-        if ($hp[0] === '0') return '62'.substr($hp,1);
-        return $hp;
-    }
 
     private function _send_wa_info_unit(string $hp_unit, array $d): bool
 {
