@@ -369,7 +369,7 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
                    style="width:100%;border-radius:12px;background:#000;aspect-ratio:16/9;"></video>
             <canvas id="camCanvas" class="d-none"></canvas>
           </div>
-
+          <select id="camSelect" class="form-control" style="max-width:320px"></select>
           <div class="d-flex flex-wrap mt-2" style="gap:.5rem;">
             <button id="btnCamStart"  type="button" class="btn btn-outline-primary btn-sm" <?= $can_capture ? '' : 'disabled' ?>>
               <i class="mdi mdi-play"></i> Nyalakan Kamera
@@ -574,20 +574,224 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
     let stream = null;
     function setMsg(t, ok=false){ if(!msg) return; msg.textContent = t; msg.className = ok ? 'small text-success' : 'small text-muted'; }
 
-    async function startCam(){
-      if (!CAN_CAPTURE){ setMsg('Kamera dinonaktifkan (status: '+STATUS_LABEL+').'); return; }
-      try{
-        stream = await navigator.mediaDevices.getUserMedia({
-          video:{ facingMode:{ ideal:'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false
-        });
-        video.srcObject = stream;
-        bShot && (bShot.disabled = false);
-        bStop && (bStop.disabled = false);
-        setMsg('Kamera aktif.', true);
-      }catch(e){
-        setMsg('Tidak bisa mengakses kamera: '+(e && e.message ? e.message : e));
+    (function(){
+  const CAN_CAPTURE  = <?= $can_capture ? 'true' : 'false' ?>;
+  const STATUS_LABEL = <?= json_encode($status_label) ?>;
+
+  const video   = document.getElementById('camPreview');
+  const canvas  = document.getElementById('camCanvas');
+  const imgPrev = document.getElementById('docPreview');
+  const msg     = document.getElementById('docMsg');
+  const bStart  = document.getElementById('btnCamStart');
+  const bStop   = document.getElementById('btnCamStop');
+  const bShot   = document.getElementById('btnCamCapture');
+  const bSave   = document.getElementById('btnDocSave');
+  const fFile   = document.getElementById('fileFallback');
+  const ddlCam  = document.getElementById('camSelect');
+  const KODE    = <?= json_encode($booking->kode_booking ?? '') ?>;
+
+  let stream = null;
+  let currentDeviceId = null;
+
+  function setMsg(t, ok=false){ if(!msg) return; msg.textContent = t; msg.className = ok ? 'small text-success' : 'small text-muted'; }
+
+  // ⬇️ minta izin minimal agar label device terlihat (khusus Safari/iOS)
+  async function ensureLabels(){
+    try {
+      const temp = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
+      temp.getTracks().forEach(t=>t.stop());
+    } catch(e) { /* abaikan */ }
+  }
+
+  // ⬇️ ambil daftar kamera
+  async function listCams(){
+    const devs = await navigator.mediaDevices.enumerateDevices();
+    return devs.filter(d=>d.kind==='videoinput');
+  }
+
+  // ⬇️ pilih default (prioritas USB/external → back/rear → pertama)
+  function pickDefault(cams){
+    if (!cams.length) return null;
+    const by = re => cams.find(d => re.test(d.label||''));
+    return by(/usb|external|logitech|webcam|brio|hd pro/i)
+        || by(/back|rear|environment/i)
+        || cams[0];
+  }
+
+  // ⬇️ isi dropdown
+  async function fillCamSelect(selectedId=null){
+    if (!ddlCam) return [];
+    const cams = await listCams();
+    ddlCam.innerHTML = '';
+    cams.forEach((c,i)=>{
+      const opt = document.createElement('option');
+      opt.value = c.deviceId || '';
+      opt.textContent = c.label || `Kamera ${i+1}`;
+      ddlCam.appendChild(opt);
+    });
+    // pilih yang tersimpan/terpilih/default
+    const def = selectedId && cams.some(c=>c.deviceId===selectedId)
+      ? selectedId
+      : (pickDefault(cams)?.deviceId || (cams[0]?.deviceId || ''));
+    if (def) ddlCam.value = def;
+    return cams;
+  }
+
+  // ⬇️ start dengan device tertentu
+  async function startWithDevice(deviceId){
+    if (stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+    const constraints = deviceId
+      ? { video:{ deviceId:{ exact: deviceId }, width:{ideal:1280}, height:{ideal:720} }, audio:false }
+      : { video:{ facingMode:{ ideal:'environment' }, width:{ideal:1280}, height:{ideal:720} }, audio:false };
+
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = stream;
+    await video.play().catch(()=>{});
+    currentDeviceId = stream.getVideoTracks()[0]?.getSettings()?.deviceId || deviceId || null;
+    bShot && (bShot.disabled=false);
+    bStop && (bStop.disabled=false);
+    setMsg('Kamera aktif.', true);
+  }
+
+  // ⬇️ ganti startCam agar pakai dropdown
+  async function startCam(){
+    if (!CAN_CAPTURE){ setMsg('Kamera dinonaktifkan (status: '+STATUS_LABEL+').'); return; }
+    try{
+      await ensureLabels();
+      const cams = await fillCamSelect(currentDeviceId || localStorage.getItem('camDeviceId'));
+      if (!cams.length){ setMsg('Tidak ada kamera terdeteksi.'); return; }
+      const chosenId = ddlCam?.value || pickDefault(cams)?.deviceId || null;
+      await startWithDevice(chosenId);
+      try { localStorage.setItem('camDeviceId', chosenId || ''); } catch(e){}
+    }catch(e){
+      setMsg('Tidak bisa mengakses kamera: '+(e?.message || e));
+    }
+  }
+
+  function stopCam(){
+    if (stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+    if (video) video.srcObject = null;
+    if (bShot) bShot.disabled = true;
+    if (bStop) bStop.disabled = true;
+    setMsg('Kamera dimatikan.');
+  }
+
+  function capture(){
+    if (!video || !video.videoWidth) return;
+    const w = video.videoWidth, h = video.videoHeight;
+    const maxW = 1280, scale = Math.min(1, maxW / w);
+    canvas.width  = Math.round(w*scale);
+    canvas.height = Math.round(h*scale);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    imgPrev.src = dataUrl;
+    imgPrev.classList.remove('d-none');
+    bSave && (bSave.disabled = false);
+    setMsg('Pratinjau siap. Klik "Simpan Foto".', true);
+  }
+
+  function readFile(file){
+    const r = new FileReader();
+    r.onload = ()=>{
+      imgPrev.src = r.result;
+      imgPrev.classList.remove('d-none');
+      bSave && (bSave.disabled = false);
+      setMsg('Pratinjau siap (unggah). Klik "Simpan Foto".', true);
+    };
+    r.readAsDataURL(file);
+  }
+
+  async function saveDoc(){
+    const dataUrl = imgPrev.src || '';
+    if (!/^data:image\//.test(dataUrl)) return;
+
+    const params = new URLSearchParams();
+    params.set('kode', KODE);
+    params.set('image', dataUrl);
+    <?php if (config_item('csrf_protection')): ?>
+      params.set('<?= $CI->security->get_csrf_token_name() ?>','<?= $CI->security->get_csrf_hash() ?>');
+    <?php endif; ?>
+
+    if (bSave) bSave.disabled = true;
+    setMsg('Menyimpan...', false);
+
+    try{
+      const r = await fetch('<?= site_url('admin_scan/upload_doc_photo') ?>', {
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+        body: params.toString(),
+        credentials: 'same-origin'
+      });
+      const j = await r.json();
+      if (j.ok){
+        setMsg('Tersimpan: '+ (j.file || ''), true);
+        if (j.url){
+          imgPrev.src = j.url;
+          renderLampiranFoto(j.url);
+        }
+      } else {
+        setMsg('Gagal: '+(j.msg||'')); if (bSave) bSave.disabled = false;
+      }
+    }catch(e){
+      setMsg('Error: '+(e?.message || e)); if (bSave) bSave.disabled = false;
+    }
+  }
+
+  // ⬇️ event binding
+  bStart && bStart.addEventListener('click', startCam);
+  bStop  && bStop .addEventListener('click', stopCam);
+  bShot  && bShot .addEventListener('click', capture);
+  bSave  && bSave .addEventListener('click', saveDoc);
+  fFile  && fFile .addEventListener('change', (e)=>{ if (e.target.files && e.target.files[0]) readFile(e.target.files[0]); });
+
+  // ⬇️ ganti kamera saat user pilih di dropdown
+  ddlCam && ddlCam.addEventListener('change', async (e)=>{
+    const id = e.target.value || null;
+    try {
+      await startWithDevice(id);
+      try { localStorage.setItem('camDeviceId', id || ''); } catch(_){}
+    } catch(err){
+      setMsg('Gagal beralih kamera: '+(err?.message || err));
+    }
+  });
+
+  // ⬇️ auto-detect colok/cabut
+  navigator.mediaDevices?.addEventListener?.('devicechange', async ()=>{
+    const cams = await fillCamSelect(currentDeviceId);
+    // jika kamera aktif dicabut → auto switch
+    const stillThere = cams.some(c=>c.deviceId === currentDeviceId);
+    if (!stillThere){
+      const next = pickDefault(cams);
+      if (next && stream){
+        setMsg('Perangkat berubah—beralih kamera…');
+        await startWithDevice(next.deviceId);
+        if (ddlCam) ddlCam.value = next.deviceId;
+      } else if (stream){
+        stopCam();
+        setMsg('Semua kamera tidak tersedia.');
       }
     }
+  });
+
+  // ⬇️ siapkan dropdown di awal (tanpa menyalakan kamera)
+  (async ()=>{
+    if (!CAN_CAPTURE){
+      bStart?.setAttribute('disabled','disabled');
+      bShot ?.setAttribute('disabled','disabled');
+      bStop ?.setAttribute('disabled','disabled');
+      fFile ?.setAttribute('disabled','disabled');
+      ddlCam ?.setAttribute('disabled','disabled');
+      setMsg('Kamera dinonaktifkan (status: '+STATUS_LABEL+').');
+      return;
+    }
+    await ensureLabels();
+    await fillCamSelect(localStorage.getItem('camDeviceId'));
+  })();
+
+  window.addEventListener('beforeunload', stopCam);
+})();
+
     function stopCam(){
       if (stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
       if (video) video.srcObject = null;
