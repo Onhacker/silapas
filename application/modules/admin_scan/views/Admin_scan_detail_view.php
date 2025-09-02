@@ -71,14 +71,11 @@ if (!empty($booking->checkin_at) && !empty($booking->checkout_at)) {
   $durasi_text = ($jam>0? $jam.' jam ' : '').$mnt.' menit';
 }
 
-// PDF tiket & pernyataan
+// Link PDF
 $pdf_url = site_url('admin_scan/print_pdf/'.rawurlencode($booking->kode_booking ?? '')).'?inline=1&ts='.time();
-
-// pastikan variabel pernyataan ada (pakai nama $pernyataan_pdf seperti di embed)
 $pernyataan_pdf = $pernyataan_pdf
   ?? ($pdf_pernyataan ?? null)
   ?? site_url('admin_scan/pernyataan_pdf/'.rawurlencode($booking->kode_booking ?? '')).'?inline=1&ts='.time();
-
 
 // Jadwal kunjungan (hari + tanggal + jam)
 $jadwal_text = '-';
@@ -87,11 +84,11 @@ if (!empty($booking->tanggal) || !empty($booking->jam)) {
   $jadwal_text = fmt_hari_tanggal($base, true);
 }
 
-// Check-in / Checkout (lengkap hari)
+// Check-in / Checkout
 $checkin_text  = !empty($booking->checkin_at)  ? fmt_hari_tanggal($booking->checkin_at,  true) : null;
 $checkout_text = !empty($booking->checkout_at) ? fmt_hari_tanggal($booking->checkout_at, true) : null;
 
-// Petugas (jika ada di DB)
+// Petugas (jika ada)
 $petugas_checkin  = $booking->petugas_checkin  ?? null;
 $petugas_checkout = $booking->petugas_checkout ?? null;
 
@@ -130,6 +127,72 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
 
   /* Keperluan panjang */
   .keperluan-box{background:#f8fafc;border:1px dashed #e5e7eb;border-radius:10px;padding:.75rem}
+
+  /* ===== Kamera Dokumentasi (tanpa garis/guide) ===== */
+  #docCamWrap{position:relative}
+  .fs-exit-btn{
+    position:absolute; top:10px; right:10px; z-index: 1070;
+    width:42px; height:42px; border:0; border-radius:999px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.6); color:#fff;
+  }
+  .fs-shutter{
+    position:absolute; left:50%; transform:translateX(-50%);
+    bottom:18px; z-index:1070;
+    width:68px; height:68px; border:0; border-radius:999px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.85); color:#111;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+
+  #docCamWrap:not(.is-fs):not(:fullscreen) video {
+    aspect-ratio:16/9; width:100%; border-radius:12px; background:#000; object-fit:cover;
+  }
+
+  /* Fullscreen API */
+  #docCamWrap:fullscreen,
+  #docCamWrap:-webkit-full-screen { background:#000; }
+  #docCamWrap:fullscreen video,
+  #docCamWrap:-webkit-full-screen video,
+  video:fullscreen, video:-webkit-full-screen {
+    position:absolute; inset:0;
+    width:100vw !important;
+    height:100svh !important; height:100dvh !important; height:100vh !important;
+    object-fit:cover !important; border-radius:0 !important; aspect-ratio:auto !important;
+    background:#000;
+  }
+
+  /* Fallback CSS bila API ditolak */
+  body.scan-lock { overflow: hidden; }
+  #docCamWrap.fullscreen-scan{
+    position: fixed !important; inset: 0 !important; z-index: 1060 !important;
+    background:#000; margin:0 !important; border-radius:0 !important;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  #docCamWrap.fullscreen-scan video{
+    position:absolute; inset:0;
+    width:100vw !important;
+    height:100svh !important; height:100dvh !important; height:100vh !important;
+    object-fit:cover !important; border-radius:0 !important; aspect-ratio:auto !important;
+    background:#000;
+  }
+  #docCamWrap.is-fs video{
+    position:absolute; inset:0;
+    width:100vw !important;
+    height:100svh !important; height:100dvh !important; height:100vh !important;
+    object-fit:cover !important; border-radius:0 !important; aspect-ratio:auto !important;
+  }
+  /* Tombol senter saat fullscreen (mengambang di kiri-bawah) */
+.fs-torch-btn{
+  position:absolute; bottom:10px; left:10px;
+  z-index:1070; width:auto; min-width:42px; height:42px;
+  border:0; border-radius:999px; padding:0 .9rem;
+  display:flex; align-items:center; gap:.35rem;
+  background:rgba(0,0,0,.6); color:#fff;
+}
+.fs-torch-btn.active{ background:rgba(255,200,0,.9); color:#111; }
+.fs-torch-btn i{ font-size:18px; }
+
 </style>
 
 <div class="container-fluid">
@@ -164,7 +227,6 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
   </div>
 
   <!-- ======================== BARIS ATAS ======================== -->
-  <!-- Detail (kiri) & Kamera (kanan) -->
   <div class="row">
     <!-- Kiri: DETAIL BOOKING -->
     <div class="col-lg-7">
@@ -364,11 +426,22 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
             <small class="text-muted">Kode: <?= $e($booking->kode_booking ?? '-') ?></small>
           </div>
 
-          <div class="mt-2">
-            <video id="camPreview" autoplay muted playsinline
-                   style="width:100%;border-radius:12px;background:#000;aspect-ratio:16/9;"></video>
-            <canvas id="camCanvas" class="d-none"></canvas>
+          <div class="mt-2" id="docCamWrap">
+            <video id="camPreview" autoplay muted playsinline></video>
+            <button id="btnFsTorch" type="button" class="fs-torch-btn d-none" aria-label="Senter">
+              <i class="mdi mdi-flashlight"></i><span class="d-none d-sm-inline"> Senter</span>
+            </button>
+            <button id="btnDocExitFs" type="button" class="fs-exit-btn d-none" aria-label="Tutup layar penuh">
+              <i class="mdi mdi-close"></i>
+            </button>
+            <button id="btnFsShutter" type="button" class="fs-shutter d-none" aria-label="Ambil foto">
+              <i class="mdi mdi-camera" style="font-size:28px;"></i>
+            </button>
+            
+
           </div>
+
+          <canvas id="camCanvas" class="d-none"></canvas>
 
           <div class="d-flex flex-wrap mt-2" style="gap:.5rem;">
             <select id="camSelect" class="form-control" style="max-width:300px"></select>
@@ -381,12 +454,21 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
             <button id="btnCamStop"    type="button" class="btn btn-outline-secondary btn-sm" disabled>
               <i class="mdi mdi-stop"></i> Matikan
             </button>
+            <button id="btnCamTorch" type="button" class="btn btn-outline-warning btn-sm" disabled>
+              <i class="mdi mdi-flashlight"></i> Senter
+            </button>
+            <button id="btnFsTorch" type="button" class="fs-torch-btn d-none" aria-label="Senter">
+              <i class="mdi mdi-flashlight"></i><span class="d-none d-sm-inline"> Senter</span>
+            </button>
+
+
+            <button id="btnDocFull" class="btn btn-outline-dark btn-sm d-none">
+              <i class="mdi mdi-arrow-expand-all"></i> Layar Penuh
+            </button>
             <label class="btn btn-blue btn-sm mb-0 <?= $can_capture ? '' : 'disabled' ?>" style="<?= $can_capture?'':'pointer-events:none;opacity:.6;'?>">
               <input id="fileFallback" type="file" accept="image/*" capture="environment" hidden <?= $can_capture ? '' : 'disabled' ?>>
-              <i class="mdi mdi-upload"></i> Unggah dari Laptop/HP (buka full kamera)
-           
+              <i class="mdi mdi-upload"></i> Unggah dari Laptop/HP (kamera penuh)
             </label>
-
           </div>
 
           <div class="mt-2">
@@ -416,7 +498,6 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
   </div>
 
   <!-- ======================== BARIS BAWAH ======================== -->
-  <!-- PDF Ticket (kiri) & Surat Pernyataan (kanan) -->
   <div class="row">
     <!-- Kiri: PDF Ticket -->
     <div class="col-lg-6">
@@ -511,17 +592,14 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
       });
     });
   })();
-</script>
 
-<script>
-  // ------ Foto Lampiran (modal & refresh) ------
+  // Foto Lampiran (modal & refresh)
   function setLampiranModal(url){
     const img = document.getElementById('lampiranFotoModalImg');
     const dl  = document.getElementById('lampiranFotoDownload');
     if (img) img.src = url || '';
     if (dl)  dl.href = url || '#';
   }
-
   function renderLampiranFoto(url) {
     const box = document.getElementById('lampiranFotoBox');
     if (!box) return;
@@ -545,8 +623,6 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
     `;
     setLampiranModal(url);
   }
-
-  // Buka modal ketika klik thumbnail
   document.addEventListener('click', function(e){
     const el = e.target.closest('.js-lampiran-foto');
     if (!el) return;
@@ -558,70 +634,49 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
 </script>
 
 <script>
-  // ===== Kamera dokumentasi =====
-  (function(){
-    const CAN_CAPTURE  = <?= $can_capture ? 'true' : 'false' ?>;
-    const STATUS_LABEL = <?= json_encode($status_label) ?>;
-
-    const video   = document.getElementById('camPreview');
-    const canvas  = document.getElementById('camCanvas');
-    const imgPrev = document.getElementById('docPreview');
-    const msg     = document.getElementById('docMsg');
-    const bStart  = document.getElementById('btnCamStart');
-    const bStop   = document.getElementById('btnCamStop');
-    const bShot   = document.getElementById('btnCamCapture');
-    const bSave   = document.getElementById('btnDocSave');
-    const fFile   = document.getElementById('fileFallback');
-    const KODE    = <?= json_encode($booking->kode_booking ?? '') ?>;
-
-    let stream = null;
-    function setMsg(t, ok=false){ if(!msg) return; msg.textContent = t; msg.className = ok ? 'small text-success' : 'small text-muted'; }
-
-    (function(){
+(function(){
   const CAN_CAPTURE  = <?= $can_capture ? 'true' : 'false' ?>;
   const STATUS_LABEL = <?= json_encode($status_label) ?>;
+  const KODE    = <?= json_encode($booking->kode_booking ?? '') ?>;
 
+  const wrap    = document.getElementById('docCamWrap');   // pastikan ada <div id="docCamWrap">
   const video   = document.getElementById('camPreview');
   const canvas  = document.getElementById('camCanvas');
   const imgPrev = document.getElementById('docPreview');
   const msg     = document.getElementById('docMsg');
+
+  const ddlCam  = document.getElementById('camSelect');
   const bStart  = document.getElementById('btnCamStart');
   const bStop   = document.getElementById('btnCamStop');
   const bShot   = document.getElementById('btnCamCapture');
   const bSave   = document.getElementById('btnDocSave');
+  const bFull   = document.getElementById('btnDocFull');      // jika ada tombol fullscreen normal
+  const bExitFs = document.getElementById('btnDocExitFs');    // jika ada tombol exit fullscreen
+  const bFsShut = document.getElementById('btnFsShutter');    // jika ada tombol shutter fullscreen
+  const bTorch  = document.getElementById('btnCamTorch');     // ← tombol senter normal
+  const bFsTorch= document.getElementById('btnFsTorch');      // ← tombol senter fullscreen
   const fFile   = document.getElementById('fileFallback');
-  const ddlCam  = document.getElementById('camSelect');
-  const KODE    = <?= json_encode($booking->kode_booking ?? '') ?>;
+
+  const safeRenderLampiran = (window.renderLampiranFoto || function(){}).bind(window);
 
   let stream = null;
   let currentDeviceId = null;
 
+  // torch
+  let torchTrack = null;
+  let torchOn    = false;
+  let torchCap   = false;
+
   function setMsg(t, ok=false){ if(!msg) return; msg.textContent = t; msg.className = ok ? 'small text-success' : 'small text-muted'; }
+  const isFsActive = () => document.fullscreenElement === wrap || wrap?.classList.contains('fullscreen-scan') || wrap?.classList.contains('is-fs');
 
-  // ⬇️ minta izin minimal agar label device terlihat (khusus Safari/iOS)
-  async function ensureLabels(){
-    try {
-      const temp = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
-      temp.getTracks().forEach(t=>t.stop());
-    } catch(e) { /* abaikan */ }
-  }
-
-  // ⬇️ ambil daftar kamera
-  async function listCams(){
-    const devs = await navigator.mediaDevices.enumerateDevices();
-    return devs.filter(d=>d.kind==='videoinput');
-  }
-
-  // ⬇️ pilih default (prioritas USB/external → back/rear → pertama)
+  async function ensureLabels(){ try { const t=await navigator.mediaDevices.getUserMedia({video:true,audio:false}); t.getTracks().forEach(x=>x.stop()); } catch(e){} }
+  async function listCams(){ const devs = await navigator.mediaDevices.enumerateDevices(); return devs.filter(d=>d.kind==='videoinput'); }
   function pickDefault(cams){
     if (!cams.length) return null;
     const by = re => cams.find(d => re.test(d.label||''));
-    return by(/usb|external|logitech|webcam|brio|hd pro/i)
-        || by(/back|rear|environment/i)
-        || cams[0];
+    return by(/usb|external|logitech|webcam|brio|hd pro/i) || by(/back|rear|environment/i) || cams[0];
   }
-
-  // ⬇️ isi dropdown
   async function fillCamSelect(selectedId=null){
     if (!ddlCam) return [];
     const cams = await listCams();
@@ -632,15 +687,12 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
       opt.textContent = c.label || `Kamera ${i+1}`;
       ddlCam.appendChild(opt);
     });
-    // pilih yang tersimpan/terpilih/default
     const def = selectedId && cams.some(c=>c.deviceId===selectedId)
-      ? selectedId
-      : (pickDefault(cams)?.deviceId || (cams[0]?.deviceId || ''));
+      ? selectedId : (pickDefault(cams)?.deviceId || (cams[0]?.deviceId || ''));
     if (def) ddlCam.value = def;
     return cams;
   }
 
-  // ⬇️ start dengan device tertentu
   async function startWithDevice(deviceId){
     if (stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
     const constraints = deviceId
@@ -651,31 +703,39 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
     video.srcObject = stream;
     await video.play().catch(()=>{});
     currentDeviceId = stream.getVideoTracks()[0]?.getSettings()?.deviceId || deviceId || null;
-    bShot && (bShot.disabled=false);
-    bStop && (bStop.disabled=false);
+
+    if (bShot) bShot.disabled = false;
+    if (bStop) bStop.disabled = false;
+    if (bFull) bFull.classList?.remove('d-none');
+
+    await setupTorch();       // ← cek & aktifkan kemampuan senter
     setMsg('Kamera aktif.', true);
   }
 
-  // ⬇️ ganti startCam agar pakai dropdown
   async function startCam(){
     if (!CAN_CAPTURE){ setMsg('Kamera dinonaktifkan (status: '+STATUS_LABEL+').'); return; }
     try{
       await ensureLabels();
-      const cams = await fillCamSelect(currentDeviceId || localStorage.getItem('camDeviceId'));
+      const cams = await fillCamSelect(currentDeviceId || localStorage.getItem('doc.camId'));
       if (!cams.length){ setMsg('Tidak ada kamera terdeteksi.'); return; }
       const chosenId = ddlCam?.value || pickDefault(cams)?.deviceId || null;
       await startWithDevice(chosenId);
-      try { localStorage.setItem('camDeviceId', chosenId || ''); } catch(e){}
+      try { localStorage.setItem('doc.camId', chosenId || ''); } catch(e){}
     }catch(e){
       setMsg('Tidak bisa mengakses kamera: '+(e?.message || e));
     }
   }
 
   function stopCam(){
+    turnOffTorch();   // ← matikan senter saat berhenti
     if (stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
     if (video) video.srcObject = null;
     if (bShot) bShot.disabled = true;
     if (bStop) bStop.disabled = true;
+    if (bFull) bFull.classList?.add('d-none');
+    disableTorchUI();
+    hideFsUi();
+    exitFullscreen();
     setMsg('Kamera dimatikan.');
   }
 
@@ -690,8 +750,15 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
     imgPrev.src = dataUrl;
     imgPrev.classList.remove('d-none');
-    bSave && (bSave.disabled = false);
+    if (bSave) bSave.disabled = false;
     setMsg('Pratinjau siap. Klik "Simpan Foto".', true);
+  }
+
+  function captureAndExit(){
+    capture();
+    if (isFsActive()){
+      setTimeout(()=> exitFullscreen(), 80);
+    }
   }
 
   function readFile(file){
@@ -699,7 +766,7 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
     r.onload = ()=>{
       imgPrev.src = r.result;
       imgPrev.classList.remove('d-none');
-      bSave && (bSave.disabled = false);
+      if (bSave) bSave.disabled = false;
       setMsg('Pratinjau siap (unggah). Klik "Simpan Foto".', true);
     };
     r.readAsDataURL(file);
@@ -731,7 +798,7 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
         setMsg('Tersimpan: '+ (j.file || ''), true);
         if (j.url){
           imgPrev.src = j.url;
-          renderLampiranFoto(j.url);
+          safeRenderLampiran(j.url);
         }
       } else {
         setMsg('Gagal: '+(j.msg||'')); if (bSave) bSave.disabled = false;
@@ -741,28 +808,142 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
     }
   }
 
-  // ⬇️ event binding
+  // ====== SENTER ======
+  function updateTorchUI(){
+    // normal button
+    if (bTorch){
+      bTorch.disabled = !torchCap;
+      bTorch.classList.toggle('btn-warning', torchOn);
+      bTorch.classList.toggle('btn-outline-warning', !torchOn);
+      bTorch.innerHTML = `<i class="mdi ${torchOn?'mdi-flashlight-off':'mdi-flashlight'}"></i> ${torchOn?'Matikan':'Senter'}`;
+    }
+    // fullscreen button
+    if (bFsTorch){
+      if (isFsActive() && torchCap) bFsTorch.classList.remove('d-none');
+      else bFsTorch.classList.add('d-none');
+      bFsTorch.classList.toggle('active', torchOn);
+      bFsTorch.innerHTML = `<i class="mdi ${torchOn?'mdi-flashlight-off':'mdi-flashlight'}"></i><span class="d-none d-sm-inline"> ${torchOn?'Matikan':'Senter'}</span>`;
+    }
+  }
+  function disableTorchUI(){
+    torchTrack = null; torchOn = false; torchCap = false;
+    updateTorchUI();
+  }
+  async function setupTorch(){
+    disableTorchUI();
+    const stream = video.srcObject;
+    if (!stream) return;
+    const track = stream.getVideoTracks()[0];
+    if (!track) return;
+    const caps = (track.getCapabilities && track.getCapabilities()) || {};
+    if (caps.torch){
+      torchTrack = track;
+      torchCap   = true;
+      torchOn    = (track.getSettings && !!track.getSettings().torch) || false;
+    }
+    updateTorchUI();
+  }
+  async function toggleTorch(){
+    if (!torchTrack) return;
+    try{
+      await torchTrack.applyConstraints({ advanced:[{ torch: !torchOn }] });
+      torchOn = !torchOn;
+      updateTorchUI();
+    }catch(e){
+      setMsg('Senter tidak didukung/ditolak di perangkat ini.', false);
+      // fallback: disable tombol agar tidak menipu user
+      disableTorchUI();
+    }
+  }
+  function turnOffTorch(){
+    if (!torchTrack || !torchOn) return;
+    try { torchTrack.applyConstraints({ advanced:[{ torch:false }] }); } catch(e){}
+    torchOn=false; updateTorchUI();
+  }
+
+  // ===== Fullscreen (API + fallback) =====
+  async function enterFullscreen(){
+    try{
+      if (wrap && wrap.requestFullscreen) {
+        await wrap.requestFullscreen();
+        wrap.classList.add('is-fs');
+        showFsUi();
+        return;
+      }
+      if (video && video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
+        wrap.classList.add('is-fs');
+        showFsUi();
+        return;
+      }
+    }catch(e){ /* fallback */ }
+    wrap?.classList.add('fullscreen-scan','is-fs');
+    document.body.classList.add('scan-lock');
+    showFsUi();
+  }
+  function exitFullscreen(){
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+    wrap?.classList.remove('fullscreen-scan','is-fs');
+    document.body.classList.remove('scan-lock');
+    hideFsUi();
+  }
+  function showFsUi(){
+    bExitFs?.classList.remove('d-none');
+    bFsShut?.classList.remove('d-none');
+    updateTorchUI(); // tampilkan btn senter FS jika bisa
+  }
+  function hideFsUi(){
+    bExitFs?.classList.add('d-none');
+    bFsShut?.classList.add('d-none');
+    bFsTorch?.classList.add('d-none');
+  }
+  document.addEventListener('fullscreenchange', ()=>{
+    if (!document.fullscreenElement) {
+      wrap?.classList.remove('fullscreen-scan','is-fs');
+      document.body.classList.remove('scan-lock');
+      hideFsUi();
+    } else {
+      wrap?.classList.add('is-fs');
+      showFsUi();
+    }
+  });
+
+  // ===== Events =====
   bStart && bStart.addEventListener('click', startCam);
   bStop  && bStop .addEventListener('click', stopCam);
+
   bShot  && bShot .addEventListener('click', capture);
+  bFsShut&& bFsShut?.addEventListener('click', captureAndExit);
+  video  && video .addEventListener('click', ()=>{ if (isFsActive()) captureAndExit(); });
+
   bSave  && bSave .addEventListener('click', saveDoc);
   fFile  && fFile .addEventListener('change', (e)=>{ if (e.target.files && e.target.files[0]) readFile(e.target.files[0]); });
 
-  // ⬇️ ganti kamera saat user pilih di dropdown
   ddlCam && ddlCam.addEventListener('change', async (e)=>{
     const id = e.target.value || null;
     try {
       await startWithDevice(id);
-      try { localStorage.setItem('camDeviceId', id || ''); } catch(_){}
+      try { localStorage.setItem('doc.camId', id || ''); } catch(_){}
     } catch(err){
       setMsg('Gagal beralih kamera: '+(err?.message || err));
     }
   });
 
-  // ⬇️ auto-detect colok/cabut
+  bFull  && bFull .addEventListener('click', async ()=>{ if (stream){ await enterFullscreen(); } });
+  bExitFs&& bExitFs?.addEventListener('click', exitFullscreen);
+
+  // tombol senter
+  bTorch && bTorch.addEventListener('click', toggleTorch);
+  bFsTorch && bFsTorch.addEventListener('click', toggleTorch);
+
+  // ESC untuk keluar (desktop)
+  document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') exitFullscreen(); });
+
+  // Hot-swap saat device colok/cabut
   navigator.mediaDevices?.addEventListener?.('devicechange', async ()=>{
     const cams = await fillCamSelect(currentDeviceId);
-    // jika kamera aktif dicabut → auto switch
     const stillThere = cams.some(c=>c.deviceId === currentDeviceId);
     if (!stillThere){
       const next = pickDefault(cams);
@@ -777,7 +958,7 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
     }
   });
 
-  // ⬇️ siapkan dropdown di awal (tanpa menyalakan kamera)
+  // init dropdown
   (async ()=>{
     if (!CAN_CAPTURE){
       bStart?.setAttribute('disabled','disabled');
@@ -789,94 +970,10 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
       return;
     }
     await ensureLabels();
-    await fillCamSelect(localStorage.getItem('camDeviceId'));
+    await fillCamSelect(localStorage.getItem('doc.camId'));
   })();
 
   window.addEventListener('beforeunload', stopCam);
 })();
-
-    function stopCam(){
-      if (stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
-      if (video) video.srcObject = null;
-      if (bShot) bShot.disabled = true;
-      if (bStop) bStop.disabled = true;
-      setMsg('Kamera dimatikan.');
-    }
-    function capture(){
-      if (!video || !video.videoWidth) return;
-      const w = video.videoWidth, h = video.videoHeight;
-      const maxW = 1280, scale = Math.min(1, maxW / w);
-      canvas.width  = Math.round(w*scale);
-      canvas.height = Math.round(h*scale);
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      imgPrev.src = dataUrl;
-      imgPrev.classList.remove('d-none');
-      bSave && (bSave.disabled = false);
-      setMsg('Pratinjau siap. Klik "Simpan Foto".', true);
-    }
-    function readFile(file){
-      const r = new FileReader();
-      r.onload = ()=>{
-        imgPrev.src = r.result;
-        imgPrev.classList.remove('d-none');
-        bSave && (bSave.disabled = false);
-        setMsg('Pratinjau siap (unggah). Klik "Simpan Foto".', true);
-      };
-      r.readAsDataURL(file);
-    }
-    async function saveDoc(){
-      const dataUrl = imgPrev.src || '';
-      if (!/^data:image\//.test(dataUrl)) return;
-
-      const params = new URLSearchParams();
-      params.set('kode', KODE);
-      params.set('image', dataUrl);
-      <?php if (config_item('csrf_protection')): ?>
-        params.set('<?= $CI->security->get_csrf_token_name() ?>','<?= $CI->security->get_csrf_hash() ?>');
-      <?php endif; ?>
-
-      if (bSave) bSave.disabled = true;
-      setMsg('Menyimpan...', false);
-
-      try{
-        const r = await fetch('<?= site_url('admin_scan/upload_doc_photo') ?>', {
-          method:'POST',
-          headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-          body: params.toString(),
-          credentials: 'same-origin'
-        });
-        const j = await r.json();
-        if (j.ok){
-          setMsg('Tersimpan: '+ (j.file || ''), true);
-          if (j.url){
-            imgPrev.src = j.url;           // preview terbaru
-            renderLampiranFoto(j.url);     // update area "Foto"
-          }
-        } else {
-          setMsg('Gagal: '+(j.msg||'')); if (bSave) bSave.disabled = false;
-        }
-      }catch(e){
-        setMsg('Error: '+(e && e.message ? e.message : e)); if (bSave) bSave.disabled = false;
-      }
-    }
-
-    bStart && bStart.addEventListener('click', startCam);
-    bStop  && bStop .addEventListener('click', stopCam);
-    bShot  && bShot .addEventListener('click', capture);
-    bSave  && bSave .addEventListener('click', saveDoc);
-    fFile  && fFile .addEventListener('change', (e)=>{ if (e.target.files && e.target.files[0]) readFile(e.target.files[0]); });
-
-    if (!CAN_CAPTURE){
-      bStart && bStart.setAttribute('disabled','disabled');
-      bShot  && bShot .setAttribute('disabled','disabled');
-      bStop  && bStop .setAttribute('disabled','disabled');
-      fFile  && fFile .setAttribute('disabled','disabled');
-      setMsg('Kamera dinonaktifkan (status: '+STATUS_LABEL+').');
-    }
-
-    window.addEventListener('beforeunload', stopCam);
-  })();
 </script>
 
