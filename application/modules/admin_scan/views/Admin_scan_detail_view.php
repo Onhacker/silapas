@@ -369,8 +369,9 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
                    style="width:100%;border-radius:12px;background:#000;aspect-ratio:16/9;"></video>
             <canvas id="camCanvas" class="d-none"></canvas>
           </div>
-          <select id="camSelect" class="form-control" style="max-width:320px"></select>
+
           <div class="d-flex flex-wrap mt-2" style="gap:.5rem;">
+            <select id="camSelect" class="form-control" style="max-width:300px"></select>
             <button id="btnCamStart"  type="button" class="btn btn-outline-primary btn-sm" <?= $can_capture ? '' : 'disabled' ?>>
               <i class="mdi mdi-play"></i> Nyalakan Kamera
             </button>
@@ -382,8 +383,10 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
             </button>
             <label class="btn btn-blue btn-sm mb-0 <?= $can_capture ? '' : 'disabled' ?>" style="<?= $can_capture?'':'pointer-events:none;opacity:.6;'?>">
               <input id="fileFallback" type="file" accept="image/*" capture="environment" hidden <?= $can_capture ? '' : 'disabled' ?>>
-              <i class="mdi mdi-upload"></i> Unggah dari HP/Laptop
+              <i class="mdi mdi-upload"></i> Unggah dari Laptop/HP (buka full kamera)
+           
             </label>
+
           </div>
 
           <div class="mt-2">
@@ -876,3 +879,4 @@ $wa_digits = preg_replace('/\D+/', '', (string)($booking->no_hp ?? ''));
     window.addEventListener('beforeunload', stopCam);
   })();
 </script>
+

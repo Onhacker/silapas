@@ -9,6 +9,26 @@
   .rbody{padding:4px 0;text-transform:none}
   .is-checkin{color:#16a34a}   /* hijau */
   .is-checkout{color:#dc2626}  /* merah */
+  /* Fullscreen fallback (jika Fullscreen API tidak tersedia/ditolak) */
+body.scan-lock { overflow: hidden; }
+#cameraWrap.fullscreen-scan{
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1060 !important; /* di atas modal biasa */
+  background:#000;
+  margin:0 !important;
+  border-radius:0 !important;
+}
+#cameraWrap.fullscreen-scan video{
+  width:100% !important;
+  height:100vh !important;
+  object-fit:cover !important;
+  border-radius:0 !important;
+}
+#cameraWrap.fullscreen-scan .guide .box{
+  width:60%; /* kotak bantu lebih besar saat full */
+}
+
 </style>
 
 <div class="container-fluid">
@@ -43,6 +63,10 @@
             <button id="btnStop"  class="btn btn-outline-secondary" disabled><i class="mdi mdi-stop"></i> Stop</button>
             <button id="btnFlip"  class="btn btn-outline-info"><i class="mdi mdi-camera-switch"></i> Flip</button>
             <button id="btnTorch" class="btn btn-outline-warning" disabled><i class="mdi mdi-flashlight"></i> Senter</button>
+            <button id="btnFull" class="btn btn-outline-dark d-lg-none">
+              <i class="mdi mdi-arrow-expand-all"></i> Layar Penuh (HP)
+            </button>
+
 
             <!-- Mode Scan (radio) -->
             <div class="form-inline ml-sm-2">
@@ -422,4 +446,59 @@ function sfx(kind){
       });
     })();
   })();
+  const btnFull = document.getElementById('btnFull');
+const wrap    = document.getElementById('cameraWrap');
+
+async function enterFullscreen(){
+  // 1) coba Fullscreen API (Android/Chrome, iOS modern untuk <video>)
+  try{
+    if (video.requestFullscreen) {
+      await video.requestFullscreen();
+      return;
+    }
+    // Safari webkit legacy: kadang bisa
+    if (video.webkitEnterFullscreen) {
+      video.webkitEnterFullscreen();
+      return;
+    }
+  }catch(e){
+    // lanjut ke fallback
+  }
+  // 2) fallback: pakai kelas CSS untuk force full viewport
+  wrap?.classList.add('fullscreen-scan');
+  document.body.classList.add('scan-lock');
+  setMsg('Mode layar penuh aktif.', true);
+}
+
+function exitFullscreen(){
+  // Keluar Fullscreen API jika sedang aktif
+  if (document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen();
+  }
+  // Lepas fallback class
+  wrap?.classList.remove('fullscreen-scan');
+  document.body.classList.remove('scan-lock');
+  setMsg('Mode layar penuh ditutup.');
+}
+
+// Sinkron saat user menutup fullscreen dari UI browser
+document.addEventListener('fullscreenchange', ()=>{
+  if (!document.fullscreenElement) {
+    wrap?.classList.remove('fullscreen-scan');
+    document.body.classList.remove('scan-lock');
+  }
+});
+
+// Tombol
+btnFull && btnFull.addEventListener('click', async ()=>{
+  initAudio();
+  // jika sudah fullscreen → keluar, kalau belum → masuk
+  if (document.fullscreenElement || wrap?.classList.contains('fullscreen-scan')) {
+    exitFullscreen();
+  } else {
+    await enterFullscreen();
+  }
+});
+
 </script>
+
