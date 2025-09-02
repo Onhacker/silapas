@@ -37,6 +37,63 @@
     background:rgba(0,0,0,.6); color:#fff;
   }
   #cameraWrap.fullscreen-scan .fs-exit-btn{ display:flex !important; }
+  /* Saat masuk fullscreen via Fullscreen API */
+#cameraWrap:fullscreen,
+#cameraWrap:-webkit-full-screen { background:#000; }
+
+#cameraWrap:fullscreen video,
+#cameraWrap:-webkit-full-screen video,
+video:fullscreen,
+video:-webkit-full-screen {
+  position:absolute;
+  inset:0;
+  width:100vw !important;
+  /* urutan svh→dvh→vh untuk dukung berbagai browser */
+  height:100svh !important;
+  height:100dvh !important;
+  height:100vh !important;
+  object-fit:cover !important;
+  border-radius:0 !important;
+  /* hilangkan rasio paksa 16/9 */
+  aspect-ratio:auto !important;
+}
+
+/* Fallback CSS fullscreen (kelas .fullscreen-scan) */
+#cameraWrap.fullscreen-scan{
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1060 !important;
+  background:#000;
+  margin:0 !important;
+  border-radius:0 !important;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+#cameraWrap.fullscreen-scan video{
+  position:absolute;
+  inset:0;
+  width:100vw !important;
+  height:100svh !important;
+  height:100dvh !important;
+  height:100vh !important;
+  object-fit:cover !important;
+  border-radius:0 !important;
+  aspect-ratio:auto !important;
+}
+
+/* Saat kita set kelas bantu .is-fs, paksa aturan yang sama */
+#cameraWrap.is-fs video{
+  position:absolute;
+  inset:0;
+  width:100vw !important;
+  height:100svh !important;
+  height:100dvh !important;
+  height:100vh !important;
+  object-fit:cover !important;
+  border-radius:0 !important;
+  aspect-ratio:auto !important;
+}
+
 </style>
 
 <div class="container-fluid">
@@ -519,4 +576,48 @@ document.addEventListener('keydown', (e)=>{
       });
     })();
   })();
+  async function enterFullscreen(){
+  try{
+    // Utamakan Fullscreen API di WRAP agar tombol × ikut
+    if (wrap && wrap.requestFullscreen) {
+      await wrap.requestFullscreen();
+      // tambahkan kelas bantu untuk override aspect ratio
+      wrap.classList.add('is-fs');
+      return;
+    }
+    // Safari lama: native fullscreen video
+    if (video && video.webkitEnterFullscreen) {
+      video.webkitEnterFullscreen();
+      wrap.classList.add('is-fs');
+      return;
+    }
+  }catch(e){ /* lanjut fallback */ }
+
+  // Fallback CSS
+  wrap?.classList.add('fullscreen-scan','is-fs');
+  document.body.classList.add('scan-lock');
+  btnExitFs?.classList.remove('d-none');
+}
+
+function exitFullscreen(){
+  if (document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen();
+  }
+  wrap?.classList.remove('fullscreen-scan','is-fs');
+  document.body.classList.remove('scan-lock');
+  btnExitFs?.classList.add('d-none');
+}
+
+// Sinkron saat browser ganti status fullscreen
+document.addEventListener('fullscreenchange', ()=>{
+  if (!document.fullscreenElement) {
+    wrap?.classList.remove('fullscreen-scan','is-fs');
+    document.body.classList.remove('scan-lock');
+    btnExitFs?.classList.add('d-none');
+  } else {
+    wrap?.classList.add('is-fs');
+    btnExitFs?.classList.remove('d-none');
+  }
+});
+
 </script>
