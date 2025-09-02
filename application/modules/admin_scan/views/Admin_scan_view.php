@@ -75,12 +75,15 @@
     <div class="col-lg-5 mt-3 mt-lg-0">
       <div class="card shadow-sm">
         <div class="card-body">
-          <h6 class="mb-2"><i class="mdi mdi-shield-check-outline"></i> Tips</h6>
-          <ul class="mb-0 pl-3">
-            <li>Gunakan pencahayaan cukup. Aktifkan <b>Senter</b> bila tersedia.</li>
-            <li>Jarak kamera ±15–25 cm, sejajarkan QR dalam frame.</li>
-            <li>Untuk barcode gun, fokuskan kursor di kolom input lalu scan.</li>
-          </ul>
+         <h6 class="mb-2"><i class="mdi mdi-shield-check-outline"></i> Info / Tips</h6>
+         <ul class="mb-0 pl-3">
+          <li>Check-in hanya dapat dilakukan pada <b>tanggal yang tertera di booking</b>.</li>
+          <li>Toleransi keterlambatan maksimal <b>1 jam setelah jam jadwal</b>.</li>
+          <li>Pastikan pencahayaan cukup; aktifkan <b>senter</b> bila tersedia.</li>
+          <li>Jarak kamera ± <b>15–25 cm</b>; sejajarkan QR di dalam bingkai.</li>
+          <li>Untuk <i>barcode gun</i>, fokuskan kursor pada kolom input lalu lakukan pemindaian.</li>
+        </ul>
+
         </div>
       </div>
 
@@ -97,8 +100,8 @@
 </div>
 
 <!-- ZXing -->
-<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
-
+<!-- <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+ -->
 <!-- SFX: Suara untuk check-in / checkout (tanpa vibrate) -->
 <!-- SFX: nada check-in/checkout/error -->
 <script>
@@ -131,8 +134,9 @@ function sfx(kind){
 </script>
 
 <!-- ZXing + logic kamera rugged untuk Chrome -->
-<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
-<script>
+<script src="<?php echo base_url(); ?>assets/js/zxing-browser.min.js"></script>
+<!-- <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+ --><script>
   // Ambil mode dari radio
   function getScanMode(){
     const el = document.querySelector('input[name="scanMode"]:checked');

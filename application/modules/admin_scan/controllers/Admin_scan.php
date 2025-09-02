@@ -115,34 +115,47 @@ class Admin_scan extends Admin_Controller {
         return $this->json_exit(["ok"=>false,"msg"=>"Status sekarang '$status' tidak bisa di-check-in"], 409);
     }
 
-    // ===== RULE BARU: tanggal harus sama & belum lewat jam jadwal =====
-    // Pastikan server timezone sudah Asia/Makassar (sudah kamu set di __construct)
-    $todayLocal   = date('Y-m-d');
-    $nowTs        = time(); // epoch saat ini (Makassar)
-    $scheduledStr = trim($row['tanggal']).' '.trim($row['jam']); // "YYYY-mm-dd HH:ii:ss"
-    $scheduledTs  = strtotime($scheduledStr);
+    // ===== RULE BARU: tanggal harus sama & belum lewat jam jadwal + toleransi =====
+// Pastikan server timezone Asia/Makassar (sudah kamu set di __construct)
+$todayLocal   = date('Y-m-d');
+$nowTs        = time(); // epoch saat ini (Makassar)
+$scheduledStr = trim($row['tanggal']).' '.trim($row['jam']); // "YYYY-mm-dd HH:ii[:ss]"
+$scheduledTs  = strtotime($scheduledStr);
 
-   /*  === TEMP BYPASS VALIDASI JADWAL (untuk uji coba) ===
+        // === TEMP BYPASS VALIDASI JADWAL (untuk uji coba) ===
 
-	 // 1) Harus tepat di tanggal yang sama
-	 if ($row['tanggal'] !== $todayLocal) {
-	     return $this->json_exit([
-	         "ok"  => false,
-	         "msg" => "Check-in ditolak: hanya bisa pada tanggal ".date('d-m-Y', strtotime($row['tanggal']))."."
-	     ], 409);
-	 }
+        // 1) Harus tepat di tanggal yang sama
+        if ($row['tanggal'] !== $todayLocal) {
+            return $this->json_exit([
+                "ok"  => false,
+                "msg" => "Check-in ditolak: hanya bisa pada tanggal ".date('d-m-Y', strtotime($row['tanggal']))."."
+            ], 409);
+        }
 
-	 // 2) Tidak boleh melewati jam jadwal (<= jam OK, > jam ditolak)
-	 if ($scheduledTs !== false && $nowTs > $scheduledTs) {
-	     $jamInfo = date('H:i', strtotime($row['jam']));
-	     return $this->json_exit([
-	         "ok"  => false,
-	         "msg" => "Check-in ditolak: sudah melewati jam jadwal ($jamInfo WITA)."
-	     ], 409);
-	 }
+        // 2) Tidak boleh melewati jam jadwal + toleransi 1 jam
+        if ($scheduledTs === false) {
+            // Jadwal tak valid → tolak dengan pesan jelas
+            return $this->json_exit([
+                "ok"  => false,
+                "msg" => "Check-in ditolak: format jadwal tidak valid."
+            ], 409);
+        }
 
-	 === END TEMP BYPASS === */
-	// ===== END RULE BARU =====
+        $GRACE_MIN    = 60;                 // ← toleransi dalam menit
+        $deadlineTs   = $scheduledTs + ($GRACE_MIN * 60);
+
+        if ($nowTs > $deadlineTs) {
+            $jamInfo   = date('H:i', strtotime($row['jam'])); // jam jadwal
+            $batasInfo = date('H:i', $deadlineTs);            // batas toleransi
+            return $this->json_exit([
+                "ok"  => false,
+                "msg" => "Check-in ditolak: melewati batas toleransi {$GRACE_MIN} menit dari jam jadwal (jadwal: {$jamInfo} WITA, batas: {$batasInfo} WITA)."
+            ], 409);
+        }
+
+        // === END TEMP BYPASS === 
+        // ===== END RULE BARU =====
+
 
     // Nama petugas dari session
     $petugas = trim((string)($this->session->userdata('admin_nama') ?: $this->session->userdata('admin_username') ?: ''));

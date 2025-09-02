@@ -1,9 +1,9 @@
-const CACHE_NAME = 'mvin-cache-29';
+const CACHE_NAME = 'mvin-cache-31';
 const OFFLINE_URL = '/assets/offline.html';
 const BASE_PATH = '/';
 
 const urlsToCache = [
-  '/', '/home','/hal/alur', '/booking', '/hal/kontak', '/on_login','/hal/privacy_policy',
+  '/', '/home','/hal/alur', '/booking', '/hal/kontak', 'hal/struktur','/hal/privacy_policy',
   '/developer/manifest?v=2',
   '/assets/offline.html',
   '/assets/admin/images/bg-login.mp4',
@@ -36,6 +36,7 @@ const urlsToCache = [
   '/assets/admin/SliderCaptcha-master/src/disk/longbow.slidercaptcha.js',
   '/assets/admin/SliderCaptcha-master/src/disk/slidercaptcha.css',
   '/assets/admin/libs/chart-js/Chart.bundle.min.js',
+  ' assets/js/zxing-browser.min.js',
 ];
 
 const cachedPaths = urlsToCache.map(url => url.split('?')[0]);
