@@ -312,7 +312,7 @@ class On_login extends MX_Controller {
 	            }
 
 	            // Susun pesan
-	            $subject = "Peringatan: Banyak percobaan login gagal di System SiDia";
+	            $subject = "Peringatan: Banyak percobaan login gagal di System Silaturahmi";
 	            $message = "🔐 $subject\n\n"
 	                . "📌 IP: $ip\n"
 	                . "📍 Lokasi: $lokasi\n"

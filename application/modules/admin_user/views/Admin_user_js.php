@@ -308,6 +308,14 @@
         tel.value = (tel.value[0]==='+' ? '+' : '') + v;
       });
     }
+// === Ekspos ke global agar bisa dipanggil dari onclick HTML ===
+window.add = add;
+window.refresh = refresh;
+window.hapus_data = hapus_data;
+window.close_modal = close_modal;
+window.simpan = simpan;
+window.pub = pub;
+window.det = det;
 
   }); // ←←← INI YANG KURANG: tutup $(document).ready
 </script>

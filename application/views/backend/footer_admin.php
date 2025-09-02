@@ -92,13 +92,29 @@
     <div class="space-left"></div>
 
     <?php $web = $this->om->web_me(); ?>
-    <a href="<?= base_url('admin_scan') ?>"
-     class="center-button <?= ($uri == 'admin_scan') ? 'text-white' : '' ?>"
-     style="text-align: center; <?= ($uri == 'admin_scan') ? 'background-color:;' : '' ?>">
-     <div>
-      <img src="<?php echo base_url('assets/images/') . $web->gambar ?>" alt="Permohonan" style="width: 50px; height: 50px; object-fit: contain; margin-top: 0px;">
-    </div>
-  </a>
+<?php
+  // pastikan helper menu sudah diload (autoload/helper atau panggil di controller)
+  if (!function_exists('user_can_mod')) $this->load->helper('menu');
+
+  // tentukan hak akses untuk fitur scan
+  $can_scan = function_exists('user_can_mod')
+    ? user_can_mod(['admin_scan','scan','checkin/checkout'])
+    : false;
+
+  // tentukan target URL & state aktif (highlight)
+  $target_url = $can_scan ? base_url('admin_scan') : base_url('booking');
+  $is_active  = $can_scan ? ($uri === 'admin_scan') : ($uri === 'booking');
+?>
+<a href="<?= $target_url ?>"
+   class="center-button <?= $is_active ? 'text-white' : '' ?>"
+   style="text-align:center; <?= $is_active ? 'background-color:;' : '' ?>"
+   aria-label="<?= $can_scan ? 'Scan (Check-in/Out)' : 'Booking' ?>">
+  <div>
+    <img src="<?= base_url('assets/images/') . $web->gambar ?>"
+         alt="<?= $can_scan ? 'Scan' : 'Booking' ?>"
+         style="width:50px;height:50px;object-fit:contain;margin-top:0;">
+  </div>
+</a>
 
 
   <div class="space-right"></div>
@@ -165,53 +181,58 @@
     </div>
      
     <div class="modal-body">
+      <!-- Booking -->
       <a href="<?php echo base_url('booking') ?>" style="text-decoration: none;">
         <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-          <i class="mdi mdi-puzzle mr-1"></i>Booking
+          <i class="mdi mdi-calendar-check mr-1"></i>Booking
         </div>
       </a>
-       <a href="<?php echo base_url('admin_profil') ?>" style="text-decoration: none;">
+
+      <!-- Profil -->
+      <a href="<?php echo base_url('admin_profil') ?>" style="text-decoration: none;">
         <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-          <i class="fas fa-route mr-1"></i></i>Profil
+          <i class="fas fa-user-circle mr-1"></i>Profil
         </div>
       </a>
 
       <!-- QUICK: Manajemen User -->
       <a id="quick-user-link" href="<?= base_url('admin_user') ?>" style="text-decoration: none;">
         <div id="quick-user-card"
-        class="external-event text-dark ui-draggable ui-draggable-handle"
-        data-class="bg-success"
-        style="position: relative; z-index: auto; font-size: 16px; background:#c7d5ff; font-weight:600; width:100%;">
-        <i class="fas fa-map-marked-alt mr-1"></i>Manajemen User
-      </div>
-    </a>
-
-    <!-- QUICK: Data -->
-    <a id="quick-data-link" href="<?= base_url('admin_permohonan') ?>" style="text-decoration: none;">
-      <div id="quick-data-card"
-      class="external-event text-dark ui-draggable ui-draggable-handle"
-      data-class="bg-success"
-      style="position: relative; z-index: auto; font-size: 16px; background:#c7d5ff; font-weight:600; width:100%;">
-      <i class="fe-file-text mr-1"></i>Data
-    </div>
-  </a>
-
-
-
-      <a href="<?php echo base_url('hal/struktur') ?>" style="text-decoration: none;">
-        <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-          <i class="fas fa-phone mr-1"></i>Struktur Organisasi
+             class="external-event text-dark ui-draggable ui-draggable-handle"
+             data-class="bg-success"
+             style="position: relative; z-index: auto; font-size: 16px; background:#c7d5ff; font-weight:600; width:100%;">
+          <i class="fas fa-users-cog mr-1"></i>Manajemen User
         </div>
       </a>
+
+      <!-- QUICK: Data -->
+      <a id="quick-data-link" href="<?= base_url('admin_permohonan') ?>" style="text-decoration: none;">
+        <div id="quick-data-card"
+             class="external-event text-dark ui-draggable ui-draggable-handle"
+             data-class="bg-success"
+             style="position: relative; z-index: auto; font-size: 16px; background:#c7d5ff; font-weight:600; width:100%;">
+          <i class="fe-database mr-1"></i>Data
+        </div>
+      </a>
+
+      <!-- Struktur Organisasi -->
+      <a href="<?php echo base_url('hal/struktur') ?>" style="text-decoration: none;">
+        <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
+          <i class="fas fa-sitemap mr-1"></i>Struktur Organisasi
+        </div>
+      </a>
+
+      <!-- Kontak -->
       <a href="<?php echo base_url('hal/kontak') ?>" style="text-decoration: none;">
         <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-          <i class="fas fa-mobile-alt mr-1"></i>Kontak 
+          <i class="fas fa-address-book mr-1"></i>Kontak 
         </div>
       </a>
     </div>
   </div>
 </div>
 </div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   const isAdminLogin = <?= $this->session->userdata("admin_login") ? 'true' : 'false' ?>;
