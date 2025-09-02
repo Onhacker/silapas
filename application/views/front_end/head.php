@@ -78,35 +78,6 @@
               });
             }
           }
-
-          async function loadStatusUser() {
-            try {
-              const r = await fetch('<?= site_url("api/ajax_status_user") ?>', { method:'GET', credentials:'same-origin' });
-              const data = await r.json();
-
-              if (!container) return;
-
-              // API harus mengirim HTML <li>...</li> saja (bukan <ul>)
-              const html = (data && typeof data.html === 'string' && data.html.trim() !== '')
-                ? data.html
-                : '<li class="dropdown notification-list"><a class="nav-link nav-user mr-0 waves-effect" href="<?= site_url("on_login") ?>"><span class="d-flex align-items-center"><i class="fas fa-user-circle mr-1" style="font-size:28px;color:green;"></i><span class="pro-user-name">Login</span></span></a></li>';
-
-              container.innerHTML = html;
-
-              // pastikan semua toggle dropdown aktif
-              initDropdowns(container);
-            } catch (err) {
-              console.error('Error fetching status:', err);
-              if (container) {
-                container.innerHTML =
-                  '<li class="dropdown notification-list"><a class="nav-link nav-user mr-0 waves-effect" href="<?= site_url("on_login") ?>"><span class="d-flex align-items-center"><i class="fas fa-user-circle mr-1" style="font-size:28px;color:green;"></i><span class="pro-user-name">Login</span></span></a></li>';
-              }
-            }
-          }
-
-          loadStatusUser();
-          // opsional: auto-refresh tiap beberapa menit
-          // setInterval(loadStatusUser, 180000);
         });
 </script>
 

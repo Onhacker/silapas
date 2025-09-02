@@ -14,10 +14,13 @@ if (!function_exists('allowed_module_slugs')) {
     static $cache = null;
     if ($cache !== null) return $cache;
 
-    $CI = &get_instance();
-    $u  = $CI->session->userdata('admin_username');
-    $lvl= $CI->session->userdata('admin_level');
-    $sid= $CI->session->userdata('admin_session');
+    $CI  = &get_instance();
+    $u   = $CI->session->userdata('admin_username');
+    $lvl = $CI->session->userdata('admin_level');
+
+    // ✅ pakai id_session (fallback admin_session jika memang itu yg diset)
+    $sid = $CI->session->userdata('id_session');
+    if (!$sid) $sid = $CI->session->userdata('admin_session');
 
     // Super admin: bebas
     if ($lvl === 'admin' && $u === 'admin') {
@@ -25,17 +28,27 @@ if (!function_exists('allowed_module_slugs')) {
       return $cache;
     }
 
-    // Ambil modul yang diizinkan untuk user sekarang
-    $CI->db->select('m.nama_modul')
+    // Ambil modul yang diizinkan utk user sekarang
+    $CI->db->select('m.nama_modul, m.link')
            ->from('modul m')
            ->join('users_modul um','um.id_modul=m.id_modul')
            ->where('um.id_session', $sid)
            ->where('m.aktif','Y')
            ->where('m.publish','Y');
     $rows = $CI->db->get()->result();
+
     $set  = [];
     foreach($rows as $r){
-      $set[ slugify_mod($r->nama_modul) ] = true;
+      // izinkan dengan slug nama modul
+      if (!empty($r->nama_modul)) {
+        $set[ slugify_mod($r->nama_modul) ] = true;
+      }
+      // izinkan dengan slug link (mis. 'admin_permohonan' / 'admin_dashboard/monitor')
+      if (!empty($r->link)) {
+        $link = trim($r->link, '/');
+        $set[ slugify_mod($link) ] = true;  // 'admin-permohonan' dsb
+        $set[ $link ] = true;               // exact match 'admin_permohonan' / 'admin_dashboard/monitor'
+      }
     }
     $cache = $set;
     return $cache;
@@ -43,25 +56,24 @@ if (!function_exists('allowed_module_slugs')) {
 }
 
 if (!function_exists('user_can_mod')) {
-  // $require: string|array label modul (akan di-slug)
+  // $require: string|array; boleh nama modul, slug, link, atau slug link
   function user_can_mod($require){
     $allow = allowed_module_slugs();
     if ($allow === '__ALL__') return true;
 
     $reqs = is_array($require) ? $require : [$require];
     foreach($reqs as $r){
-      if (isset($allow[ slugify_mod($r) ])) return true;
+      $r = trim((string)$r, '/');
+      // cek berbagai bentuk: exact, slug, serta versi slash→dash
+      if (isset($allow[$r])) return true;
+      $slug = slugify_mod($r);
+      if (isset($allow[$slug])) return true;
     }
     return false;
   }
 }
 
 if (!function_exists('build_menu')) {
-  /**
-   * Render LI (tanpa UL root) sesuai theme:
-   * - parent: <li class="has-submenu [active-menu]"><a>Label<div class="arrow-down"></div></a><ul class="submenu">...</ul></li>
-   * - item:   <li class="[active-menu]"><a href="..."><i class="fe-..."></i> Label</a></li>
-   */
   function build_menu(array $items, array $opts = []){
     $CI   = &get_instance();
     $uri  = trim($CI->uri->uri_string(),'/');
@@ -69,14 +81,14 @@ if (!function_exists('build_menu')) {
     $o = array_merge([
       'li_has_child_class' => 'has-submenu',
       'li_active_class'    => 'active-menu',
-      'child_ul_class'     => 'submenu', // penting: hanya untuk anak
+      'child_ul_class'     => 'submenu',
       'a_class'            => '',
     ], $opts);
 
     $renderItems = function($items) use (&$renderItems, $o, $uri){
       $html = '';
       foreach($items as $it){
-        // cek akses
+        // filter by akses
         if (isset($it['require']) && !user_can_mod($it['require'])) continue;
 
         $label = $it['label'] ?? '';
@@ -84,32 +96,27 @@ if (!function_exists('build_menu')) {
         $icon  = $it['icon']  ?? '';
         $kids  = $it['children'] ?? [];
 
-        // render anak dulu (hanya yang allowed)
+        // render anak (jika semua anak ketendang → parent ikut hilang)
         $childHtml = '';
         if ($kids){
           $childHtml = $renderItems($kids);
-          if ($childHtml === '') {
-            // semua anak ketendang oleh filter akses → sembunyikan parent juga
-            continue;
-          }
+          if ($childHtml === '') continue;
         }
 
         // active?
         $isActive = false;
         if (!empty($it['active_match'])) {
-          // manual pattern
           foreach((array)$it['active_match'] as $pat){
             if (strpos($uri, trim($pat,'/')) === 0){ $isActive=true; break; }
           }
         } else {
-          // default: match prefix url route
           $route = trim(parse_url($url, PHP_URL_PATH) ?? '', '/');
           if ($route !== '' && strpos($uri, $route) === 0) $isActive = true;
         }
 
         $liClsArr = [];
-        if ($kids) $liClsArr[] = $o['li_has_child_class'];
-        if ($isActive) $liClsArr[] = $o['li_active_class'];
+        if ($kids)    $liClsArr[] = $o['li_has_child_class'];
+        if ($isActive)$liClsArr[] = $o['li_active_class'];
         $liCls = $liClsArr ? ' class="'.implode(' ',$liClsArr).'"' : '';
 
         $iconHtml = $icon ? '<i class="'.htmlspecialchars($icon).'"></i> ' : '';
@@ -126,7 +133,6 @@ if (!function_exists('build_menu')) {
       return $html;
     };
 
-    // KEMBALIKAN HANYA <li>...</li> TANPA <ul> ROOT
     return $renderItems($items);
   }
 }

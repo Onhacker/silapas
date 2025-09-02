@@ -10,6 +10,8 @@ class Admin_user extends Admin_Controller {
         $this->load->model("M_admin_user_profil", "cm");
   //       $this->load->model("M_faskes", "fs");
         $this->load->library("email");
+        cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
+        
 	}
 
 	function index(){

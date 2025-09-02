@@ -20,12 +20,14 @@
 
   .center-button {
     position: absolute;
-    top: -30px;
+    top: -25px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #fff; /* hijau */
-    width: 64px;
-    height: 64px;
+    /*background-image: linear-gradient(to right, #00c6ff 0%, #0072ff 100%) !important;*/
+    background-image: linear-gradient(to right, #1e3c72 0%, #2a5298 100%) !important;
+
+    width: 65px;
+    height: 65px;
     border-radius: 50%;
     border: 1px solid #dee2e6;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
@@ -34,7 +36,6 @@
     justify-content: center;
     animation: footerAni 1s infinite;
     z-index: 10;
-    background-image: linear-gradient(to right,#fbf003 0%,#009819 100%)!important;
   }
 
   .center-button .icon-center {
@@ -91,9 +92,9 @@
     <div class="space-left"></div>
 
     <?php $web = $this->om->web_me(); ?>
-    <a href="<?= base_url('admin_permohonan') ?>"
-     class="center-button <?= ($uri == 'admin_permohonan') ? 'text-white' : '' ?>"
-     style="text-align: center; <?= ($uri == 'admin_permohonan' || $uri == 'admin_permohonan/detail_paket/') ? 'background-color: #28a745;' : '' ?>">
+    <a href="<?= base_url('admin_scan') ?>"
+     class="center-button <?= ($uri == 'admin_scan') ? 'text-white' : '' ?>"
+     style="text-align: center; <?= ($uri == 'admin_scan') ? 'background-color:;' : '' ?>">
      <div>
       <img src="<?php echo base_url('assets/images/') . $web->gambar ?>" alt="Permohonan" style="width: 50px; height: 50px; object-fit: contain; margin-top: 0px;">
     </div>
@@ -103,14 +104,14 @@
   <div class="space-right"></div>
 
   <div class="nav-item">
-    <a href="<?= base_url('admin_permohonan/all') ?>" class="<?= ($uri == 'admin_permohonan/all') ? 'text-primary' : 'text-dark' ?>">
+    <a href="<?= base_url('admin_dashboard/monitor') ?>" class="<?= ($uri == 'admin_dashboard/monitor') ? 'text-primary' : 'text-dark' ?>">
       <i class="fas fa-clipboard-list d-block mb-1"></i>
       <span class="small">Monitoring</span>
     </a>
   </div>
 
   <div class="nav-item">
-    <a class="<?= ($uri == 'hal/kontak' || $uri == 'hal/kontak_capil' || $uri == 'admin_dusun' || $uri == 'tracking' || $uri == 'hal/permohonan' || $uri == 'hal/alur') ? 'text-primary' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModal">
+    <a class="<?= ($uri == 'admin_permohonan' || $uri == 'admin_profil' || $uri == 'booking' || $uri == 'hal/struktur' || $uri == 'hal/alur' || $uri == 'admin_user' || $uri == 'hal/kontak') ? 'text-primary' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModal">
       <i class="fas fa-bars d-block mb-1"></i>
       <span class="small">Menu</span>
     </a>
@@ -162,44 +163,113 @@
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
-
+     
     <div class="modal-body">
-      <?php if ($this->session->userdata("admin_level") != "admin") {?>
-        <a href="<?php echo base_url('admin_dusun') ?>" style="text-decoration: none;">
-          <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-            <i class="fas fa-map-marked-alt mr-1"></i>Data Dusun
-          </div>
-        </a>
-      <?php } ?>
-      
-      <a href="<?php echo base_url('hal/permohonan') ?>" style="text-decoration: none;">
+      <a href="<?php echo base_url('booking') ?>" style="text-decoration: none;">
         <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-          <i class="fe-file-text mr-1"></i>Syarat Permohonan
+          <i class="mdi mdi-puzzle mr-1"></i>Booking
         </div>
       </a>
-      <a href="<?php echo base_url('tracking') ?>" style="text-decoration: none;">
+       <a href="<?php echo base_url('admin_profil') ?>" style="text-decoration: none;">
         <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-          <i class="fas fa-route mr-1"></i></i>Tracking
+          <i class="fas fa-route mr-1"></i></i>Profil
         </div>
       </a>
 
-      <a href="<?php echo base_url('hal/alur') ?>" style="text-decoration: none;">
-        <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-          <i class="mdi mdi-puzzle mr-1"></i>Alur Permohonan
-        </div>
-      </a>
+      <!-- QUICK: Manajemen User -->
+      <a id="quick-user-link" href="<?= base_url('admin_user') ?>" style="text-decoration: none;">
+        <div id="quick-user-card"
+        class="external-event text-dark ui-draggable ui-draggable-handle"
+        data-class="bg-success"
+        style="position: relative; z-index: auto; font-size: 16px; background:#c7d5ff; font-weight:600; width:100%;">
+        <i class="fas fa-map-marked-alt mr-1"></i>Manajemen User
+      </div>
+    </a>
 
-      <a href="<?php echo base_url('hal/kontak_capil') ?>" style="text-decoration: none;">
+    <!-- QUICK: Data -->
+    <a id="quick-data-link" href="<?= base_url('admin_permohonan') ?>" style="text-decoration: none;">
+      <div id="quick-data-card"
+      class="external-event text-dark ui-draggable ui-draggable-handle"
+      data-class="bg-success"
+      style="position: relative; z-index: auto; font-size: 16px; background:#c7d5ff; font-weight:600; width:100%;">
+      <i class="fe-file-text mr-1"></i>Data
+    </div>
+  </a>
+
+
+
+      <a href="<?php echo base_url('hal/struktur') ?>" style="text-decoration: none;">
         <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-          <i class="fas fa-phone mr-1"></i>Kontak Dukcapil
+          <i class="fas fa-phone mr-1"></i>Struktur Organisasi
         </div>
       </a>
       <a href="<?php echo base_url('hal/kontak') ?>" style="text-decoration: none;">
         <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-          <i class="fas fa-mobile-alt mr-1"></i>Kontak Desa & Dusun
+          <i class="fas fa-mobile-alt mr-1"></i>Kontak 
         </div>
       </a>
     </div>
   </div>
 </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const isAdminLogin = <?= $this->session->userdata("admin_login") ? 'true' : 'false' ?>;
+
+  // helper deteksi mobile
+  function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
+  // Map id → elemen DOM yang kita punya
+  const QUICK = {
+    admin_user: {
+      a:  document.getElementById("quick-user-link"),
+      c:  document.getElementById("quick-user-card")
+    },
+    admin_permohonan: {
+      a:  document.getElementById("quick-data-link"),
+      c:  document.getElementById("quick-data-card")
+    }
+  };
+
+  // sembunyikan semua dulu (anti-flicker saat fetch)
+  function hideAll() {
+    Object.values(QUICK).forEach(({a}) => { if (a) a.style.display = "none"; });
+  }
+  function showById(id, url) {
+    const el = QUICK[id];
+    if (!el || !el.a) return;
+    if (url) el.a.href = url;  // sinkronkan URL dari server
+    el.a.style.display = "";   // tampilkan
+  }
+
+  if (isAdminLogin && isMobile()) {
+    hideAll();
+    fetch("<?= site_url('api/get_menu_mobile') ?>?t=" + Date.now())
+      .then(r => (r.status === 304 ? null : r.json()))
+      .then(data => {
+        if (!data) { // 304, pakai tampilan sebelumnya
+          return;
+        }
+        if (!data.success) {
+          // kalau gagal, tetap sembunyikan semua
+          return;
+        }
+        // tampilkan hanya yang diizinkan
+        (data.actions || []).forEach(item => {
+          showById(item.id, item.url);
+        });
+      })
+      .catch(err => {
+        // fallback: demi usability, boleh tampilkan "Data" saja,
+        // atau tetap disembunyikan; pilih salah satu.
+        // showById('admin_permohonan');
+        console.warn("Gagal memuat menu mobile:", err);
+      });
+  } else {
+    // Non-admin atau non-mobile → Anda bisa pilih:
+    // hideAll(); // sembunyikan pada kondisi ini
+  }
+});
+</script>

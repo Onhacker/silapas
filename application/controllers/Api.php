@@ -16,36 +16,38 @@ class Api extends MX_Controller {
     $this->load->helper('menu');
 
     $is_logged = (bool)$this->session->userdata("admin_login");
-    $is_admin  = ($this->session->userdata('admin_level') === 'admin');
-    $is_super  = $is_admin && ($this->session->userdata('admin_username') === 'admin');
+    $level     = (string)$this->session->userdata('admin_level');
+    $username  = (string)$this->session->userdata('admin_username');
 
-    // Definisi menu (tetap)
+    // ====== Definisi menu (tetap) ======
     $MENU_DEF = [
-        [ 'label'=>'Statistik',  'url'=>site_url('admin_dashboard'),         'icon'=>'fe-activity',           'require'=>['statistik','dashboard','admin_dashboard'] ],
-        [ 'label'=>'Scan',       'url'=>site_url('admin_scan'),              'icon'=>'mdi mdi-qrcode-scan',   'require'=>['checkin/checkout','scan qr','scan'] ],
-        [ 'label'=>'Monitoring', 'url'=>site_url('admin_dashboard/monitor'), 'icon'=>'fe-eye',                'require'=>['monitoring','monitor'] ],
-        [ 'label'=>'Data',       'url'=>site_url('admin_permohonan'),        'icon'=>'fe-eye',                'require'=>['admin_permohonan','admin_permohonan'] ],
-    ];
-    if ($is_super) {
-        $MENU_DEF[] = [
-            'label'=>'Master', 'icon'=>'fe-git-commit',
-            'children'=>[
-                [ 'label'=>'Manajemen User','url'=>site_url('admin_user'), 'require'=>['manajemen user','user '] ],
-            ]
-        ];
-    }
+        [ 'label'=>'Statistik',  'url'=>site_url('admin_dashboard'),         'icon'=>'fe-activity',
+          // boleh pakai beberapa alias require:
+          'require'=>['Statistik','dashboard','admin_dashboard'] ],
 
-    // HTML LI (tanpa UL root)
-    $html = build_menu($MENU_DEF, [
-        'li_has_child_class' => 'has-submenu',
-        'li_active_class'    => 'active-menu',
-        'child_ul_class'     => 'submenu',
-    ]);
+        [ 'label'=>'Scan',       'url'=>site_url('admin_scan'),              'icon'=>'mdi mdi-qrcode-scan',
+          'require'=>['Scan QR','scan','admin_scan'] ],
+
+        [ 'label'=>'Monitoring', 'url'=>site_url('admin_dashboard/monitor'), 'icon'=>'fe-eye',
+          'require'=>['Monitoring','admin_dashboard/monitor','admin_monitor'] ],
+
+        [ 'label'=>'Data',       'url'=>site_url('admin_permohonan'),        'icon'=>'fe-eye',
+          'require'=>['Admin Permohonan','admin_permohonan'] ],
+    ];
+
+    // Opsi group admin (hanya muncul jika user punya akses child-nya)
+    $MENU_DEF[] = [
+        'label'=>'Master', 'icon'=>'fe-git-commit',
+        'children'=>[
+            [ 'label'=>'Manajemen User','url'=>site_url('admin_user'),
+              'require'=>['Manajemen User','admin_user','user'] ],
+        ]
+    ];
 
     // ====== Header dasar ======
     $this->output->set_content_type('application/json');
 
-    // ====== Kalau BELUM login: jangan di-cache sama sekali ======
+    // ====== Belum login → no cache & empty ======
     if (!$is_logged) {
         $this->output
             ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private')
@@ -57,12 +59,19 @@ class Api extends MX_Controller {
         return;
     }
 
-    // ====== Kalau SUDAH login: cache private + ETag ======
-    // ETag dihitung dari username, level, dan struktur menu
-    $username = (string)$this->session->userdata('admin_username');
-    $level    = (string)$this->session->userdata('admin_level');
-    // Kalau kamu punya “menu_updated_at” di session/DB, gabungkan juga agar invalidasi otomatis
-    $signature = $username.'|'.$level.'|'.md5(json_encode($MENU_DEF));
+    // ====== Build menu (otomatis terfilter oleh akses di build_menu) ======
+    $html = build_menu($MENU_DEF, [
+        'li_has_child_class' => 'has-submenu',
+        'li_active_class'    => 'active-menu',
+        'child_ul_class'     => 'submenu',
+    ]);
+
+    // ====== ETag sensitif user & akses ======
+    // Hash-kan juga "allowed set" agar ETag berubah saat hak akses berubah
+    $allowed = allowed_module_slugs();
+    $allowed_sig = is_array($allowed) ? md5(json_encode(array_keys($allowed))) : (string)$allowed;
+
+    $signature = $username.'|'.$level.'|'.md5(json_encode($MENU_DEF)).'|'.$allowed_sig.'|'.md5($html);
     $etag = 'W/"menu-'.substr(sha1($signature), 0, 20).'"';
 
     // 304 handling
@@ -81,11 +90,88 @@ class Api extends MX_Controller {
         ->set_header('ETag: '.$etag)
         ->set_header('Cache-Control: private, max-age=900, stale-while-revalidate=600') // 15 menit, SWR 10 menit
         ->set_header('Vary: Cookie')
-        ->set_header('X-Menu-Version: '.$etag); // opsional: berguna bila ingin dibaca di klien
+        ->set_header('X-Menu-Version: '.$etag);
 
     echo json_encode([
         "success" => true,
         "menu"    => $html
+    ]);
+}
+public function get_menu_mobile()
+{
+    $this->load->helper('menu'); // butuh user_can_mod(), allowed_module_slugs()
+    $is_logged = (bool)$this->session->userdata("admin_login");
+    $level     = (string)$this->session->userdata('admin_level');
+    $username  = (string)$this->session->userdata('admin_username');
+
+    $this->output->set_content_type('application/json');
+
+    if (!$is_logged) {
+        $this->output
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private')
+            ->set_header('Pragma: no-cache')
+            ->set_header('Expires: 0')
+            ->set_header('Vary: Cookie');
+        echo json_encode(["success"=>false, "actions"=>[]]);
+        return;
+    }
+
+    // Definisi quick actions (mobile)
+    $ACTIONS_DEF = [
+        [
+            'id'      => 'admin_user',
+            'label'   => 'Manajemen User',
+            'url'     => site_url('admin_user'),
+            'icon'    => 'fas fa-map-marked-alt',
+            'require' => ['admin_user','manajemen user','user']
+        ],
+        [
+            'id'      => 'admin_permohonan',
+            'label'   => 'Data',
+            'url'     => site_url('admin_permohonan'),
+            'icon'    => 'fe-file-text',
+            'require' => ['admin_permohonan','admin permohonan']
+        ],
+    ];
+
+    // Filter berdasarkan hak akses
+    $allowed_actions = [];
+    foreach ($ACTIONS_DEF as $a) {
+        if (!isset($a['require']) || user_can_mod($a['require'])) {
+            $allowed_actions[] = [
+                'id'    => $a['id'],
+                'label' => $a['label'],
+                'url'   => $a['url'],
+                'icon'  => $a['icon']
+            ];
+        }
+    }
+
+    // ETag sensitif user & izin
+    $allowed = allowed_module_slugs();
+    $allowed_sig = is_array($allowed) ? md5(json_encode(array_keys($allowed))) : (string)$allowed;
+    $payload_sig = md5(json_encode($allowed_actions));
+    $signature   = $username.'|'.$level.'|'.$allowed_sig.'|'.$payload_sig;
+    $etag = 'W/"mobile-'.substr(sha1($signature), 0, 20).'"';
+
+    $ifNoneMatch = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH']) : '';
+    if ($ifNoneMatch === $etag) {
+        $this->output
+            ->set_status_header(304)
+            ->set_header('ETag: '.$etag)
+            ->set_header('Cache-Control: private, max-age=900, stale-while-revalidate=600')
+            ->set_header('Vary: Cookie');
+        return;
+    }
+
+    $this->output
+        ->set_header('ETag: '.$etag)
+        ->set_header('Cache-Control: private, max-age=900, stale-while-revalidate=600')
+        ->set_header('Vary: Cookie');
+
+    echo json_encode([
+        "success" => true,
+        "actions" => $allowed_actions
     ]);
 }
 
