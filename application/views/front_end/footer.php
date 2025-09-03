@@ -135,7 +135,7 @@
             <div class="row text-center mb-3 ">
               <a class="col-5" href="<?php echo site_url("hal/privacy_policy") ?>">Kebijakan Privasi</a>
               <a class="col-2" href="#topnav" onclick="scrollToTop()" aria-label="Kembali ke atas"><i class="fas fa-arrow-up" style="color: #4a81d4"></i></a>
-              <a class="col-5" href="<?php echo site_url("hal/kontak") ?>">Kontak</a>
+              <a class="col-5" href="<?php echo site_url("hal") ?>">Syarat dan Ketentuan</a>
             </div>
           </div> 
         </div>
@@ -240,10 +240,11 @@
       </a>
     </div>
 
+   
     <div class="nav-item">
-      <a href="<?= base_url('hal/struktur') ?>" class="<?= ($uri == 'hal/struktur') ? 'text-primary' : 'text-dark' ?>">
-        <i class="fas fa-sitemap d-block mb-1"></i>
-        <span class="small">Struktur</span>
+      <a href="<?= base_url('hal/alur') ?>" class="<?= ($uri == 'hal/alur') ? 'text-primary' : 'text-dark' ?>">
+        <i class="fas fa-project-diagram d-block mb-1"></i>
+        <span class="small">Alur</span>
       </a>
     </div>
 
@@ -258,10 +259,10 @@
     </div>
     <div class="space-right"></div>
 
-    <div class="nav-item">
-      <a href="<?= base_url('hal/alur') ?>" class="<?= ($uri == 'hal/alur') ? 'text-primary' : 'text-dark' ?>">
-        <i class="fas fa-project-diagram d-block mb-1"></i>
-        <span class="small">Alur</span>
+     <div class="nav-item">
+      <a href="<?= base_url('hal/struktur') ?>" class="<?= ($uri == 'hal/struktur') ? 'text-primary' : 'text-dark' ?>">
+        <i class="fas fa-sitemap d-block mb-1"></i>
+        <span class="small">Struktur</span>
       </a>
     </div>
 

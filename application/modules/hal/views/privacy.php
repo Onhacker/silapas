@@ -67,7 +67,7 @@
                     <p>Jika ada pertanyaan mengenai Kebijakan Privasi SILATURAHMI Makaassar, silakan hubungi:</p>
                     <address>
                         <strong>Admin SILATURAHMI Makaassar</strong><br>
-                        Email: <a href="mailto:SILATURAHMI Makaassar@lapas.go.id">SILATURAHMI Makaassar@lapas.go.id</a><br>
+                        Email: <a href="mailto:admin@silaturahmi.org">admin@silaturahmi.org</a><br>
                         WhatsApp: +62 812-xxxx-xxxx<br>
                         Alamat: Lapas Kelas I Makassar, Jl. Sultan Alauddin, Kota Makassar
                     </address>

@@ -45,7 +45,15 @@
               margin-right: 8px;
             }
           </style>
-
+           <link href="<?= base_url('assets/admin/libs/magnific-popup/magnific-popup.css'); ?>" rel="stylesheet" type="text/css" />
+            <div class="gal-box">
+            <a href="<?php echo base_url("assets/images/struktur_organisasi.png") ?>" class="image-popup" title="Struktur Organisasi">
+              <img src="<?php echo base_url("assets/images/struktur_organisasi.png") ?>" class="img-fluid" alt="work-thumbnail">
+            </a>
+            <div class="gall-info">
+              <h4 class="font-16 mt-0">Struktur Organisasi</h4>
+            </div> 
+          </div>
           <?php 
           function get_icon($nama_unit) {
               $nama = strtolower($nama_unit);
@@ -83,3 +91,17 @@
 </div>
 
 <?php $this->load->view("front_end/footer.php") ?>
+<script src="<?= base_url('assets/admin/libs/magnific-popup/jquery.magnific-popup.min.js') ?>"></script>
+<script>
+  $(function(){
+    $(".image-popup").magnificPopup({
+      type: "image",
+      closeOnContentClick: false,
+      closeBtnInside: false,
+      mainClass: "mfp-with-zoom mfp-img-mobile",
+      image: { verticalFit: true, titleSrc: e => e.el.attr("title") },
+      gallery: { enabled: true },
+      zoom: { enabled: true, duration: 300, opener: e => e.find("img") }
+    });
+  });
+</script>

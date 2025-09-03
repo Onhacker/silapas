@@ -139,9 +139,17 @@ function simpan(btn){
   const confirmButtonText = 'Ya, kirim sekarang';
   const cancelButtonText  = 'Batal';
   
+
+
   Swal.fire({
     title: title,
-    text: text,
+    // text: text,
+    html: `
+       Saya setuju
+        <a href="<?= site_url('hal'); ?>" target="_blank" rel="noopener">Syarat &amp; Ketentuan</a>
+        dan telah membaca
+        <a href="<?= site_url('hal/privacy_policy'); ?>" target="_blank" rel="noopener">Kebijakan Privasi</a>.
+      `,
     icon: "question",
     showCancelButton: true,
     allowOutsideClick: false,
@@ -155,7 +163,7 @@ function simpan(btn){
     // Checkbox konfirmasi
     input: "checkbox",
     inputValue: 0, // default: belum dicentang
-    inputPlaceholder: "Ceklis: Ya, saya sangat yakin !!!",
+    inputPlaceholder: "Ceklis: Ya, saya setuju !!!",
     confirmButtonText: confirmButtonText,
     cancelButtonText:  cancelButtonText,
     inputValidator: (result) => {

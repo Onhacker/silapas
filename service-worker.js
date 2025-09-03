@@ -3,7 +3,7 @@ const OFFLINE_URL = '/assets/offline.html';
 const BASE_PATH = '/';
 
 const urlsToCache = [
-  '/', '/home','/hal/alur', '/booking', '/hal/kontak', 'hal/struktur','/hal/privacy_policy',
+  '/', '/home','/hal/alur', '/booking', '/hal/kontak', 'hal/struktur','/hal/privacy_policy','/hal',
   '/developer/manifest?v=2',
   '/assets/offline.html',
   '/assets/admin/images/bg-login.mp4',
