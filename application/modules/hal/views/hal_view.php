@@ -38,7 +38,7 @@
           <ul class="list-unstyled timeline-sm mt-4">
             <!-- Step 1 -->
             <li class="timeline-sm-item">
-              <span class="timeline-sm-date"><span class="badge-step">1</span> Tahap 1</span>
+              
               <h4 class="mt-0">Buat Booking</h4>
               <p>
                 Pengunjung membuka halaman <a href="<?= site_url('booking') ?>">Form Booking</a>,
@@ -51,7 +51,7 @@
 
             <!-- Step 2 -->
             <li class="timeline-sm-item">
-              <span class="timeline-sm-date"><span class="badge-step">2</span> Tahap 2</span>
+              
               <h4 class="mt-0">Verifikasi Admin</h4>
               <p>
                 Sistem memeriksa ketersediaan slot dan kelengkapan data. Jika sesuai, status menjadi <strong>Approved</strong>.
@@ -66,7 +66,7 @@
 
             <!-- Step 3 -->
             <li class="timeline-sm-item">
-              <span class="timeline-sm-date"><span class="badge-step">3</span> Tahap 3</span>
+              
               <h4 class="mt-0">Persiapan Pengunjung</h4>
               <p>
                 Pengunjung menyimpan/ mencetak <strong>ticket (PDF)</strong> yang memuat QR.
@@ -77,7 +77,7 @@
 
             <!-- Step 4 -->
             <li class="timeline-sm-item">
-              <span class="timeline-sm-date"><span class="badge-step">4</span> Tahap 4</span>
+              
               <h4 class="mt-0">Check-in (Hari H)</h4>
               <p>
                 Di pos petugas, QR pada ticket di-<strong>scan</strong> melalui halaman <strong>Scan</strong> (<a href="<?= site_url('admin_scan') ?>">admin_scan</a>).
@@ -88,7 +88,7 @@
 
             <!-- Step 5 -->
             <li class="timeline-sm-item">
-              <span class="timeline-sm-date"><span class="badge-step">5</span> Tahap 5</span>
+              
               <h4 class="mt-0">Proses Kunjungan & Dokumentasi</h4>
               <p>
                 Tamu dilayani oleh <strong>Unit Tujuan</strong> sesuai keperluan. Dari halaman <strong>Detail Booking</strong>,
@@ -99,7 +99,7 @@
 
             <!-- Step 6 -->
             <li class="timeline-sm-item">
-              <span class="timeline-sm-date"><span class="badge-step">6</span> Tahap 6</span>
+              
               <h4 class="mt-0">Checkout</h4>
               <p>
                 Saat tamu selesai, lakukan pemindaian ulang pada mode <strong>Checkout</strong>.
@@ -110,7 +110,7 @@
 
             <!-- Step 7 -->
             <li class="timeline-sm-item">
-              <span class="timeline-sm-date"><span class="badge-step">7</span> Tahap 7</span>
+              
               <h4 class="mt-0">Selesai &amp; Arsip</h4>
               <p>
                 Semua data (identitas, unit tujuan, waktu check-in/out, petugas, foto, dokumen) tersimpan sebagai arsip.
@@ -120,7 +120,7 @@
 
             <!-- Step 8 -->
             <li class="timeline-sm-item">
-              <span class="timeline-sm-date"><span class="badge-step">8</span> Tahap 8</span>
+              
               <h4 class="mt-0">Statistik &amp; Evaluasi</h4>
               <p>
                 Dashboard menampilkan <strong>Tren Kunjungan</strong> (harian/mingguan/bulanan), <strong>Asal Instansi Top 5</strong>,
