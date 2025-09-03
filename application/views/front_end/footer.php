@@ -135,7 +135,7 @@
             <div class="row text-center mb-3 ">
               <a class="col-5" href="<?php echo site_url("hal/privacy_policy") ?>">Kebijakan Privasi</a>
               <a class="col-2" href="#topnav" onclick="scrollToTop()" aria-label="Kembali ke atas"><i class="fas fa-arrow-up" style="color: #4a81d4"></i></a>
-              <a class="col-5" href="<?php echo site_url("hal") ?>">Syarat dan Ketentuan</a>
+              <a class="col-5" href="<?php echo site_url("hal") ?>">Syarat & Ketentuan</a>
             </div>
           </div> 
         </div>

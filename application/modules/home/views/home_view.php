@@ -142,41 +142,80 @@ if (!$basePath) $basePath = '/';
 ?>
 
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register("/service-worker.js", {
-      scope: "/"
-    }).then(registration => {
-      console.log("✅ Service Worker registered.");
+(function(){
+  if (!('serviceWorker' in navigator)) return;
 
-      registration.onupdatefound = () => {
-        const newWorker = registration.installing;
-        console.log("🔄 Update ditemukan.");
+  // === ATUR PATH SW DI SINI ===
+  // Jika app di root domain (https://namadomain/), taruh service-worker.js di /
+  // Jika app di subfolder (mis. /silaturahmi/), ganti menjadi '/silaturahmi/service-worker.js' dan scope '/silaturahmi/'
+  const SW_URL   = '/service-worker.js';
+  const SW_SCOPE = '/';
 
-        newWorker.onstatechange = () => {
-          if (newWorker.state === 'installed') {
-            if (navigator.serviceWorker.controller) {
-              Swal.fire({
-                title: 'Update Tersedia',
-                text: 'Versi baru tersedia. Ingin muat ulang aplikasi?',
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonText: 'Muat Ulang',
-                cancelButtonText: 'Nanti Saja'
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  forceClearCacheAndUnregisterSW().then(() => {
-                    location.reload();
-                  });
-                }
-              });
-            }
-          }
-        };
-      };
-    }).catch(err => {
-      console.warn("❌ Gagal daftar Service Worker:", err);
+  // Helper: SweetAlert atau fallback confirm
+  function askReload(){
+    if (window.Swal && Swal.fire) {
+      return Swal.fire({
+        title: 'Update tersedia',
+        text: 'Versi baru aplikasi siap. Muat ulang sekarang?',
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Muat Ulang',
+        cancelButtonText: 'Nanti Saja',
+        reverseButtons: true,
+        allowOutsideClick: false
+      }).then(r => r.isConfirmed);
+    } else {
+      return Promise.resolve(window.confirm('Update tersedia. Muat ulang sekarang?'));
+    }
+  }
+
+  // Minta worker baru jadi aktif segera
+  function activateAndReload(reg, waitingWorker){
+    if (waitingWorker) {
+      waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    } else if (reg.waiting) {
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    // reload saat kontrol SW berpindah
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      location.reload();
     });
   }
+
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(SW_URL, { scope: SW_SCOPE })
+      .then(reg => {
+        // 1) Jika sudah ada update yang menunggu saat halaman dibuka
+        if (reg.waiting) {
+          askReload().then(ok => { if (ok) activateAndReload(reg, reg.waiting); });
+        }
+
+        // 2) Dengarkan update baru
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          if (!newSW) return;
+          newSW.addEventListener('statechange', () => {
+            // 'installed' + sudah ada controller => ini BUKAN first install, berarti update
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              askReload().then(ok => { if (ok) activateAndReload(reg, newSW); });
+            }
+          });
+        });
+
+        // 3) Cek update saat tab kembali aktif & secara berkala
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) reg.update();
+        });
+        setInterval(() => { reg.update(); }, 15 * 60 * 1000); // tiap 15 menit
+      })
+      .catch(err => {
+        console.warn('Gagal register Service Worker:', err);
+      });
+  });
+})();
 </script>
 
 
