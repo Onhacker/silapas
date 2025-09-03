@@ -30,7 +30,7 @@
 
 <div class="container-fluid">
   <div class="row mt-3">
-    <div class="col-lg-10 offset-lg-1">
+    <div class="col-lg-12">
       <div class="card card-elev">
         <div class="card-body">
           <div class="text-center mb-2">
@@ -51,26 +51,26 @@
 
               <div class="col-md-6">
                 <div class="form-group mb-2">
-  <label for="id_number" class="form-label label-required">NIK/NIP/NRP</label>
-  <input
-    type="text"
-    id="id_number"
-    name="nik"                    
-    class="form-control"
-    placeholder="NIK 16 / NIP 18 atau 9 / NRP 8–9"
-    inputmode="numeric"
-    pattern="(?:\d{8,9}|\d{16}|\d{18})" 
-    maxlength="18"                     
-    required>
-  <small id="id_help" class="help-hint">
-    Boleh: <b>NIK</b> 16 digit • <b>NIP</b> 18 atau 9 digit • <b>NRP</b> 8–9 digit.
-  </small>
-</div>
+                  <label for="id_number" class="form-label label-required">NIK/NIP/NRP</label>
+                  <input
+                  type="text"
+                  id="id_number"
+                  name="nik"                    
+                  class="form-control"
+                  placeholder="NIK 16 / NIP 18 atau 9 / NRP 8–9"
+                  inputmode="numeric"
+                  pattern="(?:\d{8,9}|\d{16}|\d{18})" 
+                  maxlength="18"                     
+                  required>
+                  <small id="id_help" class="help-hint">
+                    Boleh: <b>NIK</b> 16 digit • <b>NIP</b> 18 atau 9 digit • <b>NRP</b> 8–9 digit.
+                  </small>
+                </div>
 
-<script>
-  (function(){
-    const input = document.getElementById('id_number');
-    const help  = document.getElementById('id_help');
+                <script>
+                  (function(){
+                    const input = document.getElementById('id_number');
+                    const help  = document.getElementById('id_help');
     // sama dengan pattern di atribut (tanpa ^$ karena pattern HTML sudah implicit full-match)
     const rx = /^(?:\d{8,9}|\d{16}|\d{18})$/;
 
@@ -86,7 +86,7 @@
       if (!rx.test(input.value)) {
         input.setCustomValidity(
           'Format tidak valid. Isi salah satu: NIK 16 digit, NIP 18/9 digit, atau NRP 8–9 digit.'
-        );
+          );
       } else {
         input.setCustomValidity('');
       }
@@ -99,39 +99,39 @@
   })();
 </script>
 
-              </div>
-              <div class="col-md-6">
-                <div class="form-group mb-2">
-                  <label for="alamat" class="form-label label-required">Alamat Tamu</label>
-                  <input type="text" id="alamat" name="alamat" class="form-control" placeholder="Nama lengkap" required>
-                  <small class="help-hint">Alamat sesuai KTP.</small>
+</div>
+<div class="col-md-6">
+  <div class="form-group mb-2">
+    <label for="alamat" class="form-label label-required">Alamat Tamu</label>
+    <input type="text" id="alamat" name="alamat" class="form-control" placeholder="Nama lengkap" required>
+    <small class="help-hint">Alamat sesuai KTP.</small>
 
-                </div>
-              </div>
-              <div class="col-md-6">
+  </div>
+</div>
+<div class="col-md-6">
   <div class="form-group mb-2">
     <label class="form-label label-required mb-1">Tempat / Tanggal Lahir</label>
     <div class="row">
       <!-- KIRI: Tempat lahir -->
       <div class="col-6">
         <input type="text"
-               class="form-control"
-               id="tempat_lahir"
-               name="tempat_lahir"
-               placeholder="Tempat lahir (mis. Makassar)"
-               required
-               autocomplete="off">
+        class="form-control"
+        id="tempat_lahir"
+        name="tempat_lahir"
+        placeholder="Tempat lahir (mis. Makassar)"
+        required
+        autocomplete="off">
         <div class="invalid-feedback">Tempat lahir wajib diisi.</div>
       </div>
 
       <!-- KANAN: Tanggal lahir -->
       <div class="col-6">
         <input type="date"
-               class="form-control"
-               id="tanggal_lahir"
-               name="tanggal_lahir"
-               required
-               max="<?= date('Y-m-d') ?>">
+        class="form-control"
+        id="tanggal_lahir"
+        name="tanggal_lahir"
+        required
+        max="<?= date('Y-m-d') ?>">
         <div class="invalid-feedback">Tanggal lahir wajib diisi.</div>
       </div>
     </div>
@@ -139,242 +139,242 @@
   </div>
 </div>
 
-            <!-- </div> -->
+<!-- </div> -->
 
-              <div class="col-md-6">
-                <div class="form-group mb-2">
-                  <label for="jabatan" class="form-label label-required">Jabatan</label>
-                  <input type="text" id="jabatan" name="jabatan" class="form-control" placeholder="Contoh: Staf / Kepala Seksi" required>
-                </div>
-              </div>
+<div class="col-md-6">
+  <div class="form-group mb-2">
+    <label for="jabatan" class="form-label label-required">Jabatan</label>
+    <input type="text" id="jabatan" name="jabatan" class="form-control" placeholder="Contoh: Staf / Kepala Seksi" required>
+  </div>
+</div>
 
-              <div class="col-md-6">
-                <div class="form-group mb-2">
-                  <label for="no_hp" class="form-label label-required">No. HP</label>
-                  <input type="text" id="no_hp" name="no_hp" class="form-control"
-                         placeholder="08xxxxxxxxxx" inputmode="numeric" minlength="10" maxlength="13" required>
-                  <small class="help-hint">Gunakan nomor aktif untuk menerima WhatsApp konfirmasi.</small>
-                </div>
-              </div>
+<div class="col-md-6">
+  <div class="form-group mb-2">
+    <label for="no_hp" class="form-label label-required">No. HP</label>
+    <input type="text" id="no_hp" name="no_hp" class="form-control"
+    placeholder="08xxxxxxxxxx" inputmode="numeric" minlength="10" maxlength="13" required>
+    <small class="help-hint">Gunakan nomor aktif untuk menerima WhatsApp konfirmasi.</small>
+  </div>
+</div>
 
-              <div class="col-md-12">
-                <!-- ====== Jumlah Pendamping + Panel Inline ====== -->
-                <div class="form-group mb-2">
-                  <label for="jumlah_pendamping" class="form-label">Jumlah Pendamping</label>
-                  <div class="input-group input-group-sm nifty-stepper">
-                    <div class="input-group-prepend">
-                      <button type="button" class="btn btn-outline-secondary" id="btnPdMinus" title="Kurangi">
-                        <i class="fas fa-minus"></i>
-                      </button>
-                    </div>
-                    <input type="number" id="jumlah_pendamping" name="jumlah_pendamping"
-                           class="form-control text-center" min="0" max="20" step="1" placeholder="0">
-                    <div class="input-group-append">
-                      <span class="input-group-text">
-                        <i class="fas fa-users"></i>
-                        <span class="ml-1" id="pdCountBadge">0</span>
-                      </span>
-                      <button type="button" class="btn btn-outline-secondary" id="btnPdPlus" title="Tambah">
-                        <i class="fas fa-plus"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <small class="form-text text-muted">
-                    Geser jumlah di atas — baris pendamping akan menyesuaikan otomatis.
-                  </small>
-                </div>
-
-                <!-- Panel inline pendamping -->
-                <div id="pendampingWrap" class="card border mb-2 d-none">
-                  <div class="card-body p-2">
-                    <!-- Info kuota -->
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                      <strong>Pendamping</strong>
-                      <small class="text-muted">
-                        Terisi: <span id="pdFilled">0</span> / <span id="pdTarget">0</span>
-                      </small>
-                    </div>
-
-                    <!-- Form baris pendamping -->
-                    <div class="row">
-                      <div class="col-md-4">
-                        <label class="form-label mb-1">NIK/NIP/NRP Pendamping</label>
-                        <input type="text" id="pd_nik" class="form-control form-control-sm"
-                               placeholder="16 digit NIK" maxlength="16" inputmode="numeric">
-                        <small class="text-muted">Wajib 16 digit & unik.</small>
-                      </div>
-                      <div class="col-md-5">
-                        <label class="form-label mb-1">Nama Pendamping</label>
-                        <input type="text" id="pd_nama" class="form-control form-control-sm" placeholder="Nama lengkap">
-                      </div>
-                      <div class="col-md-3 d-flex align-items-end mt-2" style="gap:.5rem;">
-                        <button type="button" class="btn btn-sm btn-success" id="btnPdAdd">Tambah</button>
-                        <button type="button" class="btn btn-sm btn-warning d-none" id="btnPdSave">Simpan</button>
-                        <button type="button" class="btn btn-sm btn-secondary d-none" id="btnPdCancel">Batal</button>
-                      </div>
-                    </div>
-
-                    <hr class="my-2">
-
-                    <!-- Tabel pendamping -->
-                    <div class="table-responsive">
-                      <table class="table table-sm table-bordered mb-0" id="tblPendampingLocal">
-                        <thead class="thead-light">
-                          <tr>
-                            <th style="width:60px">No</th>
-                            <th style="width:180px">NIK/NIP/NRP</th>
-                            <th>Nama</th>
-                            <th style="width:150px">Aksi</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr><td colspan="4" class="text-center text-muted">Belum ada pendamping.</td></tr>
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <small id="pdHelp" class="text-muted d-block mt-2">
-                      Pastikan jumlah pendamping sesuai field “Jumlah Pendamping”.
-                    </small>
-                  </div>
-                </div>
-
-                <!-- Hidden untuk dikirim ke server -->
-                <input type="hidden" name="pendamping_json" id="pendamping_json">
-                <!-- /Panel inline pendamping -->
-              </div>
-            </div>
-
-            <div class="divider-soft"></div>
-
-            <!-- ====== Asal Instansi ====== -->
-            <div class="header-title">Asal Instansi</div>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="form-group mb-2">
-                  <label for="kategori" class="form-label label-required">Kategori Instansi</label>
-                  <select id="kategori" name="kategori" class="form-control" required>
-                    <option value="">-- Pilih Kategori --</option>
-                    <option value="opd">Dinas Pemprov Sulsel</option>
-                    <option value="pn">Pengadilan Negeri</option>
-                    <option value="pa">Pengadilan Agama</option>
-                    <option value="ptun">PTUN Makassar</option>
-                    <option value="kejati">Kejaksaan Tinggi</option>
-                    <option value="kejari">Kejaksaan Negeri</option>
-                    <option value="cabjari">Cabang Kejaksaan Negeri</option>
-                    <option value="bnn">BNN</option>
-                    <option value="kodim">Kodim Wil. Kodam XIV/Hasanuddin</option>
-                    <option value="lainnya">Lainnya</option>
-                  </select>
-                  <small class="help-hint">Jika tidak ada di daftar, pilih <b>Lainnya</b>.</small>
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <!-- MODE SELECT (default) -->
-                <div class="form-group mb-2" id="instansi_select_wrap">
-                  <label for="instansi" class="form-label label-required">Instansi</label>
-                  <select id="instansi" name="instansi_id" class="form-control" required disabled>
-                    <option value="">-- Pilih Instansi --</option>
-                  </select>
-                  <small class="help-hint">Pilih kategori terlebih dahulu untuk menampilkan daftar instansi.</small>
-                </div>
-
-                <!-- MODE MANUAL (muncul saat kategori = Lainnya) -->
-                <div class="form-group mb-2 d-none" id="instansi_manual_wrap">
-                  <label for="instansi_manual" class="form-label label-required">Nama Instansi</label>
-                  <input type="text" id="instansi_manual" name="target_instansi_nama"
-                         class="form-control" placeholder="Tulis nama instansi">
-                  <small class="help-hint">Contoh: KPP Pratama Makassar Utara</small>
-                </div>
-              </div>
-            </div>
-
-            <div class="divider-soft"></div>
-
-            <!-- ====== Tujuan di Lapas ====== -->
-            <div class="header-title">Unit Tujuan Lapas</div>
-            <div class="form-group mb-2">
-              <label for="unit_tujuan" class="form-label label-required">Unit Tujuan</label>
-              <select id="unit_tujuan" name="unit_tujuan" class="form-control" title="-- Pilih Unit --" required>
-                <?php 
-                  function render_options($tree, $level = 0) {
-                      $no = 1;
-                      foreach ($tree as $node) {
-                          $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level);
-                          $prefix = ($level > 0) ? $no . '. ' : '';
-                          $label  = htmlspecialchars($node->nama_unit, ENT_QUOTES, 'UTF-8');
-                          $content = $indent . $prefix . $label;
-
-                          echo '<option value="' . (int)$node->id . '" data-content="' . $content . '">' . $content . '</option>';
-
-                          if (!empty($node->children)) {
-                              render_options($node->children, $level + 1);
-                          }
-                          $no++;
-                      }
-                  }
-                  render_options($units_tree);
-                ?>
-              </select>
-            </div>
-
-            <div class="divider-soft"></div>
-
-            <!-- ====== Jadwal Kunjungan ====== -->
-            <div class="header-title">Jadwal Kunjungan</div>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="form-group mb-2">
-                  <label for="tanggal" class="form-label label-required">Tanggal Kunjungan</label>
-                  <input type="date" id="tanggal" name="tanggal" class="form-control" required>
-                  <small id="tanggal-info" class="form-text text-muted"></small>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-group mb-2">
-                  <label for="jam" class="form-label label-required">Jam Kunjungan</label>
-                  <input type="time" id="jam" name="jam" class="form-control" disabled required>
-                  <small id="jam-info" class="form-text text-muted"></small>
-                </div>
-              </div>
-            </div>
-
-            <div class="divider-soft"></div>
-
-            <!-- ====== Keperluan & Lampiran ====== -->
-            <div class="header-title">Keperluan & Lampiran</div>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="form-group mb-2">
-                  <label for="keperluan" class="form-label">Keperluan Kunjungan</label>
-                  <textarea id="keperluan" name="keperluan" class="form-control" rows="3" placeholder="Tuliskan keperluan kunjungan"></textarea>
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="form-group mb-2">
-                  <label class="form-label">Surat Tugas (Opsional)</label>
-                  <div class="custom-file">
-                    <input type="file" class="custom-file-input" name="surat_tugas" id="surat_tugas">
-                    <label class="custom-file-label" for="surat_tugas">Pilih file...</label>
-                  </div>
-                  <small class="help-hint">PDF/JPG/PNG • Maks 2 MB.</small>
-                </div>
-              </div>
-            </div>
-
-            <div class="text-center">
-              <button type="button" class="btn btn-blue px-4" id="btnBooking" onclick="simpan()">
-                Booking Sekarang
-              </button>
-            </div>
-          </form>
-
-        </div>
+<div class="col-md-12">
+  <!-- ====== Jumlah Pendamping + Panel Inline ====== -->
+  <div class="form-group mb-2">
+    <label for="jumlah_pendamping" class="form-label">Jumlah Pendamping</label>
+    <div class="input-group input-group-sm nifty-stepper">
+      <div class="input-group-prepend">
+        <button type="button" class="btn btn-outline-secondary" id="btnPdMinus" title="Kurangi">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
+      <input type="number" id="jumlah_pendamping" name="jumlah_pendamping"
+      class="form-control text-center" min="0" max="20" step="1" placeholder="0">
+      <div class="input-group-append">
+        <span class="input-group-text">
+          <i class="fas fa-users"></i>
+          <span class="ml-1" id="pdCountBadge">0</span>
+        </span>
+        <button type="button" class="btn btn-outline-secondary" id="btnPdPlus" title="Tambah">
+          <i class="fas fa-plus"></i>
+        </button>
       </div>
     </div>
+    <small class="form-text text-muted">
+      Geser jumlah di atas — baris pendamping akan menyesuaikan otomatis.
+    </small>
   </div>
+
+  <!-- Panel inline pendamping -->
+  <div id="pendampingWrap" class="card border mb-2 d-none">
+    <div class="card-body p-2">
+      <!-- Info kuota -->
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <strong>Pendamping</strong>
+        <small class="text-muted">
+          Terisi: <span id="pdFilled">0</span> / <span id="pdTarget">0</span>
+        </small>
+      </div>
+
+      <!-- Form baris pendamping -->
+      <div class="row">
+        <div class="col-md-4">
+          <label class="form-label mb-1">NIK/NIP/NRP Pendamping</label>
+          <input type="text" id="pd_nik" class="form-control form-control-sm"
+          placeholder="16 digit NIK" maxlength="16" inputmode="numeric">
+          <small class="text-muted">Wajib 16 digit & unik.</small>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label mb-1">Nama Pendamping</label>
+          <input type="text" id="pd_nama" class="form-control form-control-sm" placeholder="Nama lengkap">
+        </div>
+        <div class="col-md-3 d-flex align-items-end mt-2" style="gap:.5rem;">
+          <button type="button" class="btn btn-sm btn-success" id="btnPdAdd">Tambah</button>
+          <button type="button" class="btn btn-sm btn-warning d-none" id="btnPdSave">Simpan</button>
+          <button type="button" class="btn btn-sm btn-secondary d-none" id="btnPdCancel">Batal</button>
+        </div>
+      </div>
+
+      <hr class="my-2">
+
+      <!-- Tabel pendamping -->
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered mb-0" id="tblPendampingLocal">
+          <thead class="thead-light">
+            <tr>
+              <th style="width:60px">No</th>
+              <th style="width:180px">NIK/NIP/NRP</th>
+              <th>Nama</th>
+              <th style="width:150px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="4" class="text-center text-muted">Belum ada pendamping.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <small id="pdHelp" class="text-muted d-block mt-2">
+        Pastikan jumlah pendamping sesuai field “Jumlah Pendamping”.
+      </small>
+    </div>
+  </div>
+
+  <!-- Hidden untuk dikirim ke server -->
+  <input type="hidden" name="pendamping_json" id="pendamping_json">
+  <!-- /Panel inline pendamping -->
+</div>
+</div>
+
+<div class="divider-soft"></div>
+
+<!-- ====== Asal Instansi ====== -->
+<div class="header-title">Asal Instansi</div>
+<div class="row">
+  <div class="col-md-6">
+    <div class="form-group mb-2">
+      <label for="kategori" class="form-label label-required">Kategori Instansi</label>
+      <select id="kategori" name="kategori" class="form-control" required>
+        <option value="">-- Pilih Kategori --</option>
+        <option value="opd">Dinas Pemprov Sulsel</option>
+        <option value="pn">Pengadilan Negeri</option>
+        <option value="pa">Pengadilan Agama</option>
+        <option value="ptun">PTUN Makassar</option>
+        <option value="kejati">Kejaksaan Tinggi</option>
+        <option value="kejari">Kejaksaan Negeri</option>
+        <option value="cabjari">Cabang Kejaksaan Negeri</option>
+        <option value="bnn">BNN</option>
+        <option value="kodim">Kodim Wil. Kodam XIV/Hasanuddin</option>
+        <option value="lainnya">Lainnya</option>
+      </select>
+      <small class="help-hint">Jika tidak ada di daftar, pilih <b>Lainnya</b>.</small>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <!-- MODE SELECT (default) -->
+    <div class="form-group mb-2" id="instansi_select_wrap">
+      <label for="instansi" class="form-label label-required">Instansi</label>
+      <select id="instansi" name="instansi_id" class="form-control" required disabled>
+        <option value="">-- Pilih Instansi --</option>
+      </select>
+      <small class="help-hint">Pilih kategori terlebih dahulu untuk menampilkan daftar instansi.</small>
+    </div>
+
+    <!-- MODE MANUAL (muncul saat kategori = Lainnya) -->
+    <div class="form-group mb-2 d-none" id="instansi_manual_wrap">
+      <label for="instansi_manual" class="form-label label-required">Nama Instansi</label>
+      <input type="text" id="instansi_manual" name="target_instansi_nama"
+      class="form-control" placeholder="Tulis nama instansi">
+      <small class="help-hint">Contoh: KPP Pratama Makassar Utara</small>
+    </div>
+  </div>
+</div>
+
+<div class="divider-soft"></div>
+
+<!-- ====== Tujuan di Lapas ====== -->
+<div class="header-title">Unit Tujuan Lapas</div>
+<div class="form-group mb-2">
+  <label for="unit_tujuan" class="form-label label-required">Unit Tujuan</label>
+  <select id="unit_tujuan" name="unit_tujuan" class="form-control" title="-- Pilih Unit --" required>
+    <?php 
+    function render_options($tree, $level = 0) {
+      $no = 1;
+      foreach ($tree as $node) {
+        $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level);
+        $prefix = ($level > 0) ? $no . '. ' : '';
+        $label  = htmlspecialchars($node->nama_unit, ENT_QUOTES, 'UTF-8');
+        $content = $indent . $prefix . $label;
+
+        echo '<option value="' . (int)$node->id . '" data-content="' . $content . '">' . $content . '</option>';
+
+        if (!empty($node->children)) {
+          render_options($node->children, $level + 1);
+        }
+        $no++;
+      }
+    }
+    render_options($units_tree);
+    ?>
+  </select>
+</div>
+
+<div class="divider-soft"></div>
+
+<!-- ====== Jadwal Kunjungan ====== -->
+<div class="header-title">Jadwal Kunjungan</div>
+<div class="row">
+  <div class="col-md-6">
+    <div class="form-group mb-2">
+      <label for="tanggal" class="form-label label-required">Tanggal Kunjungan</label>
+      <input type="date" id="tanggal" name="tanggal" class="form-control" required>
+      <small id="tanggal-info" class="form-text text-muted"></small>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="form-group mb-2">
+      <label for="jam" class="form-label label-required">Jam Kunjungan</label>
+      <input type="time" id="jam" name="jam" class="form-control" disabled required>
+      <small id="jam-info" class="form-text text-muted"></small>
+    </div>
+  </div>
+</div>
+
+<div class="divider-soft"></div>
+
+<!-- ====== Keperluan & Lampiran ====== -->
+<div class="header-title">Keperluan & Lampiran</div>
+<div class="row">
+  <div class="col-md-6">
+    <div class="form-group mb-2">
+      <label for="keperluan" class="form-label">Keperluan Kunjungan</label>
+      <textarea id="keperluan" name="keperluan" class="form-control" rows="3" placeholder="Tuliskan keperluan kunjungan"></textarea>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="form-group mb-2">
+      <label class="form-label">Surat Tugas (Opsional)</label>
+      <div class="custom-file">
+        <input type="file" class="custom-file-input" name="surat_tugas" id="surat_tugas">
+        <label class="custom-file-label" for="surat_tugas">Pilih file...</label>
+      </div>
+      <small class="help-hint">PDF/JPG/PNG • Maks 2 MB.</small>
+    </div>
+  </div>
+</div>
+
+<div class="text-center">
+  <button type="button" class="btn btn-blue px-4" id="btnBooking" onclick="simpan()">
+    Booking Sekarang
+  </button>
+</div>
+</form>
+
+</div>
+</div>
+</div>
+</div>
 </div>
 
 <script>
@@ -454,7 +454,7 @@
  * Panel Pendamping (inline) — simpan ke hidden `pendamping_json`.
  * Pastikan panggil window._ensurePendampingBeforeSubmit() di awal simpan().
  */
-(function(){
+ (function(){
   // ===== State & elemen (UNIFIED ke window.pendamping) =====
   window.pendamping = Array.isArray(window.pendamping) ? window.pendamping : [];
   let pendamping = window.pendamping;                   // referensi yang sama
@@ -501,19 +501,19 @@
     } else {
       tbody.innerHTML = pendamping.map((p,i)=>`
         <tr>
-          <td class="text-center">${i+1}</td>
-          <td><code>${esc(p.nik)}</code></td>
-          <td>${esc(p.nama)}</td>
-          <td class="text-center">
-            <button type="button" class="btn btn-xs btn-outline-info" onclick="pdEdit(${i})" title="Edit">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button type="button" class="btn btn-xs btn-outline-danger" onclick="pdDel(${i})" title="Hapus">
-              <i class="fas fa-trash-alt"></i>
-            </button>
-          </td>
+        <td class="text-center">${i+1}</td>
+        <td><code>${esc(p.nik)}</code></td>
+        <td>${esc(p.nama)}</td>
+        <td class="text-center">
+        <button type="button" class="btn btn-xs btn-outline-info" onclick="pdEdit(${i})" title="Edit">
+        <i class="fas fa-edit"></i>
+        </button>
+        <button type="button" class="btn btn-xs btn-outline-danger" onclick="pdDel(${i})" title="Hapus">
+        <i class="fas fa-trash-alt"></i>
+        </button>
+        </td>
         </tr>
-      `).join('');
+        `).join('');
     }
 
     // sinkron hidden json
@@ -530,62 +530,62 @@
       pdHelp.textContent = 'Pastikan jumlah pendamping sesuai field “Jumlah Pendamping”.';
     }
   }
-function resetRowForm(){
-  editIndex = -1;
-  window.editIndex = editIndex;
-  inNik.value = '';
-  inNama.value = '';
-  btnAdd.classList.remove('d-none');
-  btnSave.classList.add('d-none');
-  btnCancel.classList.add('d-none');
+  function resetRowForm(){
+    editIndex = -1;
+    window.editIndex = editIndex;
+    inNik.value = '';
+    inNama.value = '';
+    btnAdd.classList.remove('d-none');
+    btnSave.classList.add('d-none');
+    btnCancel.classList.add('d-none');
   inNik.focus(); // <— tambah baris ini
 }
 
   // Expose untuk tombol tabel
- window.pdEdit = function(i){
-  if (i<0 || i>=pendamping.length) return;
-  editIndex = i;
-  window.editIndex = editIndex;
-  inNik.value  = pendamping[i].nik;
-  inNama.value = pendamping[i].nama;
-  btnAdd.classList.add('d-none');
-  btnSave.classList.remove('d-none');
-  btnCancel.classList.remove('d-none');
-  if (wrap.classList.contains('d-none')) wrap.classList.remove('d-none');
+  window.pdEdit = function(i){
+    if (i<0 || i>=pendamping.length) return;
+    editIndex = i;
+    window.editIndex = editIndex;
+    inNik.value  = pendamping[i].nik;
+    inNama.value = pendamping[i].nama;
+    btnAdd.classList.add('d-none');
+    btnSave.classList.remove('d-none');
+    btnCancel.classList.remove('d-none');
+    if (wrap.classList.contains('d-none')) wrap.classList.remove('d-none');
   inNik.focus(); // <— tadinya inNama.focus()
 };
 
 
-  window.pdDel = async function(i){
-    if (i < 0 || i >= pendamping.length) return;
+window.pdDel = async function(i){
+  if (i < 0 || i >= pendamping.length) return;
 
-    const nama = (pendamping[i] && (pendamping[i].nama || pendamping[i].NAMA || ''));
-    const { isConfirmed } = await Swal.fire({
-      title: 'Hapus pendamping?',
-      text: nama ? `Nama: ${nama}` : 'Data ini akan dihapus.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
-      reverseButtons: true,
-      focusCancel: true
-    });
+  const nama = (pendamping[i] && (pendamping[i].nama || pendamping[i].NAMA || ''));
+  const { isConfirmed } = await Swal.fire({
+    title: 'Hapus pendamping?',
+    text: nama ? `Nama: ${nama}` : 'Data ini akan dihapus.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, hapus',
+    cancelButtonText: 'Batal',
+    reverseButtons: true,
+    focusCancel: true
+  });
 
-    if (!isConfirmed) return;
+  if (!isConfirmed) return;
 
-    pendamping.splice(i, 1);
-    if (editIndex === i) resetRowForm();
-    else if (editIndex > i) { editIndex--; window.editIndex = editIndex; }
-    render();
+  pendamping.splice(i, 1);
+  if (editIndex === i) resetRowForm();
+  else if (editIndex > i) { editIndex--; window.editIndex = editIndex; }
+  render();
 
-    Swal.fire({
-      title: 'Terhapus',
-      text: 'Data pendamping berhasil dihapus.',
-      icon: 'success',
-      timer: 1200,
-      showConfirmButton: false
-    });
-  };
+  Swal.fire({
+    title: 'Terhapus',
+    text: 'Data pendamping berhasil dihapus.',
+    icon: 'success',
+    timer: 1200,
+    showConfirmButton: false
+  });
+};
 
   // Events
   if (btnSet) {

@@ -129,14 +129,27 @@
                 margin: 20px 0;
                 border-radius: 1px;
               }
+              .text-nowrap { white-space: nowrap; }
 
             </style>
             <div class="divider mb-3"></div>
-            <div class="row text-center mb-3 ">
-              <a class="col-5" href="<?php echo site_url("hal/privacy_policy") ?>">Kebijakan Privasi</a>
-              <a class="col-2" href="#topnav" onclick="scrollToTop()" aria-label="Kembali ke atas"><i class="fas fa-arrow-up" style="color: #4a81d4"></i></a>
-              <a class="col-5" href="<?php echo site_url("hal") ?>">Syarat & Ketentuan</a>
+            <div class="row text-center mb-3">
+              <a class="col-5 text-nowrap" href="<?php echo site_url('hal/privacy_policy') ?>">
+                Kebijakan Privasi
+              </a>
+
+              <a class="col-2" href="#topnav" onclick="scrollToTop()" aria-label="Kembali ke atas">
+                <i class="fas fa-arrow-up" style="color:#4a81d4"></i>
+              </a>
+
+              <a class="col-5 text-nowrap" href="<?php echo site_url('hal') ?>" aria-label="Syarat & Ketentuan">
+                <span class="d-inline d-sm-none">
+                  <abbr title="Syarat & Ketentuan">S&K</abbr>
+                </span>
+                <span class="d-none d-sm-inline">Syarat & Ketentuan</span>
+              </a>
             </div>
+
           </div> 
         </div>
       </div>
