@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mvin-cache-32';
+const CACHE_NAME = 'sila-1';
 const OFFLINE_URL = '/assets/offline.html';
 const BASE_PATH = '/';
 
