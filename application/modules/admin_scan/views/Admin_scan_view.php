@@ -1,100 +1,77 @@
-<style>
-  /* kamera + guide box */
-  #cameraWrap{position:relative}
-  #cameraWrap .guide{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
-  #cameraWrap .guide .box{width:40%;aspect-ratio:1/1;border:2px solid rgba(255,255,255,.7);border-radius:12px}
 
-  /* result styles */
-  #resultBox{background:#f8fafc;min-height:160px;border-radius:8px}
-  .rbody{padding:4px 0;text-transform:none}
-  .is-checkin{color:#16a34a}   /* hijau */
-  .is-checkout{color:#dc2626}  /* merah */
+  <style>
+    /* kamera + guide box */
+    #cameraWrap{position:relative}
+    #cameraWrap .guide{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+    #cameraWrap .guide .box{width:40%;aspect-ratio:1/1;border:2px solid rgba(255,255,255,.7);border-radius:12px}
 
-  /* Fullscreen fallback */
-  body.scan-lock { overflow: hidden; }
-  #cameraWrap.fullscreen-scan{
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 1060 !important; /* di atas modal biasa */
-    background:#000;
-    margin:0 !important;
-    border-radius:0 !important;
-  }
-  #cameraWrap.fullscreen-scan video{
-    width:100% !important;
-    height:100vh !important;
-    object-fit:cover !important;
-    border-radius:0 !important;
-  }
-  #cameraWrap.fullscreen-scan .guide .box{ width:60%; }
+    /* Fullscreen fallback + proper fill */
+    body.scan-lock { overflow: hidden; }
+    #cameraWrap.fullscreen-scan{
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 1060 !important; /* di atas modal biasa */
+      background:#000;
+      margin:0 !important;
+      border-radius:0 !important;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    #cameraWrap.fullscreen-scan video{
+      position:absolute; inset:0;
+      width:100vw !important;
+      height:100svh !important;
+      height:100dvh !important;
+      height:100vh !important;
+      object-fit:cover !important;
+      border-radius:0 !important;
+      aspect-ratio:auto !important;
+    }
 
-  /* Tombol Exit (×) saat fullscreen */
-  .fs-exit-btn{
-    position:absolute; top:10px; right:10px;
-    z-index: 1070;
-    width:42px; height:42px; border:0; border-radius:999px;
-    display:flex; align-items:center; justify-content:center;
-    background:rgba(0,0,0,.6); color:#fff;
-  }
-  #cameraWrap.fullscreen-scan .fs-exit-btn{ display:flex !important; }
-  /* Saat masuk fullscreen via Fullscreen API */
-#cameraWrap:fullscreen,
-#cameraWrap:-webkit-full-screen { background:#000; }
+    /* Saat Fullscreen API aktif */
+    #cameraWrap:fullscreen,
+    #cameraWrap:-webkit-full-screen { background:#000; }
+    #cameraWrap:fullscreen video,
+    #cameraWrap:-webkit-full-screen video,
+    video:fullscreen,
+    video:-webkit-full-screen{
+      position:absolute; inset:0;
+      width:100vw !important;
+      height:100svh !important;
+      height:100dvh !important;
+      height:100vh !important;
+      object-fit:cover !important;
+      border-radius:0 !important;
+      aspect-ratio:auto !important;
+    }
 
-#cameraWrap:fullscreen video,
-#cameraWrap:-webkit-full-screen video,
-video:fullscreen,
-video:-webkit-full-screen {
-  position:absolute;
-  inset:0;
-  width:100vw !important;
-  /* urutan svh→dvh→vh untuk dukung berbagai browser */
-  height:100svh !important;
-  height:100dvh !important;
-  height:100vh !important;
-  object-fit:cover !important;
-  border-radius:0 !important;
-  /* hilangkan rasio paksa 16/9 */
-  aspect-ratio:auto !important;
-}
+    /* Saat helper .is-fs menandai mode fullscreen */
+    #cameraWrap.is-fs video{
+      position:absolute; inset:0;
+      width:100vw !important;
+      height:100svh !important;
+      height:100dvh !important;
+      height:100vh !important;
+      object-fit:cover !important;
+      border-radius:0 !important;
+      aspect-ratio:auto !important;
+    }
 
-/* Fallback CSS fullscreen (kelas .fullscreen-scan) */
-#cameraWrap.fullscreen-scan{
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 1060 !important;
-  background:#000;
-  margin:0 !important;
-  border-radius:0 !important;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-#cameraWrap.fullscreen-scan video{
-  position:absolute;
-  inset:0;
-  width:100vw !important;
-  height:100svh !important;
-  height:100dvh !important;
-  height:100vh !important;
-  object-fit:cover !important;
-  border-radius:0 !important;
-  aspect-ratio:auto !important;
-}
+    /* Tombol Exit (×) saat fullscreen */
+    .fs-exit-btn{
+      position:absolute; top:10px; right:10px;
+      z-index: 1070;
+      width:42px; height:42px; border:0; border-radius:999px;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.6); color:#fff;
+    }
+    #cameraWrap.fullscreen-scan .fs-exit-btn{ display:flex !important; }
 
-/* Saat kita set kelas bantu .is-fs, paksa aturan yang sama */
-#cameraWrap.is-fs video{
-  position:absolute;
-  inset:0;
-  width:100vw !important;
-  height:100svh !important;
-  height:100dvh !important;
-  height:100vh !important;
-  object-fit:cover !important;
-  border-radius:0 !important;
-  aspect-ratio:auto !important;
-}
-
-</style>
+    /* (opsional) rapikan select */
+    #cameraSelect{min-width:220px}
+  </style>
+</head>
+<body>
 
 <div class="container-fluid">
   <!-- start page title -->
@@ -103,17 +80,17 @@ video:-webkit-full-screen {
       <div class="page-title-box">
         <div class="page-title-right">
           <ol class="breadcrumb m-0">
-            <li class="breadcrumb-item"><?= htmlspecialchars($title ?? 'Scan QR') ?></li>
-            <li class="breadcrumb-item active"><?= htmlspecialchars($subtitle ?? 'Check-in / Checkout') ?></li>
+            <li class="breadcrumb-item"><?= htmlspecialchars($title) ?></li>
+            <li class="breadcrumb-item active"><?= htmlspecialchars($subtitle) ?></li>
           </ol>
         </div>
-        <h4 class="page-title"><?= htmlspecialchars($subtitle ?? 'Check-in / Checkout') ?></h4>
+        <h4 class="page-title"><?= htmlspecialchars($subtitle) ?></h4>
       </div>
     </div>
   </div>
 
   <div class="row">
-    <!-- KAMERA -->
+    <!-- KIRI: KAMERA -->
     <div class="col-lg-7">
       <div class="card shadow-sm">
         <div class="card-body">
@@ -128,17 +105,29 @@ video:-webkit-full-screen {
             </button>
           </div>
 
-          <div class="d-flex flex-wrap" style="gap:.5rem;">
+          <div class="d-flex flex-wrap align-items-center" style="gap:.5rem;">
             <select id="cameraSelect" class="form-control" style="max-width:320px"></select>
-            <button id="btnStart" class="btn btn-primary"><i class="mdi mdi-play"></i> Mulai</button>
-            <button id="btnStop"  class="btn btn-outline-secondary" disabled><i class="mdi mdi-stop"></i> Stop</button>
-            <button id="btnFlip"  class="btn btn-outline-info"><i class="mdi mdi-camera-switch"></i> Flip</button>
-            <button id="btnTorch" class="btn btn-outline-warning" disabled><i class="mdi mdi-flashlight"></i> Senter</button>
-            <!-- Muncul setelah kamera nyala -->
+
+            <button id="btnStart" class="btn btn-primary">
+              <i class="mdi mdi-play"></i> Mulai
+            </button>
+
+            <button id="btnStop"  class="btn btn-outline-secondary" disabled>
+              <i class="mdi mdi-stop"></i> Stop
+            </button>
+
+            <button id="btnFlip"  class="btn btn-outline-info">
+              <i class="mdi mdi-camera-switch"></i> Flip
+            </button>
+
+            <button id="btnTorch" class="btn btn-outline-warning" disabled>
+              <i class="mdi mdi-flashlight"></i> Senter
+            </button>
+
+            <!-- Tampil setelah kamera nyala -->
             <button id="btnFull" class="btn btn-outline-dark d-none">
               <i class="mdi mdi-arrow-expand-all"></i> Layar Penuh
             </button>
-
 
             <!-- Mode Scan (radio) -->
             <div class="form-inline ml-sm-2">
@@ -153,21 +142,14 @@ video:-webkit-full-screen {
             </div>
           </div>
 
-          <div class="form-group mt-3 mb-0">
-            <label class="small text-muted mb-1">Fallback (scanner gun / manual)</label>
-            <div class="input-group">
-              <input type="text" id="kodeManual" class="form-control" placeholder="Tempel/ketik kode booking lalu Enter">
-              <div class="input-group-append">
-                <button class="btn btn-outline-primary" id="btnManual">Kirim</button>
-              </div>
-            </div>
-            <small class="text-muted">Format: sama seperti pada QR (contoh: <em>20250827-U1-opd-12-123</em>).</small>
-          </div>
+          <small class="text-muted d-block mt-2">
+            Tips: akses via HTTPS/localhost, gunakan kamera belakang untuk akurasi & senter, double-click video / tekan <b>F</b> untuk toggle layar penuh.
+          </small>
         </div>
       </div>
     </div>
 
-    <!-- HASIL -->
+    <!-- KANAN: TIPS + INPUT MANUAL -->
     <div class="col-lg-5 mt-3 mt-lg-0">
       <div class="card shadow-sm">
         <div class="card-body">
@@ -177,24 +159,31 @@ video:-webkit-full-screen {
             <li>Toleransi keterlambatan maksimal <b>1 jam setelah jam jadwal</b>.</li>
             <li>Pastikan pencahayaan cukup; aktifkan <b>senter</b> bila tersedia.</li>
             <li>Jarak kamera ± <b>15–25 cm</b>; sejajarkan QR di dalam bingkai.</li>
-            <li>Untuk <i>barcode gun</i>, fokuskan kursor pada kolom input lalu lakukan pemindaian.</li>
+            <li>Untuk <i>barcode gun</i>, fokuskan kursor pada kolom input (di bawah) lalu scan.</li>
           </ul>
         </div>
       </div>
 
+      <!-- Fallback manual / barcode gun -->
       <div class="card shadow-sm mt-3">
         <div class="card-body">
-          <h6 class="mb-2"><i class="mdi mdi-information-outline"></i> Hasil</h6>
-          <div id="resultBox" class="p-3">
-            <div class="text-muted">Belum ada hasil.</div>
+          <h6 class="mb-2"><i class="mdi mdi-keyboard-outline"></i> Input Manual / Barcode Gun</h6>
+          <div class="input-group">
+            <input type="text" id="kodeManual" class="form-control" placeholder="Tempel atau ketik kode booking lalu Enter">
+            <div class="input-group-append">
+              <button class="btn btn-outline-primary" id="btnManual">Kirim</button>
+            </div>
           </div>
+          <small class="text-muted d-block mt-1">
+            Format harus sama dengan pada QR (contoh: <em>20250827-U1-opd-12-123</em>).
+          </small>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- SFX: nada check-in/checkout/error -->
+<!-- SFX nada sederhana -->
 <script>
 let audioCtx;
 function initAudio(){
@@ -224,400 +213,411 @@ function sfx(kind){
 }
 </script>
 
-<!-- ZXing + logic kamera -->
+<!-- ZXing -->
 <script src="<?php echo base_url(); ?>assets/js/zxing-browser.min.js"></script>
+
 <script>
+(function(){
+  const { BrowserMultiFormatReader, BrowserCodeReader } = window.ZXingBrowser || {};
+  if (!BrowserMultiFormatReader) {
+    console.error('ZXingBrowser tidak ditemukan. Pastikan zxing-browser.min.js termuat.');
+    return;
+  }
+
+  // Elemen
+  const video     = document.getElementById('preview');
+  const wrap      = document.getElementById('cameraWrap');
+  const sel       = document.getElementById('cameraSelect');
+  const btnStart  = document.getElementById('btnStart');
+  const btnStop   = document.getElementById('btnStop');
+  const btnFlip   = document.getElementById('btnFlip');
+  const btnTorch  = document.getElementById('btnTorch');
+  const btnFull   = document.getElementById('btnFull');
+  const btnExitFs = document.getElementById('btnExitFs');
+  const kodeManual= document.getElementById('kodeManual');
+  const btnManual = document.getElementById('btnManual');
+
+  // State
+  const reader    = new BrowserMultiFormatReader();
+  let controls    = null;
+  let facing      = 'environment';
+  let torchTrack  = null;
+  let currentStream = null;
+
+  // Helpers
   function getScanMode(){
     const el = document.querySelector('input[name="scanMode"]:checked');
     return (el ? el.value : 'checkin');
   }
-
-  (function(){
-    const { BrowserMultiFormatReader, BrowserCodeReader } = window.ZXingBrowser || {};
-    if (!BrowserMultiFormatReader) {
-      console.error('ZXingBrowser tidak ditemukan. Pastikan zxing-browser.min.js termuat.');
-      return;
-    }
-
-    const reader    = new BrowserMultiFormatReader();
-
-    // Elemen UI
-    const video     = document.getElementById('preview');
-    const wrap      = document.getElementById('cameraWrap');
-    const sel       = document.getElementById('cameraSelect');
-    const btnStart  = document.getElementById('btnStart');
-    const btnStop   = document.getElementById('btnStop');
-    const btnFlip   = document.getElementById('btnFlip');
-    const btnTorch  = document.getElementById('btnTorch');
-    const btnFull   = document.getElementById('btnFull');
-    const btnExitFs = document.getElementById('btnExitFs');
-    const kodeManual= document.getElementById('kodeManual');
-    const btnManual = document.getElementById('btnManual');
-    const resultBox = document.getElementById('resultBox');
-
-    // State
-    let controls = null;
-    let facing   = 'environment';     // default coba kamera belakang
-    let torchTrack = null;
-    let currentStream = null;
-    // Toggle via double-click pada video
-video.addEventListener('dblclick', ()=>{
-  if (document.fullscreenElement || wrap?.classList.contains('fullscreen-scan')) {
-    exitFullscreen();
-  } else {
-    enterFullscreen();
+  function isSecureOk(){
+    return window.isSecureContext || ['localhost','127.0.0.1'].includes(location.hostname);
   }
-});
-
-// Hotkey: tekan "F" untuk toggle fullscreen (kamera harus aktif agar terasa)
-document.addEventListener('keydown', (e)=>{
-  if (e.key && e.key.toLowerCase() === 'f') {
-    if (document.fullscreenElement || wrap?.classList.contains('fullscreen-scan')) {
-      exitFullscreen();
-    } else {
-      enterFullscreen();
-    }
+  function setMirror(isFront){
+    video.style.transform = isFront ? 'scaleX(-1)' : 'none';
   }
-});
+  function sanitizeKode(raw){
+    const m = (raw||'').match(/[A-Za-z0-9_\-]+/g);
+    return (m ? m.join('') : '');
+  }
 
-    // Util UI
-    function setResult(html, ok){
-      resultBox.innerHTML = html;
-      resultBox.style.background = ok ? '#ecfdf5' : '#fff7ed';
-    }
-    function isSecureOk(){
-      return window.isSecureContext || ['localhost','127.0.0.1'].includes(location.hostname);
-    }
-    function setMirror(isFront){
-      video.style.transform = isFront ? 'scaleX(-1)' : 'none';
-    }
-
-    // === Fullscreen helpers (di dalam IIFE, akses ke 'video') ===
-    async function enterFullscreen(){
-      try{
-        if (wrap && wrap.requestFullscreen) { await wrap.requestFullscreen(); return; }
-        if (video && video.webkitEnterFullscreen) { video.webkitEnterFullscreen(); return; } // Safari lama
-      }catch(e){}
-      // Fallback CSS
-      wrap?.classList.add('fullscreen-scan');
-      document.body.classList.add('scan-lock');
-      btnExitFs?.classList.remove('d-none');
-    }
-    function exitFullscreen(){
-      if (document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-      wrap?.classList.remove('fullscreen-scan');
-      document.body.classList.remove('scan-lock');
-      btnExitFs?.classList.add('d-none');
-    }
-    document.addEventListener('fullscreenchange', ()=>{
-      if (!document.fullscreenElement) {
-        wrap?.classList.remove('fullscreen-scan');
-        document.body.classList.remove('scan-lock');
-        btnExitFs?.classList.add('d-none');
-      } else {
-        btnExitFs?.classList.remove('d-none');
-      }
-    });
-    document.addEventListener('keydown', (e)=>{
-      if (e.key === 'Escape'){ exitFullscreen(); }
-    });
-
-    // Kamera
-    function stopScan(){
-      btnStop.disabled = true;
-      if (controls && controls.stop) controls.stop();
-      controls = null;
-      if (video.srcObject){
-        video.srcObject.getTracks().forEach(t=>t.stop());
-        video.srcObject = null;
-      }
-      if (currentStream){
-        currentStream.getTracks().forEach(t=>t.stop());
-        currentStream = null;
-      }
-      btnTorch.disabled = true;
-      torchTrack = null;
-      btnFull?.classList.add('d-none');   // sembunyikan tombol fullscreen
-      exitFullscreen();                   // pastikan keluar dari fullscreen
-    }
-
-    async function ensureLabels(){
-      try { await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); }
-      catch(e){}
-    }
-
-    async function listCameras(){
-      await ensureLabels();
-      let devices = [];
-      if (BrowserCodeReader?.listVideoInputDevices) {
-        devices = await BrowserCodeReader.listVideoInputDevices();
-      } else if (navigator.mediaDevices?.enumerateDevices) {
-        devices = (await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
-      }
-      sel.innerHTML = '';
-      devices.forEach((d, i)=>{
-        const opt = document.createElement('option');
-        opt.value = d.deviceId || '';
-        opt.textContent = d.label || `Kamera ${i+1}`;
-        sel.appendChild(opt);
-      });
-
-      const last = localStorage.getItem('scan.camId');
-      if (last && [...sel.options].some(o=>o.value===last)) sel.value = last;
-      else localStorage.removeItem('scan.camId');
-
-      return devices;
-    }
-
-    async function setupTorch(){
-      for (let i=0;i<25;i++){
-        if (video.srcObject) break;
-        await new Promise(r=>setTimeout(r,120));
-      }
-      const stream = video.srcObject;
-      if (!stream) { btnTorch.disabled = true; return; }
-      torchTrack = stream.getVideoTracks()[0];
-      const caps = (torchTrack.getCapabilities && torchTrack.getCapabilities()) || {};
-      btnTorch.disabled = !caps.torch;
-    }
-
-    function buildBaseConstraints({ deviceId, prefFacing } = {}){
-      if (deviceId) {
-        return { audio:false, video:{ deviceId:{ exact: deviceId }, width:{ ideal:1280 }, height:{ ideal:720 } } };
-      }
-      return {
-        audio:false,
-        video:{
-          width:  { ideal:1280 },
-          height: { ideal:720  },
-          frameRate: { ideal:24, max:30 },
-          facingMode: { ideal: (prefFacing || facing) }
-        }
-      };
-    }
-
-    async function startWithConstraints(cons){
-      const c = await reader.decodeFromConstraints(cons, video, (res, err)=>{
-        if (res && res.text){
-          const code = (res.text || '').trim();
-          stopScan();
-          doAction(code);
-        }
-      });
-      currentStream = video.srcObject || null;
-      controls = c;
-      btnStop.disabled = false;
-      await listCameras();
-      await setupTorch();
-      try { await video.play(); } catch(e){}
-
-      // tampilkan tombol fullscreen setelah kamera nyala
-      btnFull?.classList.remove('d-none');
-      btnExitFs?.classList.add('d-none');
-
-      return true;
-    }
-
-    async function startScan(deviceId){
-      stopScan();
-      if (!isSecureOk()){
-        setResult(`<div class="text-danger rbody"><b>Kamera diblokir:</b> akses via <b>HTTPS</b> atau <code>localhost</code>.</div>`);
+  // Fullscreen
+  async function enterFullscreen(){
+    try{
+      if (wrap && wrap.requestFullscreen) {
+        await wrap.requestFullscreen();
+        wrap.classList.add('is-fs');
+        btnExitFs.classList.remove('d-none');
         return;
       }
-
-      const baseByDevice = deviceId ? buildBaseConstraints({ deviceId }) : buildBaseConstraints({ prefFacing: facing });
-      const tries = [
-        baseByDevice,
-        (deviceId ? buildBaseConstraints({ prefFacing: facing }) : null),
-        { audio:false, video:{ width:{ ideal:640 }, height:{ ideal:480 }, facingMode:{ ideal:facing } } },
-        { audio:false, video:{ width:{ ideal:640 }, height:{ ideal:480 }, facingMode:{ ideal:'user' } } },
-        { audio:false, video:true }
-      ].filter(Boolean);
-
-      let lastErr = null;
-
-      for (let i=0;i<tries.length;i++){
-        try {
-          setMirror(tries[i]?.video?.facingMode?.ideal === 'user' && !deviceId);
-          await startWithConstraints(tries[i]);
-          return;
-        } catch (err) {
-          console.warn('✗ getUserMedia/decode gagal:', err.name, err.message, 'constraint:', err.constraint, tries[i]);
-          lastErr = err;
-
-          if (err.name === 'OverconstrainedError' && tries[i].video?.deviceId){
-            try {
-              const alt = buildBaseConstraints({ prefFacing: facing });
-              await startWithConstraints(alt);
-              return;
-            } catch (e2) { lastErr = e2; }
-          }
-          if (err.name === 'OverconstrainedError' && err.constraint === 'facingMode'){
-            try {
-              const alt = { audio:false, video:{ width:{ ideal:640 }, height:{ ideal:480 }, facingMode:{ ideal:'user' } } };
-              setMirror(true);
-              await startWithConstraints(alt);
-              return;
-            } catch (e3) { lastErr = e3; }
-          }
-        }
+      if (video && video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
+        wrap.classList.add('is-fs');
+        btnExitFs.classList.remove('d-none');
+        return;
       }
-
-      setResult(`<div class="text-danger rbody"><b>Gagal akses kamera:</b> ${lastErr?.name || 'Unknown'} — ${lastErr?.message || ''}${lastErr?.constraint ? ('<br>Constraint: <code>'+lastErr.constraint+'</code>') : ''}</div>`);
-    }
-
-    function toggleTorch(){
-      try{
-        if (!torchTrack) return;
-        const cur = torchTrack.getSettings && torchTrack.getSettings().torch;
-        torchTrack.applyConstraints({ advanced:[{torch: !cur}] });
-      }catch(e){}
-    }
-
-    // Kirim ke endpoint sesuai mode
-    function doAction(kode){
-      const mode = getScanMode();
-      const endpoint = mode === 'checkout'
-        ? '<?= site_url('admin_scan/checkout_api') ?>'
-        : '<?= site_url('admin_scan/checkin_api') ?>';
-
-      const m = (kode||'').match(/[A-Za-z0-9_\-]+/g);
-      if (!m){ sfx('error'); setResult(`<div class="text-danger rbody">Kode tidak valid.</div>`); return; }
-      const clean = m.join('');
-      setResult(`<div class="rbody">Memproses <b>${mode}</b>: <b>${clean}</b>...</div>`);
-
-      const params = new URLSearchParams();
-      params.set('kode', clean);
-      <?php if (config_item('csrf_protection')): ?>
-        params.set('<?= $this->security->get_csrf_token_name() ?>','<?= $this->security->get_csrf_hash() ?>');
-      <?php endif; ?>
-
-      fetch(endpoint, {
-        method:'POST',
-        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-        body: params.toString(),
-        credentials:'same-origin'
-      })
-      .then(r=>r.json()).then(j=>{
-        if (j.ok){
-          const d          = j.data || {};
-          const isCheckout = (mode === 'checkout');
-          const statusText = d.status ? `<div class="rbody">Status: <b>${d.status}</b></div>` : '';
-          const petugas    = isCheckout ? (d.petugas_checkout || '-') : (d.petugas_checkin || '-');
-
-          sfx(isCheckout ? 'checkout' : 'checkin');
-
-          setResult(`
-            <div class="${isCheckout ? 'is-checkout' : 'is-checkin'}" style="text-transform:none;">
-              <h5 class="mb-1" style="text-transform:none;">✔ ${isCheckout ? 'Checkout' : 'Check-in'} berhasil</h5>
-              <div class="rbody">Kode: <b>${d.kode || '-'}</b></div>
-              <div class="rbody">Nama: <b>${d.nama || '-'}</b></div>
-              <div class="rbody">Waktu: <b>${(d.checkin_at || d.checkout_at || '-')}</b></div>
-              <div class="rbody">Petugas: <b>${petugas}</b></div>
-              ${statusText}
-              ${j.already ? '<div class="mt-1 text-warning rbody">Aksi ini sudah pernah dilakukan.</div>' : ''}
-              <div class="mt-2 d-flex flex-wrap" style="gap:.5rem;">
-                ${j.detail_url ? `<a class="btn btn-sm btn-outline-primary" href="${j.detail_url}" target="_blank" rel="noopener"><i class="mdi mdi-open-in-new"></i> Buka Detail Booking</a>` : ''}
-                <button class="btn btn-sm btn-outline-secondary" id="btnScanAgain"><i class="mdi mdi-qrcode-scan"></i> Scan lagi</button>
-              </div>
-            </div>
-          `, true);
-
-          const btnAgain = document.getElementById('btnScanAgain');
-          if (btnAgain) btnAgain.addEventListener('click', ()=> { initAudio(); startScan(sel.value || null); });
-
-        } else {
-          sfx('error');
-          setResult(`<div class="text-danger rbody"><b>Gagal:</b> ${j.msg || 'Tidak diketahui'}</div>`);
-          setTimeout(()=>startScan(sel.value || null), 1200);
-        }
-      })
-      .catch(err=>{
-        sfx('error');
-        setResult(`<div class="text-danger rbody"><b>Error:</b> ${err && err.message ? err.message : err}</div>`);
-        setTimeout(()=>startScan(sel.value || null), 1200);
-      });
-    }
-
-    // UI handlers
-    btnStart.addEventListener('click', ()=> { initAudio(); startScan(sel.value || null); });
-    btnStop .addEventListener('click', stopScan);
-    btnFlip .addEventListener('click', ()=>{ initAudio(); facing = (facing==='environment' ? 'user' : 'environment'); setMirror(facing === 'user'); startScan(null); });
-    btnTorch.addEventListener('click', toggleTorch);
-    btnManual.addEventListener('click', ()=> { initAudio(); doAction(kodeManual.value); });
-    kodeManual.addEventListener('keydown', (e)=>{ if (e.key==='Enter'){ initAudio(); doAction(kodeManual.value); }});
-    sel.addEventListener('change', ()=>{
-      localStorage.setItem('scan.camId', sel.value);
-      setMirror(false);
-      startScan(sel.value);
-    });
-
-    // Fullscreen buttons
-    btnFull  && btnFull.addEventListener('click', async ()=>{
-      initAudio();
-      if (document.fullscreenElement || wrap?.classList.contains('fullscreen-scan')) {
-        exitFullscreen();
-      } else {
-        await enterFullscreen();
-      }
-    });
-    btnExitFs && btnExitFs.addEventListener('click', ()=>{ exitFullscreen(); });
-
-    // init
-    (async ()=>{
-      await listCameras();
-      // Auto-refresh device list saat kembali ke tab
-      document.addEventListener('visibilitychange', async ()=>{
-        if (!document.hidden && !video.srcObject && !controls){
-          await listCameras();
-        }
-      });
-    })();
-  })();
-  async function enterFullscreen(){
-  try{
-    // Utamakan Fullscreen API di WRAP agar tombol × ikut
-    if (wrap && wrap.requestFullscreen) {
-      await wrap.requestFullscreen();
-      // tambahkan kelas bantu untuk override aspect ratio
-      wrap.classList.add('is-fs');
-      return;
-    }
-    // Safari lama: native fullscreen video
-    if (video && video.webkitEnterFullscreen) {
-      video.webkitEnterFullscreen();
-      wrap.classList.add('is-fs');
-      return;
-    }
-  }catch(e){ /* lanjut fallback */ }
-
-  // Fallback CSS
-  wrap?.classList.add('fullscreen-scan','is-fs');
-  document.body.classList.add('scan-lock');
-  btnExitFs?.classList.remove('d-none');
-}
-
-function exitFullscreen(){
-  if (document.fullscreenElement && document.exitFullscreen) {
-    document.exitFullscreen();
+    }catch(e){}
+    // fallback CSS
+    wrap.classList.add('fullscreen-scan','is-fs');
+    document.body.classList.add('scan-lock');
+    btnExitFs.classList.remove('d-none');
   }
-  wrap?.classList.remove('fullscreen-scan','is-fs');
-  document.body.classList.remove('scan-lock');
-  btnExitFs?.classList.add('d-none');
-}
-
-// Sinkron saat browser ganti status fullscreen
-document.addEventListener('fullscreenchange', ()=>{
-  if (!document.fullscreenElement) {
-    wrap?.classList.remove('fullscreen-scan','is-fs');
+  function exitFullscreen(){
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+    wrap.classList.remove('fullscreen-scan','is-fs');
     document.body.classList.remove('scan-lock');
-    btnExitFs?.classList.add('d-none');
-  } else {
-    wrap?.classList.add('is-fs');
-    btnExitFs?.classList.remove('d-none');
+    btnExitFs.classList.add('d-none');
   }
-});
+  document.addEventListener('fullscreenchange', ()=>{
+    if (!document.fullscreenElement) {
+      wrap.classList.remove('fullscreen-scan','is-fs');
+      document.body.classList.remove('scan-lock');
+      btnExitFs.classList.add('d-none');
+    } else {
+      wrap.classList.add('is-fs');
+      btnExitFs.classList.remove('d-none');
+    }
+  });
 
+  // Toggle via double-click & hotkey F
+  video.addEventListener('dblclick', ()=>{
+    if (document.fullscreenElement || wrap.classList.contains('fullscreen-scan')) exitFullscreen();
+    else enterFullscreen();
+  });
+  document.addEventListener('keydown', (e)=>{
+    if (e.key === 'Escape') exitFullscreen();
+    if (e.key && e.key.toLowerCase() === 'f'){
+      if (document.fullscreenElement || wrap.classList.contains('fullscreen-scan')) exitFullscreen();
+      else enterFullscreen();
+    }
+  });
+
+  // ZXing scan lifecycle
+  function stopScan(){
+    btnStop.disabled = true;
+    if (controls && controls.stop) controls.stop();
+    controls = null;
+
+    if (video.srcObject){
+      video.srcObject.getTracks().forEach(t=>t.stop());
+      video.srcObject = null;
+    }
+    if (currentStream){
+      currentStream.getTracks().forEach(t=>t.stop());
+      currentStream = null;
+    }
+    // reset torch
+    btnTorch.disabled = true;
+    torchTrack = null;
+
+    btnFull.classList.add('d-none');
+    exitFullscreen();
+  }
+
+  async function ensureLabels(){
+    try { await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); }
+    catch(e){}
+  }
+
+  async function listCameras(){
+    await ensureLabels();
+    let devices = [];
+    if (BrowserCodeReader?.listVideoInputDevices) {
+      devices = await BrowserCodeReader.listVideoInputDevices();
+    } else if (navigator.mediaDevices?.enumerateDevices) {
+      devices = (await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
+    }
+    sel.innerHTML = '';
+    devices.forEach((d, i)=>{
+      const opt = document.createElement('option');
+      opt.value = d.deviceId || '';
+      opt.textContent = d.label || `Kamera ${i+1}`;
+      sel.appendChild(opt);
+    });
+
+    const last = localStorage.getItem('scan.camId');
+    if (last && [...sel.options].some(o=>o.value===last)) sel.value = last;
+    else localStorage.removeItem('scan.camId');
+
+    return devices;
+  }
+
+  async function setupTorch(){
+    // tunggu stream attach
+    for (let i=0;i<25;i++){
+      if (video.srcObject) break;
+      await new Promise(r=>setTimeout(r,120));
+    }
+    const stream = video.srcObject;
+    if (!stream) { btnTorch.disabled = true; return; }
+    torchTrack = stream.getVideoTracks()[0];
+    const caps = (torchTrack.getCapabilities && torchTrack.getCapabilities()) || {};
+    btnTorch.disabled = !caps.torch;
+  }
+
+  function buildBaseConstraints({ deviceId, prefFacing } = {}){
+    if (deviceId) {
+      return { audio:false, video:{ deviceId:{ exact: deviceId }, width:{ ideal:1280 }, height:{ ideal:720 } } };
+    }
+    return {
+      audio:false,
+      video:{
+        width:  { ideal:1280 },
+        height: { ideal:720  },
+        frameRate: { ideal:24, max:30 },
+        facingMode: { ideal: (prefFacing || facing) }
+      }
+    };
+  }
+
+  async function startWithConstraints(cons){
+    const c = await reader.decodeFromConstraints(cons, video, (res, err)=>{
+      if (res && res.text){
+        const code = (res.text || '').trim();
+        stopScan();            // hentikan supaya tidak multi-trigger
+        handleCode(code);      // proses kode
+      }
+    });
+    currentStream = video.srcObject || null;
+    controls = c;
+    btnStop.disabled = false;
+    await listCameras();
+    await setupTorch();
+    try { await video.play(); } catch(e){}
+
+    btnFull.classList.remove('d-none'); // tampilkan tombol fullscreen
+    btnExitFs.classList.add('d-none');
+  }
+
+  async function startScan(deviceId){
+    stopScan();
+    if (!isSecureOk()){
+      Swal.fire({
+        icon: 'error',
+        title: 'Kamera diblokir',
+        html: 'Akses kamera hanya diizinkan pada <b>HTTPS</b> atau <code>localhost</code>.',
+      });
+      return;
+    }
+
+    const baseByDevice = deviceId ? buildBaseConstraints({ deviceId }) : buildBaseConstraints({ prefFacing: facing });
+    const tries = [
+      baseByDevice,
+      (deviceId ? buildBaseConstraints({ prefFacing: facing }) : null),
+      { audio:false, video:{ width:{ ideal:640 }, height:{ ideal:480 }, facingMode:{ ideal:facing } } },
+      { audio:false, video:{ width:{ ideal:640 }, height:{ ideal:480 }, facingMode:{ ideal:'user' } } },
+      { audio:false, video:true }
+    ].filter(Boolean);
+
+    let lastErr = null;
+
+    for (let i=0;i<tries.length;i++){
+      try {
+        setMirror(tries[i]?.video?.facingMode?.ideal === 'user' && !deviceId);
+        await startWithConstraints(tries[i]);
+        return;
+      } catch (err) {
+        console.warn('✗ getUserMedia/decode gagal:', err.name, err.message, 'constraint:', err.constraint, tries[i]);
+        lastErr = err;
+
+        if (err.name === 'OverconstrainedError' && tries[i].video?.deviceId){
+          try {
+            const alt = buildBaseConstraints({ prefFacing: facing });
+            await startWithConstraints(alt);
+            return;
+          } catch (e2) { lastErr = e2; }
+        }
+        if (err.name === 'OverconstrainedError' && err.constraint === 'facingMode'){
+          try {
+            const alt = { audio:false, video:{ width:{ ideal:640 }, height:{ ideal:480 }, facingMode:{ ideal:'user' } } };
+            setMirror(true);
+            await startWithConstraints(alt);
+            return;
+          } catch (e3) { lastErr = e3; }
+        }
+      }
+    }
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal akses kamera',
+      html: `${lastErr?.name || 'Unknown'} — ${lastErr?.message || ''}${lastErr?.constraint ? ('<br><small>Constraint: <code>'+lastErr.constraint+'</code></small>') : ''}`
+    });
+  }
+
+  function toggleTorch(){
+    try{
+      if (!torchTrack) return;
+      const cur = torchTrack.getSettings && torchTrack.getSettings().torch;
+      torchTrack.applyConstraints({ advanced:[{torch: !cur}] });
+    }catch(e){}
+  }
+
+  // Proses kode → kirim ke endpoint & SweetAlert hasil
+  function handleCode(raw){
+    initAudio();
+    const kode = sanitizeKode(raw);
+    if (!kode){
+      sfx('error');
+      Swal.fire({ icon:'error', title:'Kode tidak valid', text:'Tidak ada isi yang dapat diproses.' })
+        .then(()=> startScan(sel.value || null));
+      return;
+    }
+
+    const mode = getScanMode();
+    const endpoint = mode === 'checkout'
+      ? '<?= site_url('admin_scan/checkout_api') ?>'
+      : '<?= site_url('admin_scan/checkin_api') ?>';
+
+    const params = new URLSearchParams();
+    params.set('kode', kode);
+    <?php if (config_item('csrf_protection')): ?>
+      params.set('<?= $CI->security->get_csrf_token_name() ?>','<?= $CI->security->get_csrf_hash() ?>');
+    <?php endif; ?>
+
+    Swal.fire({
+      title: 'Memproses…',
+      html: `<div class="text-left small">
+               <div>Mode: <b>${mode}</b></div>
+               <div>Kode: <code>${kode}</code></div>
+             </div>`,
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    fetch(endpoint, {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body: params.toString(),
+      credentials:'same-origin'
+    })
+    .then(r=>r.json())
+    .then(j=>{
+      Swal.close();
+      if (j.ok){
+        const d          = j.data || {};
+        const isCheckout = (mode === 'checkout');
+        const icon       = isCheckout ? 'success' : 'success';
+        sfx(isCheckout ? 'checkout' : 'checkin');
+
+        const html = `
+          <div class="text-left">
+            <div><b>${isCheckout ? 'Checkout' : 'Check-in'} berhasil</b></div>
+            <div>Kode: <code>${d.kode || '-'}</code></div>
+            <div>Nama: <b>${d.nama || '-'}</b></div>
+            <div>Waktu: <b>${(d.checkin_at || d.checkout_at || '-')}</b></div>
+            <div>Petugas: <b>${isCheckout ? (d.petugas_checkout || '-') : (d.petugas_checkin || '-')}</b></div>
+            ${d.status ? `<div>Status: <b>${d.status}</b></div>` : ''}
+            ${j.already ? '<div class="text-warning mt-1"><small>Aksi ini sudah pernah dilakukan.</small></div>' : ''}
+          </div>
+        `;
+
+        Swal.fire({
+          icon,
+          title: isCheckout ? 'Checkout Berhasil' : 'Check-in Berhasil',
+          html,
+          showCancelButton: true,
+          confirmButtonText: (j.detail_url ? 'Buka Detail Booking' : 'Tutup'),
+          cancelButtonText: 'Scan lagi',
+          reverseButtons: true,
+          allowOutsideClick: false
+        }).then((res)=>{
+          if (res.isConfirmed && j.detail_url){
+            window.open(j.detail_url, '_blank', 'noopener');
+          }
+          // lanjut scan lagi
+          startScan(sel.value || null);
+        });
+
+      } else {
+        sfx('error');
+        Swal.fire({
+          icon:'error',
+          title:'Gagal',
+          html: j.msg ? `<div class="text-left">${j.msg}</div>` : 'Tidak diketahui',
+          showCancelButton: true,
+          confirmButtonText: 'Coba lagi',
+          cancelButtonText: 'Tutup',
+          reverseButtons: true
+        }).then((res)=>{
+          if (res.isConfirmed){
+            startScan(sel.value || null);
+          }
+        });
+      }
+    })
+    .catch(err=>{
+      sfx('error');
+      Swal.fire({
+        icon:'error',
+        title:'Error jaringan',
+        text: err && err.message ? err.message : String(err),
+        confirmButtonText:'Coba lagi'
+      }).then(()=> startScan(sel.value || null));
+    });
+  }
+
+  // UI events
+  btnStart.addEventListener('click', ()=> { initAudio(); startScan(sel.value || null); });
+  btnStop .addEventListener('click', stopScan);
+  btnFlip .addEventListener('click', ()=>{ initAudio(); facing = (facing==='environment' ? 'user' : 'environment'); setMirror(facing === 'user'); startScan(null); });
+  btnTorch.addEventListener('click', toggleTorch);
+
+  btnManual.addEventListener('click', ()=> { initAudio(); handleCode(kodeManual.value); });
+  kodeManual.addEventListener('keydown', (e)=>{ if (e.key==='Enter'){ initAudio(); handleCode(kodeManual.value); }});
+
+  sel.addEventListener('change', ()=>{
+    localStorage.setItem('scan.camId', sel.value);
+    setMirror(false);
+    startScan(sel.value);
+  });
+
+  btnFull.addEventListener('click', async ()=>{
+    initAudio();
+    if (document.fullscreenElement || wrap.classList.contains('fullscreen-scan')) {
+      exitFullscreen();
+    } else {
+      await enterFullscreen();
+    }
+  });
+  btnExitFs.addEventListener('click', ()=> exitFullscreen());
+
+  // Init daftar kamera & auto refresh saat kembali ke tab
+  (async ()=>{
+    await listCameras();
+    document.addEventListener('visibilitychange', async ()=>{
+      if (!document.hidden && !video.srcObject && !controls){
+        await listCameras();
+      }
+    });
+  })();
+
+  // Torch update setelah stream mulai
+  async function afterStreamAttached(){
+    await setupTorch();
+  }
+
+  // Hook setelah decodeFromConstraints attach → sudah dipanggil dalam startWithConstraints()
+})();
 </script>

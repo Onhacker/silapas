@@ -8,6 +8,45 @@
 <?php
   $r = $row;
 
+  // ========= Helper format tanggal Indonesia =========
+  if (!function_exists('format_tanggal_id')) {
+    function format_tanggal_id($dateStr, $with_day = true) {
+      $dateStr = trim((string)$dateStr);
+      if ($dateStr === '' || $dateStr === '-' || stripos($dateStr, '0000-00-00') !== false) return '-';
+      try {
+        $dt = new DateTime($dateStr);
+      } catch (Throwable $e) {
+        return '-';
+      }
+      $tgl = $dt->format('d-m-Y');
+      if (!$with_day) return $tgl;
+
+      // Map hari Indonesia
+      static $hariMap = [
+        'Sun' => 'Minggu', 'Mon' => 'Senin', 'Tue' => 'Selasa', 'Wed' => 'Rabu',
+        'Thu' => 'Kamis',  'Fri' => 'Jumat', 'Sat' => 'Sabtu'
+      ];
+      $hari = $hariMap[$dt->format('D')] ?? '';
+      return $hari ? ($hari . ', ' . $tgl) : $tgl;
+    }
+  }
+  if (!function_exists('format_datetime_id')) {
+    function format_datetime_id($dateTimeStr, $with_day = true) {
+      $dateTimeStr = trim((string)$dateTimeStr);
+      if ($dateTimeStr === '' || $dateTimeStr === '-' || stripos($dateTimeStr, '0000-00-00') !== false) return '-';
+      try {
+        $dt = new DateTime($dateTimeStr);
+      } catch (Throwable $e) {
+        return '-';
+      }
+      // Hari + dd-mm-yyyy
+      $prefix = format_tanggal_id($dateTimeStr, $with_day);
+      // Jam (pakai HH:ii, detik diabaikan agar rapi)
+      $jam = $dt->format('H:i');
+      return $prefix . ' ' . $jam;
+    }
+  }
+
   // ===== Badge status =====
   $badge = '<span class="badge badge-secondary">Draft</span>';
   if ($r->status === 'approved')     $badge = '<span class="badge badge-info text-dark">Approved</span>';
@@ -22,22 +61,19 @@
   $surat_ext = !empty($r->surat_tugas) ? strtolower(pathinfo($r->surat_tugas, PATHINFO_EXTENSION)) : '';
   $foto_ext  = !empty($r->foto)        ? strtolower(pathinfo($r->foto, PATHINFO_EXTENSION))        : '';
 
-  // ===== QR dari folder uploads/qr/ =====
-  // $dir = './uploads/qr/'; nama file = {kode_booking}.{ext}
   // ===== QR dari folder uploads/qr/ (pakai pola: uploads/qr/qr_{kode_booking}.png) =====
-$qr_img_url = null;
-$qr_dir_abs = FCPATH.'uploads/qr/';
-$qr_dir_web = base_url('uploads/qr/');
+  $qr_img_url = null;
+  $qr_dir_abs = FCPATH.'uploads/qr/';
+  $qr_dir_web = base_url('uploads/qr/');
 
-// sanitize dulu kode booking biar aman untuk nama file
-$qr_base = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$r->kode_booking);
-$qr_filename = 'qr_'.$qr_base.'.png';
+  // sanitize dulu kode booking biar aman untuk nama file
+  $qr_base = preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$r->kode_booking);
+  $qr_filename = 'qr_'.$qr_base.'.png';
 
-$qr_abs = $qr_dir_abs.$qr_filename;
-if (is_file($qr_abs)) {
-    $qr_img_url = $qr_dir_web.rawurlencode($qr_filename);
-}
-
+  $qr_abs = $qr_dir_abs.$qr_filename;
+  if (is_file($qr_abs)) {
+      $qr_img_url = $qr_dir_web.rawurlencode($qr_filename);
+  }
 
   // ===== Durasi (checkin -> checkout) =====
   $durasiText = '-';
@@ -56,6 +92,12 @@ if (is_file($qr_abs)) {
           }
       } catch (\Throwable $e) { /* biarkan "-" */ }
   }
+
+  // ===== Pre-format tanggal yang dipakai di view =====
+  $tgl_lahir_fmt   = format_tanggal_id($r->tanggal_lahir ?? '', false); // TANPA hari
+  $tgl_booking_fmt = format_tanggal_id($r->tanggal ?? '', true);        // DENGAN hari
+  $checkin_fmt     = format_datetime_id($r->checkin_at ?? '', true);    // DENGAN hari + jam
+  $checkout_fmt    = format_datetime_id($r->checkout_at ?? '', true);   // DENGAN hari + jam
 ?>
 
 <style>
@@ -117,13 +159,27 @@ if (is_file($qr_abs)) {
             <!-- KIRI: detail -->
             <div class="col-lg-7">
               <table class="kv">
-                <tr><th>📅 Tanggal</th><td><?php echo htmlspecialchars($r->tanggal ?? '-'); ?></td></tr>
-                <tr><th>🕒 Jam</th><td><?php echo htmlspecialchars($r->jam ?? '-'); ?></td></tr>
+                
                 <tr><th>👤 Nama Tamu</th><td><?php echo htmlspecialchars($r->nama_tamu ?? '-'); ?></td></tr>
-                <tr><th>🏷️ Jabatan</th><td><?php echo htmlspecialchars($r->jabatan ?? '-'); ?></td></tr>
+
+                <!-- Tgl lahir: dd-mm-yyyy TANPA hari -->
+                <tr>
+                  <th>🎂 Tempat/Tanggal Lahir</th>
+                  <td>
+                    <?php
+                      $tmp = $r->tempat_lahir ?? '-';
+                      echo htmlspecialchars($tmp), ', ', htmlspecialchars($tgl_lahir_fmt);
+                    ?>
+                  </td>
+                </tr>
+
+                <tr><th>📍 Alamat</th><td><?php echo htmlspecialchars($r->alamat ?? '-'); ?></td></tr>
+                
                 <tr><th>🪪 NIK</th><td><?php echo htmlspecialchars($r->nik ?? '-'); ?></td></tr>
                 <tr><th>📱 No. HP</th><td><?php echo htmlspecialchars($r->no_hp ?? '-'); ?></td></tr>
+
                 <tr><th>🏢 Instansi Asal</th><td><?php echo htmlspecialchars($r->target_instansi_nama ?? '-'); ?></td></tr>
+                <tr><th>🏷️ Jabatan</th><td><?php echo htmlspecialchars($r->jabatan ?? '-'); ?></td></tr>
                 <tr><th>🏛️ Unit Tujuan</th><td><?php echo htmlspecialchars($r->unit_tujuan_nama ?? '-'); ?></td></tr>
                 <tr><th>👔 Nama Pejabat Unit</th><td><?php echo htmlspecialchars($r->nama_petugas_instansi ?? '-'); ?></td></tr>
 
@@ -143,42 +199,41 @@ if (is_file($qr_abs)) {
 
                 <tr><th>👥 Jumlah Pendamping</th><td><?php echo htmlspecialchars($r->jumlah_pendamping ?? '0'); ?></td></tr>
                 <?php
-  // jika di view belum ada $r, kamu bisa set $r = $row; di bagian atas view.
-  $pendamping_rows = $pendamping_rows ?? [];
-?>
+                  $pendamping_rows = $pendamping_rows ?? [];
+                ?>
 
-<?php if (!empty($pendamping_rows)): ?>
-<tr>
-  <th>📋 Daftar Pendamping</th>
-  <td>
-    <div class="table-responsive">
-      <table class="table table-sm table-bordered mb-0">
-        <thead class="thead-light">
-          <tr>
-            <th style="width:60px;">No</th>
-            <th style="width:200px;">NIK</th>
-            <th>Nama</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($pendamping_rows as $i => $p): ?>
-            <tr>
-              <td class="text-center"><?= $i + 1 ?></td>
-              <td><code><?= htmlspecialchars($p->nik ?? '', ENT_QUOTES, 'UTF-8') ?></code></td>
-              <td><?= htmlspecialchars($p->nama ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-    </div>
-  </td>
-</tr>
-<?php elseif ((int)($r->jumlah_pendamping ?? 0) > 0): ?>
-<tr>
-  <th>📋 Daftar Pendamping</th>
-  <td class="text-muted">Belum ada data pendamping.</td>
-</tr>
-<?php endif; ?>
+                <?php if (!empty($pendamping_rows)): ?>
+                <tr>
+                  <th>📋 Daftar Pendamping</th>
+                  <td>
+                    <div class="table-responsive">
+                      <table class="table table-sm table-bordered mb-0">
+                        <thead class="thead-light">
+                          <tr>
+                            <th style="width:60px;">No</th>
+                            <th style="width:200px;">NIK</th>
+                            <th>Nama</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php foreach ($pendamping_rows as $i => $p): ?>
+                            <tr>
+                              <td class="text-center"><?= $i + 1 ?></td>
+                              <td><code><?= htmlspecialchars($p->nik ?? '', ENT_QUOTES, 'UTF-8') ?></code></td>
+                              <td><?= htmlspecialchars($p->nama ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                            </tr>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+                <?php elseif ((int)($r->jumlah_pendamping ?? 0) > 0): ?>
+                <tr>
+                  <th>📋 Daftar Pendamping</th>
+                  <td class="text-muted">Belum ada data pendamping.</td>
+                </tr>
+                <?php endif; ?>
 
                 <!-- Lampiran -->
                 <tr>
@@ -199,9 +254,24 @@ if (is_file($qr_abs)) {
                   </td>
                 </tr>
 
+                <!-- Tanggal booking: dd-mm-yyyy + hari, jam terpisah tetap apa adanya -->
+                <tr>
+                  <th>📅 Tanggal/Jam Booking</th>
+                  <td>
+                    <?php
+                      $jam_raw = trim((string)($r->jam ?? ''));
+                      echo htmlspecialchars($tgl_booking_fmt);
+                      if ($jam_raw !== '' && $jam_raw !== '-') echo ' ' . htmlspecialchars($jam_raw);
+                    ?>
+                  </td>
+                </tr>
+
                 <tr><th>📌 Status</th><td><?php echo htmlspecialchars($r->status ?? '-'); ?></td></tr>
-                <tr><th>🟢 Waktu Check-in</th><td><?php echo htmlspecialchars($r->checkin_at ?? '-'); ?></td></tr>
-                <tr><th>🟡 Waktu Check-out</th><td><?php echo htmlspecialchars($r->checkout_at ?? '-'); ?></td></tr>
+
+                <!-- Check-in/out: tampilkan hari + dd-mm-yyyy + HH:ii -->
+                <tr><th>🟢 Waktu Check-in</th><td><?php echo htmlspecialchars($checkin_fmt); ?></td></tr>
+                <tr><th>🟡 Waktu Check-out</th><td><?php echo htmlspecialchars($checkout_fmt); ?></td></tr>
+
                 <tr><th>⏱️ Durasi</th><td><?php echo htmlspecialchars($durasiText); ?></td></tr>
               </table>
             </div>
