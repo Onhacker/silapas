@@ -16,7 +16,7 @@
     .card{border:1px solid var(--border);border-radius:12px;padding:18px;margin:14px 0;background:#fff}
     .toc a{color:var(--accent);text-decoration:none}
     .toc a:hover{text-decoration:underline}
-    code{background:#f1f5f9;padding:.1rem .35rem;border-radius:6px}
+    /*code{background:#f1f5f9;padding:.1rem .35rem;border-radius:6px}*/
     hr{border:0;border-top:1px solid var(--border);margin:24px 0}
     .footer{font-size:13px;color:var(--muted);margin-top:28px}
   </style>
