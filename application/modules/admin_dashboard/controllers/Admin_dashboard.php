@@ -486,6 +486,8 @@ public function monitor_data()
             show_404();
             return;
         }
+        echo "[PING] ".date('c').PHP_EOL;
+        log_message('error', '[CRON] expire_bookings triggered @ '.date('c'));
         $grace = (int)$grace_minutes;
         if ($grace < 0 || $grace > 1440) $grace = 30;
 

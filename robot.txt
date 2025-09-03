@@ -3,4 +3,4 @@ Disallow: /home/get_permohonan_batch/
 Disallow: /api/ajax_status_user
 Disallow: /on_login/verifikasi_captcha
 
-Sitemap: https://sidia.mediaverse.co.id/sitemap.xml
+Sitemap: https://silaturahmi.org/sitemap.xml
