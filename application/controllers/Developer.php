@@ -27,8 +27,8 @@ class Developer extends MX_Controller {
             "start_url" => site_url("/home"),
             "display" => "standalone",
             "display_override" => ["window-controls-overlay", "standalone"],
-            "background_color": "#ffffff",   
-            "theme_color": "#0f172a",        
+            "background_color"=> "#ffffff",   
+            "theme_color"=> "#0f172a",        
             "icons" => [
                 [
                     "src" => site_url("/assets/images/icon_appx.png"),
