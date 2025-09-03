@@ -17,7 +17,6 @@ class Home extends MX_Controller
     public function index()
     {
         $data['title']     = 'Home';
-        // DESKRIPSI SILAPAS (ganti dari SIDIA)
         $data['deskripsi'] = 'Silaturahmi Makassar (Sistem Layanan Tamu Resmi Antar Instansi yang Humanis, Modern, dan Integratif) adalah aplikasi untuk pemesanan (booking) kunjungan tamu, check-in/out Lapas Makassar';
         $data['prev']      = base_url('assets/images/icon_app.png');
         $data['rec']       = $this->fm->web_me();
