@@ -27,8 +27,8 @@ class Developer extends MX_Controller {
             "start_url" => site_url("/home"),
             "display" => "standalone",
             "display_override" => ["window-controls-overlay", "standalone"],
-            "background_color" => "transparent",
-            "theme_color" => "transparent",
+            "background_color": "#ffffff",   
+            "theme_color": "#0f172a",        
             "icons" => [
                 [
                     "src" => site_url("/assets/images/icon_appx.png"),
@@ -45,7 +45,7 @@ class Developer extends MX_Controller {
                     "label" => "Icon 512x512"
                 ]
             ],
-            "description" => "Silaturahmi Makassar adalah platform digital untuk pelayanan Kunjungan Tamu Lapas Kelas I Makassar.",
+            "description" => "Silaturahmi Makassar merupakan platform digital layanan tamu resmi antar instansi yang humanis, modern, dan terintegrasi untuk mendukung pengelolaan kunjungan tamu di Lapas Kelas I Makassar.",
             "developer" => [
                 "name" => "PT. MVIN",
                 "url" => "https://mediaverse.com"

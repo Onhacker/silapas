@@ -19,7 +19,6 @@ const urlsToCache = [
   '/assets/admin/libs/datatables/jquery.dataTables.min.js',
   '/assets/admin/libs/datatables/dataTables.bootstrap4.js',
   '/assets/admin/libs/dropify/dropify.min.css',
-  '/assets/admin/libs/sweetalert2/sweetalert2.min.css',
   '/assets/admin/libs/select2/select2.min.css',
   '/assets/admin/js/jquery.easyui.min.js',
   '/assets/admin/libs/dropify/dropify_peng.js',

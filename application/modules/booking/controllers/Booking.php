@@ -17,7 +17,7 @@ class Booking extends MX_Controller {
         $data["controller"] = get_class($this);
         $data["title"]      = "Booking Kunjungan Tamu";
         $data["deskripsi"]  = "Pemohon dapat memantau status permohonan secara real-time mulai dari pengajuan hingga selesai diproses. Fitur ini memudahkan pemantauan dan memastikan transparansi pelayanan";
-        $data["prev"]       = base_url("assets/images/track.png");
+        $data["prev"]       = base_url("assets/images/booking.png");
 
         $data['units_tree'] = $this->mb->get_tree(); // pohon unit
         $data["rec"]        = $this->fm->web_me();
@@ -48,7 +48,7 @@ class Booking extends MX_Controller {
             "deskripsi"  => "Detail",
             "booking"    => $booking,
             "rec"        => $this->fm->web_me(),
-            "prev"       => base_url("assets/images/track.png"),
+            "prev"       => base_url("assets/images/booking.png"),
         ];
         $this->load->view('booking_detail', $data);
     }

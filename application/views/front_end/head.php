@@ -26,6 +26,10 @@
       "logo": "<?php echo base_url('assets/images/logo.png'); ?>"
     }
     </script>
+    <!-- Light -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <!-- Dark -->
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="manifest" href="<?= site_url('developer/manifest') ?>?v=1">
