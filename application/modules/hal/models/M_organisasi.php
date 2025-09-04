@@ -12,7 +12,7 @@ class M_organisasi extends CI_Model
     public function get_all_light() {
         return $this->db->select('id, parent_id, nama_unit, nama_pejabat, no_hp, kuota_harian, jumlah_pendamping, updated_at, created_at')
                         ->from('unit_tujuan')
-                        ->order_by('parent_id ASC, id ASC')   // stabil untuk O(n)
+                        ->order_by('id ASC')   // stabil untuk O(n)
                         ->get()->result();
     }
 

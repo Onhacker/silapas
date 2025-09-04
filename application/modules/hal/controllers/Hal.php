@@ -44,30 +44,48 @@ class Hal extends MX_Controller {
 
 	public function struktur()
 {
-    $this->load->driver('cache', ['adapter' => 'file']);
+    // === toggle dev: ?nocache=1 akan mem-bypass seluruh mekanisme cache ===
+    $nocache = ($this->input->get('nocache') === '1');
+
+    // Saat nocache=1 pakai driver dummy (tidak menyimpan apa pun)
+    $this->load->driver('cache', ['adapter' => $nocache ? 'dummy' : 'file']);
     $this->load->model('M_organisasi', 'mu');
 
     // versi data berdasar last change -> dipakai untuk cache & ETag
     $last = (int) $this->mu->last_changed(); // epoch ts; fallback 0
     $etag = 'W/"unit-tujuan-'.$last.'"';
 
-    // 304 jika tidak berubah
-    $ifNone = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH']) : '';
-    if ($ifNone === $etag) {
-        $this->output
-            ->set_status_header(304)
-            ->set_header('ETag: '.$etag)
-            ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=120');
-        return;
+    // 304 jika tidak berubah (skip jika nocache=1)
+    if (!$nocache) {
+        $ifNone = trim((string) $this->input->server('HTTP_IF_NONE_MATCH'));
+        if ($ifNone === $etag) {
+            $this->output
+                ->set_status_header(304)
+                ->set_header('ETag: '.$etag)
+                ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=120');
+            return;
+        }
     }
 
     $cacheKey = 'unit_tujuan_tree_'.$last;
-    $tree = $this->cache->get($cacheKey);
-    if ($tree === false) {
-        $rows = $this->mu->get_all_light();            // SELECT ringan + ORDER
+
+    if ($nocache) {
+        // Selalu rebuild dari DB, tanpa get/save cache
+        $rows = $this->mu->get_all();            // SELECT ringan + ORDER
         $tree = $this->build_tree_fast($rows);         // O(n)
         $this->sort_tree_by_name($tree);               // urutkan agar rapi
-        $this->cache->save($cacheKey, $tree, 300);     // 5 menit
+    } else {
+        // Jalur normal dengan cache
+        $tree = $this->cache->get($cacheKey);
+        if ($tree === false) {
+            $rows = $this->mu->get_all();
+            // $tree = $this->build_tree_fast($rows);
+            // $this->sort_tree_by_name($tree);
+            $tree = $this->build_tree_fast($rows);
+$this->sort_tree_custom($tree); // <-- ganti dari sort_tree_by_name()
+
+            $this->cache->save($cacheKey, $tree, 300); // 5 menit
+        }
     }
 
     $data = [
@@ -79,12 +97,21 @@ class Hal extends MX_Controller {
         'tree'       => $tree,
     ];
 
-    $this->output
-        ->set_header('ETag: '.$etag)
-        ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=120');
+    // Header respons sesuai mode
+    if ($nocache) {
+        $this->output
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+            ->set_header('Pragma: no-cache')
+            ->set_header('Expires: 0');
+    } else {
+        $this->output
+            ->set_header('ETag: '.$etag)
+            ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=120');
+    }
 
     $this->load->view('organisasi_view', $data);
 }
+
 
 /** O(n): bangun tree cepat dari rows datar tabel unit_tujuan */
 private function build_tree_fast(array $rows): array {
@@ -122,6 +149,25 @@ private function sort_tree_by_name(array &$nodes): void {
         }
         return $branch;
     }
+
+    /** urutkan tree: root -> 'Kepala Lapas' dulu, sisanya alfabetis; anak tetap alfabetis */
+private function sort_tree_custom(array &$nodes, int $depth = 0): void {
+    usort($nodes, function($a, $b) use ($depth) {
+        // Hanya di depth 0 (root) kita prioritaskan 'Kepala Lapas'
+        if ($depth === 0) {
+            $pa = (strcasecmp($a->nama_unit ?? '', 'Kepala Lapas') === 0) ? 0 : 1;
+            $pb = (strcasecmp($b->nama_unit ?? '', 'Kepala Lapas') === 0) ? 0 : 1;
+            if ($pa !== $pb) return $pa <=> $pb;
+        }
+        // Default: alfabetis nama_unit, lalu id
+        $c = strcasecmp($a->nama_unit ?? '', $b->nama_unit ?? '');
+        return $c ?: ($a->id <=> $b->id);
+    });
+    foreach ($nodes as $n) {
+        if (!empty($n->children)) $this->sort_tree_custom($n->children, $depth + 1);
+    }
+}
+
 
 	function get_data_desa() {
 		$this->load->model("M_desa", "dm");
