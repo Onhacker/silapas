@@ -44,47 +44,186 @@
 
     <style>.menu-circle{width:100px;height:100px;font-size:28px}.menu-label{font-size:14px}@media(max-width:576px){.menu-circle{width:60px;height:60px;font-size:18px}.menu-label{font-size:9px}}.badge-custom{position:absolute;top:4px;right:14px;background-color:#f1556c;color:#fff;padding:2px 6px;font-size:10px;border-radius:10px;font-weight:bold;z-index:10}.emoji-icon{font-size:40px}@media(min-width:576px){.emoji-icon{font-size:60px}}@media(min-width:768px){.emoji-icon{font-size:60px}}</style>
 
-    <div class="d-flex flex-nowrap overflow-auto text-center">
-      <div class="flex-shrink-0 px-1" style="width: 25%; position: relative;">
-        <a href="<?= site_url("booking") ?>" class="card p-1 d-block text-white text-decoration-none position-relative">
-          <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center shadow menu-circle" style="background-color: #17a2b8;">
-            <!-- <span class="badge-custom" data-plugin="counterup"><?php echo $jumper ?></span> -->
-            <span class="emoji-icon">📇</span>
+  <!-- QUICK MENU / SLIDER -->
+<div class="quickmenu-wrap position-relative">
 
-          </div>
-          <small class="d-block mt-1 text-dark font-weight-bold menu-label">Daftar</small>
-        </a>
-      </div>
+  <!-- tombol kiri/kanan -->
+  <button class="quickmenu-btn left" type="button" aria-label="Geser kiri">&#10094;</button>
+  <button class="quickmenu-btn right" type="button" aria-label="Geser kanan">&#10095;</button>
 
+  <!-- fade kiri/kanan -->
+  <div class="quickmenu-fade left"></div>
+  <div class="quickmenu-fade right"></div>
 
-      <div class="flex-shrink-0 px-1" style="width: 25%;">
-        <a href="<?= site_url("hal/struktur") ?>" class="card p-1 d-block text-white text-decoration-none">
-          <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center shadow menu-circle" style="background-color: #dc7633;">
-           <span class="emoji-icon">🕵️‍♂</span>
-         </div>
-         <small class="d-block mt-1 text-dark font-weight-bold menu-label">Struktur</small>
-       </a>
-     </div>
+  <!-- scroller -->
+  <div id="quickmenu" class="quickmenu-scroll d-flex text-center" tabindex="0" aria-label="Menu cepat geser">
 
-     <div class="flex-shrink-0 px-1" style="width: 25%;">
-      <a href="<?= site_url("hal/alur") ?>" class="card p-1 d-block text-white text-decoration-none">
-        <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center shadow menu-circle" style="background-color: #007bff;">
-         <span class="emoji-icon">🧩</span>
+    <div class="quickmenu-item">
+      <a href="<?= site_url('booking') ?>" class="qcard d-block text-decoration-none">
+        <div class="menu-circle" style="background:#17a2b8;">
+          <span class="emoji-icon">📇</span>
+        </div>
+        <small class="menu-label">Booking</small>
+      </a>
+    </div>
 
-       </div>
-       <small class="d-block mt-1 text-dark font-weight-bold menu-label">Tahapan</small>
-     </a>
-   </div>
+    <div class="quickmenu-item">
+      <a href="<?= site_url('hal/struktur') ?>" class="qcard d-block text-decoration-none">
+        <div class="menu-circle" style="background:#dc7633;">
+          <span class="emoji-icon">🕵️‍♂️</span>
+        </div>
+        <small class="menu-label">Struktur</small>
+      </a>
+    </div>
 
-   <div class="flex-shrink-0 px-1" style="width: 25%;">
-    <a href="<?= site_url("hal/kontak") ?>" class="card p-1 d-block text-white text-decoration-none">
-      <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center shadow menu-circle" style="background-color: #25D366;">
-       <span class="emoji-icon">💬</span>
-     </div>
-     <small class="d-block mt-1 text-dark font-weight-bold menu-label">Kontak</small>
-   </a>
- </div>
+    <div class="quickmenu-item">
+      <a href="<?= site_url('hal/alur') ?>" class="qcard d-block text-decoration-none">
+        <div class="menu-circle" style="background:#007bff;">
+          <span class="emoji-icon">🧩</span>
+        </div>
+        <small class="menu-label">Tahapan</small>
+      </a>
+    </div>
+
+    <div class="quickmenu-item">
+      <a href="<?= site_url('hal/kontak') ?>" class="qcard d-block text-decoration-none">
+        <div class="menu-circle" style="background:#25D366;">
+          <span class="emoji-icon">💬</span>
+        </div>
+        <small class="menu-label">Kontak</small>
+      </a>
+    </div>
+
+    <!-- gampang nambah item: copy blok .quickmenu-item di atas -->
+
+  </div>
 </div>
+
+<style>
+/* --- layout & looks --- */
+.quickmenu-wrap{margin:8px 0 6px; --btn:48px}
+.quickmenu-scroll{
+  gap:12px; padding:6px 8px 10px;
+  overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling: touch; scrollbar-width:none;
+}
+.quickmenu-scroll::-webkit-scrollbar{display:none}
+.quickmenu-item{
+  flex:0 0 auto;
+  width:clamp(120px, 25vw, 180px); /* responsif */
+  scroll-snap-align:start;
+}
+.qcard{
+  padding:10px 8px; border-radius:14px; background:#fff;
+  box-shadow:0 6px 18px rgba(0,0,0,.06); border:1px solid #eef2f7;
+  transition:transform .15s ease, box-shadow .2s ease;
+  color:#111;
+}
+.qcard:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(0,0,0,.08); }
+.menu-circle{
+  width:72px; height:72px; border-radius:50%;
+  margin:0 auto; display:flex; align-items:center; justify-content:center;
+  color:#fff; box-shadow:0 8px 18px rgba(0,0,0,.12);
+}
+.emoji-icon{ font-size:30px; line-height:1 }
+.menu-label{
+  display:block; margin-top:8px; font-weight:700; color:#1f2937;
+  letter-spacing:.2px;
+}
+
+/* --- nav buttons --- */
+.quickmenu-btn{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:var(--btn); height:var(--btn); border-radius:50%;
+  border:none; background:rgba(255,255,255,.9);
+  box-shadow:0 6px 18px rgba(0,0,0,.12);
+  cursor:pointer; z-index:3; font-size:20px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  transition:opacity .2s ease, transform .2s ease;
+}
+.quickmenu-btn.left{ left:4px } .quickmenu-btn.right{ right:4px }
+.quickmenu-btn[disabled]{ opacity:.35; cursor:default }
+
+/* --- fades --- */
+.quickmenu-fade{
+  pointer-events:none; position:absolute; top:0; bottom:0; width:32px; z-index:2;
+}
+.quickmenu-fade.left{ left:0; background:linear-gradient(90deg,#fff,rgba(255,255,255,0)); }
+.quickmenu-fade.right{ right:0; background:linear-gradient(270deg,#fff,rgba(255,255,255,0)); }
+
+/* small screens: tombol sedikit lebih kecil */
+@media (max-width:480px){
+  .quickmenu-wrap{ --btn:42px }
+  .menu-circle{ width:66px; height:66px }
+}
+</style>
+
+<script>
+(function(){
+  const scroller = document.getElementById('quickmenu');
+  const btnL = document.querySelector('.quickmenu-btn.left');
+  const btnR = document.querySelector('.quickmenu-btn.right');
+  const fadeL = document.querySelector('.quickmenu-fade.left');
+  const fadeR = document.querySelector('.quickmenu-fade.right');
+
+  function updateNav(){
+    const atStart = scroller.scrollLeft <= 2;
+    const atEnd = scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 2;
+    btnL.disabled = atStart;
+    btnR.disabled = atEnd;
+    fadeL.style.opacity = atStart ? .0 : 1;
+    fadeR.style.opacity = atEnd ? .0 : 1;
+  }
+
+  function scrollByAmt(dir){
+    scroller.scrollBy({ left: dir * Math.max(160, scroller.clientWidth * 0.8), behavior:'smooth' });
+  }
+
+  btnL.addEventListener('click', ()=>scrollByAmt(-1));
+  btnR.addEventListener('click', ()=>scrollByAmt(+1));
+  scroller.addEventListener('scroll', updateNav, {passive:true});
+  window.addEventListener('resize', updateNav);
+
+  // drag to scroll (mouse/touch)
+  let sx=0, sl=0, dragging=false, moved=false;
+  scroller.addEventListener('pointerdown', (e)=>{
+    dragging=true; moved=false; sx=e.clientX; sl=scroller.scrollLeft;
+    scroller.setPointerCapture(e.pointerId);
+    scroller.classList.add('dragging');
+  });
+  scroller.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    const dx = e.clientX - sx;
+    if (Math.abs(dx) > 3) moved=true;
+    scroller.scrollLeft = sl - dx;
+  });
+  scroller.addEventListener('pointerup', (e)=>{
+    if(dragging) scroller.releasePointerCapture(e.pointerId);
+    dragging=false; scroller.classList.remove('dragging');
+  });
+  // batalkan klik saat drag
+  scroller.addEventListener('click', (e)=>{
+    if(moved) { e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
+
+  // panah keyboard & wheel vertical=scroll horizontal
+  scroller.addEventListener('keydown', (e)=>{
+    if(e.key==='ArrowRight'){ e.preventDefault(); scrollByAmt(+1); }
+    if(e.key==='ArrowLeft'){ e.preventDefault(); scrollByAmt(-1); }
+  });
+  scroller.addEventListener('wheel', (e)=>{
+    if(Math.abs(e.deltaY) > Math.abs(e.deltaX)){
+      scroller.scrollBy({left: e.deltaY, behavior:'auto'}); e.preventDefault();
+    }
+  }, {passive:false});
+
+  // inisialisasi
+  updateNav();
+})();
+</script>
+
+
+
 </div> 
 </div>
 
@@ -238,10 +377,14 @@ if (!$basePath) $basePath = '/';
     <div class="avatar-sm rounded-circle bg-soft-dark text-dark mr-3 d-flex align-items-center justify-content-center">
       <i class="fas fa-mobile-alt font-20"></i>
     </div>
-    <div class="media-body">
-      <h4 class="mt-0 mb-1"><strong>Tanpa Instal Aplikasi</strong></h4>
-      <p>Cukup gunakan peramban (browser) favorit. Tautan tiket & detail kunjungan bisa dibuka langsung dari pesan yang diterima.</p>
-    </div>
+   <div class="media-body">
+  <h4 class="mt-0 mb-1"><strong>Instal Aplikasi atau Pakai Browser</strong></h4>
+  <p>
+    Pilih yang paling nyaman: <strong>instal aplikasi dari Google Play Store</strong> untuk pengalaman lebih praktis,
+    atau <strong>gunakan peramban (browser) favorit</strong>—tautan tiket dan detail kunjungan tetap bisa dibuka langsung dari pesan yang Anda terima.
+  </p>
+</div>
+
   </li>
 
   <li class="media mb-2 align-items-start">
