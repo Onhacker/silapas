@@ -32,13 +32,13 @@ class Developer extends MX_Controller {
             "theme_color"=> "#0f172a",        
             "icons" => [
                 [
-                    "src"     => "/assets/images/manifest-icon-192.maskable.png",
+                    "src"     => "/assets/images/manifest-icon-192_maskable.png",
                     "sizes"   => "192x192",
                     "type"    => "image/png",
                     "purpose" => "any"
                 ],
                 [
-            "src"     => "/assets/images/manifest-icon-512.maskable.png", // ganti ke path ikon maskable kamu
+            "src"     => "/assets/images/manifest-icon-512_maskable.png", // ganti ke path ikon maskable kamu
             "sizes"   => "512x512",
             "type"    => "image/png",
             "purpose" => "maskable any"
