@@ -59,60 +59,54 @@
    
 </head>
 
-<?php $this->load->view("global") ?>
-<!-- SPLASH LOTTIE -->
-<div id="splash" aria-hidden="true">
+<!-- SPLASH (hanya sekali per sesi/app dibuka) -->
+<div id="splash" style="display:none">
   <div id="splash-lottie"></div>
 </div>
+
 <style>
-  /* layar penuh, aman untuk notch */
   #splash{
     position:fixed; inset:0; display:grid; place-items:center;
     padding: env(safe-area-inset-top) env(safe-area-inset-right)
              env(safe-area-inset-bottom) env(safe-area-inset-left);
-    background:#ffffff; z-index:2147483647;  /* di atas semuanya */
-    transition: opacity .24s ease;
+    background:#fff; z-index:2147483647; transition:opacity .24s ease;
   }
   #splash.hidden{ opacity:0; pointer-events:none; }
   #splash-lottie{ width:160px; height:160px; }
-  /* (opsional) gelap otomatis */
   @media (prefers-color-scheme: dark){ #splash{ background:#0f172a; } }
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 <script>
 (function(){
-  const el = document.getElementById('splash');
-  const box = document.getElementById('splash-lottie');
+  const FLAG = 'splash_seen_v1';   // ganti versi jika ingin paksa tampil lagi
+  if (sessionStorage.getItem(FLAG)) return; // sudah pernah tampil di sesi ini → jangan tampilkan
 
-  // tampilkan seawal mungkin
-  el.style.display = 'grid';
+  sessionStorage.setItem(FLAG, '1'); // tandai agar tidak tampil lagi sampai app ditutup
+  const wrap = document.getElementById('splash');
+  const box  = document.getElementById('splash-lottie');
+  wrap.style.display = 'grid';
 
-  // muat animasi Lottie
-  let anim = lottie.loadAnimation({
+  const anim = lottie.loadAnimation({
     container: box, renderer: 'svg', loop: true, autoplay: true,
-    path: '/assets/js/tech.json' // <-- ganti ke JSON kamu
-  });
-  // fallback kalau JSON gagal dimuat
-  anim.addEventListener('data_failed', ()=> {
-    box.innerHTML = '<img src="/assets/images/logo.png" width="120" height="120" alt="loading">';
+    path: '<?php echo base_url("/assets/js/splash.json") ?>' // ← ganti ke file JSON kamu
   });
 
-  // fungsi sembunyikan splash
   let done = false;
-  function hideSplash(){ if(done) return; done = true;
-    el.classList.add('hidden'); setTimeout(()=> el.remove(), 260);
+  function hide(){ if(done) return; done = true;
+    wrap.classList.add('hidden'); setTimeout(()=> wrap.remove(), 260);
   }
 
-  // hilang saat halaman siap, atau SW siap, atau timeout 3s (mana duluan)
-  window.addEventListener('load', hideSplash);
-  if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-    navigator.serviceWorker.ready.then(hideSplash);
-  }
-  setTimeout(hideSplash, 3000);
+  // tutup saat halaman siap / SW siap / timeout (fallback)
+  window.addEventListener('load', hide);
+  if (navigator.serviceWorker?.ready) navigator.serviceWorker.ready.then(hide);
+  setTimeout(hide, 3000);
 })();
 </script>
 
+
+
+<?php $this->load->view("global") ?>
 <body class="menubar-gradient gradient-topbar topbar-dark">
 <div id="preloader">
         <div id="status">
