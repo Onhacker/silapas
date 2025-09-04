@@ -56,7 +56,47 @@
       }
 
    </style>
-   
+   <!-- Top loader bar (3px) -->
+<div id="app-top-loader" style="
+  position:fixed; top:0; left:0; right:0; height:3px; z-index:99999;
+  background: linear-gradient(90deg, rgba(0,0,0,0.15) 0 30%, transparent 30% 100%);
+  background-size: 200% 100%;
+  animation: appTopLoad 1.1s ease-in-out infinite;
+  pointer-events:none; /* biar tidak menutupi klik header */
+  transform: translateZ(0); /* smooth */
+  display:none; /* default hidden */
+"></div>
+
+<style>
+@keyframes appTopLoad {
+  0%   { background-position: 0% 0; }
+  100% { background-position: -200% 0; }
+}
+</style>
+<script>
+// tampilkan loader sedini mungkin
+(function showTopLoader(){
+  var bar = document.getElementById('app-top-loader');
+  if (bar) bar.style.display = 'block';
+})();
+
+// sembunyikan saat halaman/svc worker siap
+function hideTopLoader(){
+  var bar = document.getElementById('app-top-loader');
+  if (bar) bar.style.display = 'none';
+}
+window.addEventListener('load', hideTopLoader);
+
+// kalau SW siap lebih cepat, tutup juga
+if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+  navigator.serviceWorker.ready.then(hideTopLoader);
+}
+
+// (opsional) tiap navigasi SPA / klik link, bisa start lagi:
+// document.addEventListener('spa:navigating', ()=> { document.getElementById('app-top-loader').style.display='block'; });
+// document.addEventListener('spa:ready', hideTopLoader);
+</script>
+
 </head>
 
 <?php $this->load->view("global") ?>
