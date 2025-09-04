@@ -1,13 +1,7 @@
 <?php $this->load->view("front_end/head.php") ?>
 <?php
 $slides = [
-  [
-    'src'   => 'https://www.enableds.com/products/duo/v30/images/pictures/2.jpg',
-    'alt'   => 'Lapas Kelas I Makassar – Gerbang utama',
-    'title' => 'Selamat Datang',
-    'text'  => 'Layanan kunjungan kini lebih mudah dan cepat.',
-    'href'  => site_url('booking'),
-  ],
+  
   [
     'src'   =>  base_url("assets/images/slide/booking.png"),
     'alt'   => 'Area layanan kunjungan',
@@ -15,12 +9,20 @@ $slides = [
     'text'  => 'Pesan jadwal kunjungan langsung dari ponsel Anda.',
     'href'  => site_url('booking'),
   ],
+  
   [
-    'src'   => 'https://www.enableds.com/products/duo/v30/images/pictures/14.jpg',
-    'alt'   => 'Struktur organisasi',
-    'title' => 'Struktur Organisasi',
+    'src'   => base_url("assets/images/slide/unit.png"),
+    'alt'   => 'Siap Menyambut Anda',
+    'title' => 'Siap Menyambut Anda',
     'text'  => 'Kenali unit dan pejabat terkait layanan.',
     'href'  => site_url('hal/struktur'),
+  ],
+  [
+    'src'   => base_url("assets/images/slide/laptop.png"),
+    'alt'   => 'Download Aplikasi Di Playstore atau Gunakan Browser',
+    'title' => 'Ramah Akses',
+    'text'  => 'Download Aplikasi Di Playstore atau Gunakan Browser',
+    'href'  => site_url(),
   ],
 ];
 ?>

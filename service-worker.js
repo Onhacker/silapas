@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sila-4';
+const CACHE_NAME = 'sila-5';
 const OFFLINE_URL = '/assets/offline.html';
 const BASE_PATH = '/';
 
