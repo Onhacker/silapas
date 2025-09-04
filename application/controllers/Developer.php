@@ -39,7 +39,7 @@ class Developer extends MX_Controller {
                     "label" => "Icon 192x192"
                 ],
                 [
-                    "src" => site_url("/assets/images/maskable-icon_new.png"),
+                    "src" => site_url("/assets/images/maskable_icon_new.png"),
                     "sizes" => "512x512",
                     "type" => "image/png",
                     "purpose" => "any",
