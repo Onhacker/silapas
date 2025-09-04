@@ -88,7 +88,11 @@ $slides = [
 </style>
 
 <div class="container-fluid">
-  <!-- PWA HERO SLIDESHOW -->
+ 
+
+  <div class="row mt-3">
+    <div class="col-xl-4">
+       <!-- PWA HERO SLIDESHOW -->
 <section class="pwa-hero" role="region" aria-label="Slideshow sorotan">
   <button class="pwa-hero__nav prev" type="button" aria-label="Sebelumnya">‹</button>
   <button class="pwa-hero__nav next" type="button" aria-label="Berikutnya">›</button>
@@ -118,10 +122,7 @@ $slides = [
 
   <div id="heroDots" class="pwa-hero__dots" aria-hidden="false"></div>
 </section>
-
-  <div class="row mt-3">
-    <div class="col-xl-4">
-      <div class="card">
+      <!-- <div class="card">
         <div class="card-bottom text-center">
           <div class="d-flex justify-content-center">
            <svg id="Layer_1" class="svg-computer" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450.2 450.2" width="150" height="150">
@@ -143,13 +144,13 @@ $slides = [
         </div>
 
         <div class="card-footer bg-white border-top-0">
-        </div>
+        </div> -->
         <!-- <div style="text-align: center;">
           <button type="button" id="installButton" style="display: none;"  class="btn btn-success shadow-sm mb-2">
             <i class="fab fa-android me-2"></i> Instal Aplikasi
           </button>
         </div> -->
-      </div>
+      <!-- </div> -->
     </div> <!-- end col-->
 
     <div class="col-xl-8">
