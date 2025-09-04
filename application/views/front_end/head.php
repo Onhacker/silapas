@@ -56,50 +56,63 @@
       }
 
    </style>
-   <!-- Top loader bar (3px) -->
-<div id="app-top-loader" style="
-  position:fixed; top:0; left:0; right:0; height:3px; z-index:99999;
-  background: linear-gradient(90deg, rgba(0,0,0,0.15) 0 30%, transparent 30% 100%);
-  background-size: 200% 100%;
-  animation: appTopLoad 1.1s ease-in-out infinite;
-  pointer-events:none; /* biar tidak menutupi klik header */
-  transform: translateZ(0); /* smooth */
-  display:none; /* default hidden */
-"></div>
-
-<style>
-@keyframes appTopLoad {
-  0%   { background-position: 0% 0; }
-  100% { background-position: -200% 0; }
-}
-</style>
-<script>
-// tampilkan loader sedini mungkin
-(function showTopLoader(){
-  var bar = document.getElementById('app-top-loader');
-  if (bar) bar.style.display = 'block';
-})();
-
-// sembunyikan saat halaman/svc worker siap
-function hideTopLoader(){
-  var bar = document.getElementById('app-top-loader');
-  if (bar) bar.style.display = 'none';
-}
-window.addEventListener('load', hideTopLoader);
-
-// kalau SW siap lebih cepat, tutup juga
-if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-  navigator.serviceWorker.ready.then(hideTopLoader);
-}
-
-// (opsional) tiap navigasi SPA / klik link, bisa start lagi:
-// document.addEventListener('spa:navigating', ()=> { document.getElementById('app-top-loader').style.display='block'; });
-// document.addEventListener('spa:ready', hideTopLoader);
-</script>
-
+   
 </head>
 
 <?php $this->load->view("global") ?>
+<!-- SPLASH LOTTIE -->
+<div id="splash" aria-hidden="true">
+  <div id="splash-lottie"></div>
+</div>
+<style>
+  /* layar penuh, aman untuk notch */
+  #splash{
+    position:fixed; inset:0; display:grid; place-items:center;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+             env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background:#ffffff; z-index:2147483647;  /* di atas semuanya */
+    transition: opacity .24s ease;
+  }
+  #splash.hidden{ opacity:0; pointer-events:none; }
+  #splash-lottie{ width:160px; height:160px; }
+  /* (opsional) gelap otomatis */
+  @media (prefers-color-scheme: dark){ #splash{ background:#0f172a; } }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script>
+(function(){
+  const el = document.getElementById('splash');
+  const box = document.getElementById('splash-lottie');
+
+  // tampilkan seawal mungkin
+  el.style.display = 'grid';
+
+  // muat animasi Lottie
+  let anim = lottie.loadAnimation({
+    container: box, renderer: 'svg', loop: true, autoplay: true,
+    path: '/assets/js/tech.json' // <-- ganti ke JSON kamu
+  });
+  // fallback kalau JSON gagal dimuat
+  anim.addEventListener('data_failed', ()=> {
+    box.innerHTML = '<img src="/assets/images/logo.png" width="120" height="120" alt="loading">';
+  });
+
+  // fungsi sembunyikan splash
+  let done = false;
+  function hideSplash(){ if(done) return; done = true;
+    el.classList.add('hidden'); setTimeout(()=> el.remove(), 260);
+  }
+
+  // hilang saat halaman siap, atau SW siap, atau timeout 3s (mana duluan)
+  window.addEventListener('load', hideSplash);
+  if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+    navigator.serviceWorker.ready.then(hideSplash);
+  }
+  setTimeout(hideSplash, 3000);
+})();
+</script>
+
 <body class="menubar-gradient gradient-topbar topbar-dark">
 <div id="preloader">
         <div id="status">
