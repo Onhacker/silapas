@@ -91,3 +91,17 @@
 </div>
 
 <?php $this->load->view("front_end/footer.php") ?>
+<script src="<?= base_url('assets/admin/libs/magnific-popup/jquery.magnific-popup.min.js') ?>"></script>
+<script>
+  $(function(){
+    $(".image-popup").magnificPopup({
+      type: "image",
+      closeOnContentClick: false,
+      closeBtnInside: false,
+      mainClass: "mfp-with-zoom mfp-img-mobile",
+      image: { verticalFit: true, titleSrc: e => e.el.attr("title") },
+      gallery: { enabled: true },
+      zoom: { enabled: true, duration: 300, opener: e => e.find("img") }
+    });
+  });
+</script>
