@@ -1,5 +1,124 @@
 <?php $this->load->view("front_end/head.php") ?>
+<?php
+$slides = [
+  [
+    'src'   => 'https://www.enableds.com/products/duo/v30/images/pictures/2.jpg',
+    'alt'   => 'Lapas Kelas I Makassar – Gerbang utama',
+    'title' => 'Selamat Datang',
+    'text'  => 'Layanan kunjungan kini lebih mudah dan cepat.',
+    'href'  => site_url('booking'),
+  ],
+  [
+    'src'   => 'https://www.enableds.com/products/duo/v30/images/pictures/7.jpg',
+    'alt'   => 'Area layanan kunjungan',
+    'title' => 'Booking Online',
+    'text'  => 'Pesan jadwal kunjungan langsung dari ponsel Anda.',
+    'href'  => site_url('booking'),
+  ],
+  [
+    'src'   => 'https://www.enableds.com/products/duo/v30/images/pictures/14.jpg',
+    'alt'   => 'Struktur organisasi',
+    'title' => 'Struktur Organisasi',
+    'text'  => 'Kenali unit dan pejabat terkait layanan.',
+    'href'  => site_url('hal/struktur'),
+  ],
+];
+?>
+<style type="text/css">
+  /* --- Container --- */
+.pwa-hero{
+  position:relative; border-radius:16px; overflow:hidden;
+  box-shadow:0 14px 34px rgba(0,0,0,.12); background:#000;
+  margin:8px 0 14px;
+}
+
+/* --- Track: scroll-snap; swipe native --- */
+.pwa-hero__track{
+  display:flex; overflow-x:auto; overflow-y:hidden;
+  scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.pwa-hero__track::-webkit-scrollbar{ display:none; }
+
+/* --- Slide --- */
+.pwa-hero__slide{
+  flex:0 0 100%; position:relative; scroll-snap-align:center; height:clamp(200px, 32vw, 420px);
+  background:#111;
+}
+.pwa-hero__link{ display:block; height:100%; color:inherit; text-decoration:none; }
+
+.pwa-hero__img{
+  width:100%; height:100%; object-fit:cover; display:block;
+  filter:saturate(1.05) contrast(1.02);
+}
+
+/* --- Caption overlay --- */
+.pwa-hero__cap{
+  position:absolute; inset:auto 0 0 0; padding:18px 18px 16px;
+  color:#fff; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 48%, rgba(0,0,0,.75) 100%);
+}
+.pwa-hero__title{ margin:0 0 4px; font-weight:800; font-size:clamp(16px,1.8vw,22px); letter-spacing:.2px; }
+.pwa-hero__text{ margin:0; font-size:clamp(13px,1.4vw,16px); opacity:.95 }
+
+/* --- Nav buttons --- */
+.pwa-hero__nav{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:42px; height:42px; border-radius:50%; border:0; cursor:pointer;
+  background:rgba(255,255,255,.95); color:#111; font-size:22px; line-height:1;
+  display:flex; align-items:center; justify-content:center; z-index:3;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+.pwa-hero__nav.prev{ left:10px } .pwa-hero__nav.next{ right:10px }
+.pwa-hero__nav[disabled]{ opacity:.35; cursor:default }
+
+/* --- Dots --- */
+.pwa-hero__dots{
+  position:absolute; left:0; right:0; bottom:8px; display:flex; gap:8px; justify-content:center; z-index:2;
+}
+.pwa-hero__dots button{
+  width:8px; height:8px; border-radius:50%; border:0; background:rgba(255,255,255,.45); padding:0; cursor:pointer;
+}
+.pwa-hero__dots button[aria-current="true"]{ background:#fff; transform:scale(1.15); }
+
+/* --- Reduced motion --- */
+@media (prefers-reduced-motion: reduce){
+  .pwa-hero__track{ scroll-behavior:auto; }
+}
+
+</style>
+
 <div class="container-fluid">
+  <!-- PWA HERO SLIDESHOW -->
+<section class="pwa-hero" role="region" aria-label="Slideshow sorotan">
+  <button class="pwa-hero__nav prev" type="button" aria-label="Sebelumnya">‹</button>
+  <button class="pwa-hero__nav next" type="button" aria-label="Berikutnya">›</button>
+
+  <div id="heroTrack" class="pwa-hero__track" tabindex="0" aria-live="polite">
+    <?php foreach ($slides as $i => $s): ?>
+      <article class="pwa-hero__slide" aria-roledescription="slide" aria-label="<?= ($i+1).' dari '.count($slides) ?>">
+        <?php if (!empty($s['href'])): ?><a href="<?= htmlspecialchars($s['href'], ENT_QUOTES) ?>" class="pwa-hero__link"><?php endif; ?>
+
+          <img
+            class="pwa-hero__img"
+            src="<?= htmlspecialchars($s['src'], ENT_QUOTES) ?>"
+            alt="<?= htmlspecialchars($s['alt'], ENT_QUOTES) ?>"
+            loading="<?= $i === 0 ? 'eager' : 'lazy' ?>"
+            decoding="async"
+          />
+
+          <div class="pwa-hero__cap">
+            <h3 class="pwa-hero__title"><?= htmlspecialchars($s['title']) ?></h3>
+            <p class="pwa-hero__text"><?= htmlspecialchars($s['text']) ?></p>
+          </div>
+
+        <?php if (!empty($s['href'])): ?></a><?php endif; ?>
+      </article>
+    <?php endforeach; ?>
+  </div>
+
+  <div id="heroDots" class="pwa-hero__dots" aria-hidden="false"></div>
+</section>
+
   <div class="row mt-3">
     <div class="col-xl-4">
       <div class="card">
@@ -532,4 +651,112 @@ if (!$basePath) $basePath = '/';
   $(loadData); // panggil saat ready
 })(jQuery);
 </script>
+<script>
+(function(){
+  const track = document.getElementById('heroTrack');
+  if(!track) return;
+  const slides = Array.from(track.querySelectorAll('.pwa-hero__slide'));
+  const btnPrev = document.querySelector('.pwa-hero__nav.prev');
+  const btnNext = document.querySelector('.pwa-hero__nav.next');
+  const dotsWrap = document.getElementById('heroDots');
+  const N = slides.length;
+  let i = 0, autoplay = null, userPaused = false, ticking = false;
+
+  // Build dots
+  const dots = slides.map((_,idx)=>{
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', `Ke slide ${idx+1}`);
+    b.addEventListener('click', ()=>goTo(idx, true));
+    dotsWrap.appendChild(b);
+    return b;
+  });
+
+  function clamp(x){ return (x+N)%N; }
+  function updateUI(idx){
+    const atStart = idx === 0, atEnd = idx === N-1;
+    btnPrev.disabled = atStart; btnNext.disabled = atEnd;
+    dots.forEach((d,k)=> d.setAttribute('aria-current', k===idx ? 'true' : 'false'));
+  }
+
+  function goTo(idx, fromUser=false){
+    i = clamp(idx);
+    const target = slides[i];
+    track.scrollTo({ left: target.offsetLeft, behavior:'smooth' });
+    updateUI(i);
+    if(fromUser){ // pause autoplay sejenak jika interaksi manual
+      pauseAuto(6000);
+    }
+    // pre-warm gambar slide berikutnya
+    const next = slides[clamp(i+1)].querySelector('img');
+    if(next && next.loading === 'lazy'){ next.loading = 'eager'; }
+  }
+
+  // Update index berdasarkan posisi scroll (nearest slide)
+  function onScroll(){
+    if(ticking) return; ticking = true;
+    requestAnimationFrame(()=>{
+      const scrollLeft = track.scrollLeft;
+      // cari slide terdekat via offsetLeft
+      let best = 0, bestDist = Infinity;
+      for(let k=0;k<N;k++){
+        const d = Math.abs(slides[k].offsetLeft - scrollLeft);
+        if(d < bestDist){ best=k; bestDist=d; }
+      }
+      if(best !== i){ i = best; updateUI(i); }
+      ticking = false;
+    });
+  }
+
+  // Autoplay (pause saat hover, drag, tab hidden, keluar viewport)
+  function startAuto(){
+    if(autoplay || userPaused) return;
+    autoplay = setInterval(()=> goTo(i+1, false), 5000);
+  }
+  function stopAuto(){
+    if(autoplay){ clearInterval(autoplay); autoplay = null; }
+  }
+  let _resumeTimer = null;
+  function pauseAuto(ms=4000){
+    stopAuto();
+    if(_resumeTimer) clearTimeout(_resumeTimer);
+    if(!userPaused) _resumeTimer = setTimeout(()=> startAuto(), ms);
+  }
+
+  btnPrev.addEventListener('click', ()=> goTo(i-1, true));
+  btnNext.addEventListener('click', ()=> goTo(i+1, true));
+  track.addEventListener('scroll', onScroll, {passive:true});
+
+  // Hover/focus pause
+  track.addEventListener('pointerenter', ()=> pauseAuto(1e6));
+  track.addEventListener('pointerleave', ()=> { userPaused=false; startAuto(); });
+  track.addEventListener('focusin', ()=> pauseAuto(1e6));
+  track.addEventListener('focusout', ()=> { userPaused=false; startAuto(); });
+
+  // Keyboard
+  track.addEventListener('keydown', (e)=>{
+    if(e.key === 'ArrowRight'){ e.preventDefault(); goTo(i+1, true); }
+    if(e.key === 'ArrowLeft'){ e.preventDefault(); goTo(i-1, true); }
+  });
+
+  // Visibility / viewport
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden) stopAuto(); else startAuto();
+  });
+  const io = ('IntersectionObserver' in window) ? new IntersectionObserver(entries=>{
+    entries.forEach(en=>{
+      if(en.target !== track) return;
+      if(en.isIntersecting) startAuto(); else stopAuto();
+    });
+  }, {threshold: .2}) : null;
+  if(io) io.observe(track);
+
+  // Init
+  updateUI(0);
+  // eager-load slide 2
+  const eager2 = slides[1]?.querySelector('img'); if(eager2) eager2.loading='eager';
+  startAuto();
+})();
+</script>
+
 
