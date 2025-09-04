@@ -59,52 +59,6 @@
    
 </head>
 
-<!-- SPLASH (hanya sekali per sesi/app dibuka) -->
-<div id="splash" style="display:none">
-  <div id="splash-lottie"></div>
-</div>
-
-<style>
-  #splash{
-    position:fixed; inset:0; display:grid; place-items:center;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right)
-             env(safe-area-inset-bottom) env(safe-area-inset-left);
-    background:#fff; z-index:2147483647; transition:opacity .24s ease;
-  }
-  #splash.hidden{ opacity:0; pointer-events:none; }
-  #splash-lottie{ width:160px; height:160px; }
-  @media (prefers-color-scheme: dark){ #splash{ background:#0f172a; } }
-</style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
-<script>
-(function(){
-  const FLAG = 'splash_seen_v1';   // ganti versi jika ingin paksa tampil lagi
-  if (sessionStorage.getItem(FLAG)) return; // sudah pernah tampil di sesi ini → jangan tampilkan
-
-  sessionStorage.setItem(FLAG, '1'); // tandai agar tidak tampil lagi sampai app ditutup
-  const wrap = document.getElementById('splash');
-  const box  = document.getElementById('splash-lottie');
-  wrap.style.display = 'grid';
-
-  const anim = lottie.loadAnimation({
-    container: box, renderer: 'svg', loop: true, autoplay: true,
-    path: '<?php echo base_url("/assets/js/splash.json") ?>' // ← ganti ke file JSON kamu
-  });
-
-  let done = false;
-  function hide(){ if(done) return; done = true;
-    wrap.classList.add('hidden'); setTimeout(()=> wrap.remove(), 260);
-  }
-
-  // tutup saat halaman siap / SW siap / timeout (fallback)
-  window.addEventListener('load', hide);
-  if (navigator.serviceWorker?.ready) navigator.serviceWorker.ready.then(hide);
-  setTimeout(hide, 3000);
-})();
-</script>
-
-
 
 <?php $this->load->view("global") ?>
 <body class="menubar-gradient gradient-topbar topbar-dark">

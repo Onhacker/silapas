@@ -25,26 +25,25 @@ class Developer extends MX_Controller {
             "name" => "Silaturahmi Makassar",
             "short_name" => "Silaturahmi Makassar",
             "start_url" => site_url("/home"),
+            "scope"      => "/",
             "display" => "standalone",
             "display_override" => ["window-controls-overlay", "standalone"],
             "background_color"=> "#ffffff",   
             "theme_color"=> "#0f172a",        
             "icons" => [
                 [
-                    "src" => site_url("/assets/images/icon_appx.png"),
-                    "sizes" => "192x192",
-                    "type" => "image/png",
-                    "purpose" => "any",
-                    "label" => "Icon 192x192"
+                    "src"     => "/assets/images/manifest-icon-192.maskable.png",
+                    "sizes"   => "192x192",
+                    "type"    => "image/png",
+                    "purpose" => "any"
                 ],
                 [
-                    "src" => site_url("/assets/images/icon_app.png"),
-                    "sizes" => "512x512",
-                    "type" => "image/png",
-                    "purpose" => "any",
-                    "label" => "Icon 512x512"
-                ]
-            ],
+            "src"     => "/assets/images/manifest-icon-512.maskable.png", // ganti ke path ikon maskable kamu
+            "sizes"   => "512x512",
+            "type"    => "image/png",
+            "purpose" => "maskable any"
+        ]
+    ],
             "description" => "Silaturahmi Makassar merupakan platform digital layanan tamu resmi antar instansi yang humanis, modern, dan terintegrasi untuk mendukung pengelolaan kunjungan tamu di Lapas Kelas I Makassar.",
             "developer" => [
                 "name" => "PT. MVIN",
