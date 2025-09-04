@@ -42,18 +42,71 @@ class Hal extends MX_Controller {
 		$this->load->view('kontak_view',$data);
 	}
 
-	function struktur(){
-		$data['controller'] = get_class($this);
-		$this->load->model('M_organisasi', 'mo');
-		$rows = $this->mo->get_all();
-        $tree = $this->build_tree($rows);
-		$data["deskripsi"] = "Struktur Organisasi Lapas Kelas I Makassar.";
-		$data["prev"] = base_url("assets/images/struktur.png");
-		$data["title"] = "Struktur Organisasi";
-		$data["rec"] = $this->fm->web_me();
-		$data['tree']       = $tree;
-		$this->load->view('organisasi_view',$data);
-	}
+	public function struktur()
+{
+    $this->load->driver('cache', ['adapter' => 'file']);
+    $this->load->model('M_organisasi', 'mu');
+
+    // versi data berdasar last change -> dipakai untuk cache & ETag
+    $last = (int) $this->mu->last_changed(); // epoch ts; fallback 0
+    $etag = 'W/"unit-tujuan-'.$last.'"';
+
+    // 304 jika tidak berubah
+    $ifNone = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH']) : '';
+    if ($ifNone === $etag) {
+        $this->output
+            ->set_status_header(304)
+            ->set_header('ETag: '.$etag)
+            ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=120');
+        return;
+    }
+
+    $cacheKey = 'unit_tujuan_tree_'.$last;
+    $tree = $this->cache->get($cacheKey);
+    if ($tree === false) {
+        $rows = $this->mu->get_all_light();            // SELECT ringan + ORDER
+        $tree = $this->build_tree_fast($rows);         // O(n)
+        $this->sort_tree_by_name($tree);               // urutkan agar rapi
+        $this->cache->save($cacheKey, $tree, 300);     // 5 menit
+    }
+
+    $data = [
+        'controller' => get_class($this),
+        'deskripsi'  => 'Struktur Organisasi Lapas Kelas I Makassar.',
+        'prev'       => base_url('assets/images/struktur.png'),
+        'title'      => 'Struktur Organisasi',
+        'rec'        => $this->fm->web_me(),
+        'tree'       => $tree,
+    ];
+
+    $this->output
+        ->set_header('ETag: '.$etag)
+        ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=120');
+
+    $this->load->view('organisasi_view', $data);
+}
+
+/** O(n): bangun tree cepat dari rows datar tabel unit_tujuan */
+private function build_tree_fast(array $rows): array {
+    $byId = [];
+    $tree = [];
+    foreach ($rows as $r) { $r->children = []; $byId[$r->id] = $r; }
+    foreach ($rows as $r) {
+        $pid = $r->parent_id;
+        if (!empty($pid) && isset($byId[$pid])) $byId[$pid]->children[] = $r;
+        else $tree[] = $r; // root (parent_id NULL/0)
+    }
+    return $tree;
+}
+
+/** urutkan per nama_unit lalu id (ubah kalau mau) */
+private function sort_tree_by_name(array &$nodes): void {
+    usort($nodes, function($a,$b){
+        $c = strcasecmp($a->nama_unit ?? '', $b->nama_unit ?? '');
+        return $c ?: ($a->id <=> $b->id);
+    });
+    foreach ($nodes as $n) if (!empty($n->children)) $this->sort_tree_by_name($n->children);
+}
 
 	 /** Utility: build nested tree dari rows datar */
    private function build_tree($units, $parent_id = NULL) {

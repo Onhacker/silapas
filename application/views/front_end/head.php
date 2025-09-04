@@ -5,8 +5,6 @@
     <title><?php echo ucfirst(strtolower($rec->nama_website))." - ".$title ; ?></title>
     <meta name="theme-color" content="#ffffff">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-
-    <!-- <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover,user-scalable=no"> -->
     <meta name="robots" content="index, follow">
     <meta content="Onhacker.net" name="author" />
     <meta name="description" content="<?= htmlspecialchars($deskripsi) ?>">
@@ -52,33 +50,6 @@
    </style>
    
 </head>
-<style>
-  .page-loading{position:fixed;inset:0;background:rgba(255,255,255,.6);display:none;z-index:9999}
-  .page-loading.show{display:flex;align-items:center;justify-content:center}
-  .spinner{width:28px;height:28px;border:3px solid #ddd;border-top-color:#09f;border-radius:50%;animation:spin 1s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-</style>
-<div id="__loader" class="page-loading"><div class="spinner"></div></div>
-<script>
-(function(){
-  const loader = document.getElementById('__loader');
-  const show = ()=>loader.classList.add('show');
-  const hide = ()=>loader.classList.remove('show');
-
-  // Tunjukkan loader lalu pindah halaman di frame berikutnya (pastikan repaint)
-  document.addEventListener('click', function(e){
-    const a = e.target.closest('.navigation-menu a'); // sesuaikan selector menu
-    if (!a || a.target === '_blank' || a.hasAttribute('download') || a.href.indexOf('javascript:')===0) return;
-    e.preventDefault();
-    show();
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{ location.href = a.href; }));
-  });
-
-  // Sembunyikan lagi saat halaman baru tampil
-  window.addEventListener('pageshow', hide);
-})();
-</script>
-
 
 <?php $this->load->view("global") ?>
 <body class="menubar-gradient gradient-topbar topbar-dark">
