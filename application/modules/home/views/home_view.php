@@ -25,11 +25,11 @@
 
         <div class="card-footer bg-white border-top-0">
         </div>
-        <div style="text-align: center;">
+        <!-- <div style="text-align: center;">
           <button type="button" id="installButton" style="display: none;"  class="btn btn-success shadow-sm mb-2">
             <i class="fab fa-android me-2"></i> Instal Aplikasi
           </button>
-        </div>
+        </div> -->
       </div>
     </div> <!-- end col-->
 
@@ -109,31 +109,16 @@
         <h4 id="bulan_ini" data-plugin="counterup">Memuat...</h4>
       </div>
     </div>
-    <div class="mt-1 chartjs-chart">
-      <div class="chartjs-size-monitor" style="position: absolute; inset: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
-        <div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
-          <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0">
-
-          </div>
-        </div>
-        <div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>
-      </div>
-    </div>
-    <style type="text/css">
-      #line-chart-example {
-        max-height: 300px;
-        width: 100%;
-      }
-    </style>
-    <canvas id="line-chart-example" class="chartjs-render-monitor" style="display: block; height: 300px; width: 380px;"></canvas>
-    <!-- <small><code>Stat ini masih bersifat sample</code></small> -->
-  </div>
+    <style>
+  #visit-line-chart { min-height: 300px; width: 100%; }
+</style>
+<div id="visit-line-chart"></div>
 </div>
 </div> 
 
 
 <script src="<?php echo base_url('assets/admin') ?>/js/sw.min.js"></script>
-<script src="<?php echo base_url('assets/') ?>/js/install.js">"></script>
+<!-- <script src="<?php echo base_url('assets/') ?>/js/install.js">"></script> -->
 
 <?php
 
@@ -326,136 +311,82 @@ if (!$basePath) $basePath = '/';
 </script>
 
 <?php $this->load->view("front_end/footer.php") ?>
-<script src="<?php echo base_url("assets/admin/libs/chart-js/Chart.bundle.min.js") ?>"></script>
-<script type="text/javascript">
-  !(function (s) {
-    "use strict";
+<script src="<?php echo base_url('assets/admin') ?>/chart/highcharts.js"></script>
+<script src="<?php echo base_url('assets/admin') ?>/chart/exporting.js"></script>
+<script src="<?php echo base_url('assets/admin') ?>/chart/export-data.js"></script>
+<script src="<?php echo base_url('assets/admin') ?>/chart/accessibility.js"></script>
+<script>
+(function ($) {
+  "use strict";
 
-    var e = function () {
-      this.$body = s("body");
-      this.charts = [];
-    };
+  const $container = $('#visit-line-chart');
 
-    e.prototype.respChart = function (a, r, t, o) {
-      var n = a.get(0).getContext("2d"),
-      i = s(a).parent();
-      return (function () {
-        var e;
-        a.attr("width", s(i).width());
-        switch (r) {
-          case "Line":
-          e = new Chart(n, { type: "line", data: t, options: o });
-          break;
+  function renderChart(dataThisWeek, dataLastWeek) {
+    Highcharts.chart('visit-line-chart', {
+      chart: { type: 'spline', height: 300, backgroundColor: null },
+      title: { text: null },
+      xAxis: {
+        categories: ['Sen','Sel','Rab','Kam','Jum','Sab','Min'],
+        tickLength: 0
+      },
+      yAxis: {
+        title: { text: null },
+        allowDecimals: false,
+        min: 0,
+        gridLineDashStyle: 'ShortDot'
+      },
+      legend: { enabled: true },
+      tooltip: { shared: true, valueSuffix: ' kunjungan' },
+      series: [{
+        name: 'Minggu ini',
+        data: dataThisWeek,
+        color: '#4fc6e1',
+        lineWidth: 3,
+        marker: { enabled: false }
+      }, {
+        name: 'Minggu lalu',
+        data: dataLastWeek,
+        color: '#7e57c2',
+        dashStyle: 'ShortDash',
+        lineWidth: 2,
+        marker: { enabled: false }
+      }],
+      credits: { enabled: false },
+      exporting: { enabled: false },
+      accessibility: { enabled: false }
+    });
+  }
+
+  function loadData() {
+    $.getJSON("<?= site_url('home/chart_data') ?>?t=" + Date.now())
+      .done(function (response) {
+        const dataThisWeek = Array.isArray(response.weekly) ? response.weekly : [];
+        const dataLastWeek = Array.isArray(response.last_weekly) ? response.last_weekly : [0,0,0,0,0,0,0];
+
+        // update summary cards
+        $('#hari_ini').text(response.today ?? 0);
+        $('#minggu_ini').text(response.week ?? 0);
+        $('#bulan_ini').text(response.month ?? 0);
+
+        const isEmptyA = dataThisWeek.every(v => v === 0);
+        const isEmptyB = dataLastWeek.every(v => v === 0);
+        if (isEmptyA && isEmptyB) {
+          $container
+            .empty()
+            .append('<div class="text-center text-muted mt-3">📉 Tidak ada data minggu ini dan minggu lalu</div>');
+          return;
         }
-        return e;
-      })();
-    };
 
-    e.prototype.initCharts = function () {
-      var e = [];
-
-      if (s("#line-chart-example").length > 0) {
-        $.ajax({
-          url: "<?php echo site_url('home/chart_data') ?>?t=" + new Date().getTime(),
-          method: "GET",
-          dataType: "json",
-          success: function(response) {
-            const dataThisWeek = response.weekly;
-            const dataLastWeek = response.last_weekly || [0,0,0,0,0,0,0];
-
-            if (!Array.isArray(dataThisWeek) || !Array.isArray(dataLastWeek)) {
-              s("#line-chart-example")
-              .parent()
-              .append('<div class="text-center text-danger mt-3">⚠️ Data chart tidak valid</div>');
-              return;
-            }
-
-            const isEmptyThisWeek = dataThisWeek.every(v => v === 0);
-            const isEmptyLastWeek = dataLastWeek.every(v => v === 0);
-
-            if (isEmptyThisWeek && isEmptyLastWeek) {
-              s("#line-chart-example")
-              .parent()
-              .append('<div class="text-center text-muted mt-3">📉 Tidak ada data minggu ini dan minggu lalu</div>');
-              return;
-            }
-
-            e.push(
-              s.Dashboard3.respChart(
-                s("#line-chart-example"),
-                "Line",
-                {
-                  labels: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
-                  datasets: [
-                  { label: "Minggu ini",
-                  backgroundColor: "rgba(79, 198, 225, 0.3)",
-                  borderColor: "#4fc6e1",
-                  data: dataThisWeek
-                },
-                { label: "Minggu Lalu",
-                fill: true,
-                backgroundColor: "transparent",
-                borderColor: "#7e57c2",
-                borderDash: [5, 5],
-                data: dataLastWeek
-              },
-              ],
-            },
-            {
-              maintainAspectRatio: false,
-              legend: { display: true },
-              tooltips: { intersect: false },
-              hover: { intersect: true },
-              plugins: { filler: { propagate: false } },
-              scales: {
-                xAxes: [{ reverse: false, gridLines: { color: "rgba(255,255,255,0.06)" } }],
-                yAxes: [{ ticks: { stepSize: 5, beginAtZero: true }, gridLines: { color: "rgba(255,255,255,0.06)" } }]
-              }
-            }
-            )
-              );
-
-            s("#hari_ini").text(response.today ?? 0);
-            s("#minggu_ini").text(response.week ?? 0);
-            s("#bulan_ini").text(response.month ?? 0);
-          },
-          error: function() {
-            s("#line-chart-example")
-            .parent()
-            .append('<div class="text-center text-danger mt-3">⚠️ Gagal memuat data chart</div>');
-          }
-        });
-
-
-      }
-
-      return e;
-    };
-
-    e.prototype.init = function () {
-      var a = this;
-      Chart.defaults.global.defaultFontFamily = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif';
-      a.charts = this.initCharts();
-
-      s(window).on("resize", function () {
-        s.each(a.charts, function (_, chart) {
-          try {
-            chart.destroy();
-          } catch (e) {}
-        });
-        a.charts = a.initCharts();
+        renderChart(dataThisWeek, dataLastWeek);
+      })
+      .fail(function () {
+        $container
+          .empty()
+          .append('<div class="text-center text-danger mt-3">⚠️ Gagal memuat data chart</div>');
       });
-    };
+  }
 
-    s.Dashboard3 = new e();
-    s.Dashboard3.Constructor = e;
-
-  })(window.jQuery);
-
-  (function () {
-    "use strict";
-    window.jQuery.Dashboard3.init();
-  })();
-
+  $(loadData); // panggil saat ready
+})(jQuery);
 </script>
 

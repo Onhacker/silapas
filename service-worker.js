@@ -1,10 +1,10 @@
-const CACHE_NAME = 'sila-2';
+const CACHE_NAME = 'sila-3';
 const OFFLINE_URL = '/assets/offline.html';
 const BASE_PATH = '/';
 
 const urlsToCache = [
   '/', '/home','/hal/alur', '/booking', '/hal/kontak', 'hal/struktur','/hal/privacy_policy','/hal',
-  '/developer/manifest?v=3',
+  '/developer/manifest?v=4',
   '/assets/offline.html',
   '/assets/admin/images/bg-login.mp4',
   '/assets/admin/js/jquery-3.1.1.min.js',
@@ -35,7 +35,11 @@ const urlsToCache = [
   '/assets/admin/SliderCaptcha-master/src/disk/longbow.slidercaptcha.js',
   '/assets/admin/SliderCaptcha-master/src/disk/slidercaptcha.css',
   '/assets/admin/libs/chart-js/Chart.bundle.min.js',
-  ' assets/js/zxing-browser.min.js',
+  '/assets/admin/js/zxing-browser.min.js',
+  '/assets/admin/chart/highcharts.js',
+  '/assets/admin/chart/exporting.js',
+  '/assets/admin/chart/export-data.js',
+  '/assets/admin/chart/accessibility.js',
 ];
 
 const cachedPaths = urlsToCache.map(url => url.split('?')[0]);

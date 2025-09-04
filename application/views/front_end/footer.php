@@ -31,6 +31,12 @@
     }
 
   </script>
+<style>
+  #playstoreBadge img { height: 56px; width: auto; }
+  @media (max-width: 576px){
+    #playstoreBadge img { height: 48px; }
+  }
+</style>
 
   <style type="text/css">
    .share-buttons {
@@ -121,6 +127,31 @@
                 
               </button>
             </div>
+             <?php
+  // Ganti package kalau beda
+            $playPackage = 'org.silaturahmi.twa';
+            $playUrl     = 'https://play.google.com/store/apps/details?id=' . $playPackage;
+            ?>
+            <div class="text-center">
+              <!-- Badge resmi Google Play -->
+              <a id="playstoreBadge"
+              href="<?= $playUrl ?>"
+              onclick="return openPlayStore(event)"
+              class="d-inline-block my-2"
+              aria-label="Download di Google Play">
+              <img alt="Download di Google Play"
+              style="height:56px; width:auto"
+              src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png">
+            </a>
+
+            <!-- Atau, kalau mau versi tombol saja -->
+  
+ <!--  <button type="button" class="btn btn-dark btn-sm shadow-sm"
+          onclick="openPlayStore(event)">
+    <i class="fab fa-google-play me-1"></i> Download di Play Store
+  </button> -->
+
+</div>
             <style type="text/css">
               .divider {
                 border: 0;
@@ -149,8 +180,8 @@
                 <span class="d-none d-sm-inline">Syarat & Ketentuan</span>
               </a>
             </div>
-
           </div> 
+
         </div>
       </div>
     </div>
@@ -159,6 +190,7 @@
 <?php endif; ?>
 
 </div>
+
 
 <?php $uri = $this->uri->uri_string(); ?>
 <style>
@@ -299,6 +331,29 @@
 function scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+</script>
+<script>
+  (function(){
+    const PKG = "<?= $playPackage ?>";
+    const WEB = "<?= $playUrl ?>";
+
+    // Buka Play Store via intent; fallback ke halaman web Play
+    window.openPlayStore = function(e){
+      if (e) e.preventDefault();
+      const isAndroid = /Android/i.test(navigator.userAgent);
+
+      if (isAndroid) {
+        const intent = `intent://details?id=${PKG}` +
+                       `#Intent;scheme=market;package=com.android.vending;` +
+                       `S.browser_fallback_url=${encodeURIComponent(WEB)};end`;
+        location.href = intent;
+      } else {
+        // Non-Android: buka halaman web Play
+        window.open(WEB, '_blank', 'noopener');
+      }
+      return false;
+    };
+  })();
 </script>
 
 
