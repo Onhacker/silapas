@@ -9,7 +9,7 @@ $slides = [
     'href'  => site_url('booking'),
   ],
   [
-    'src'   => 'https://www.enableds.com/products/duo/v30/images/pictures/7.jpg',
+    'src'   =>  base_url("assets/images/slide/booking.png"),
     'alt'   => 'Area layanan kunjungan',
     'title' => 'Booking Online',
     'text'  => 'Pesan jadwal kunjungan langsung dari ponsel Anda.',
@@ -57,7 +57,7 @@ $slides = [
   position:absolute; inset:auto 0 0 0; padding:18px 18px 16px;
   color:#fff; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 48%, rgba(0,0,0,.75) 100%);
 }
-.pwa-hero__title{ margin:0 0 4px; font-weight:800; font-size:clamp(16px,1.8vw,22px); letter-spacing:.2px; }
+.pwa-hero__title{ margin:0 0 4px; font-weight:800; color: white; font-size:clamp(16px,1.8vw,22px); letter-spacing:.2px; }
 .pwa-hero__text{ margin:0; font-size:clamp(13px,1.4vw,16px); opacity:.95 }
 
 /* --- Nav buttons --- */
