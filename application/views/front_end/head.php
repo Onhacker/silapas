@@ -49,16 +49,9 @@
        body {
         padding-bottom: 0px;
        }
-       html { 
-        font-size:16px; 
-        -webkit-text-size-adjust:100%;
-        text-size-adjust:100%;
-      }
-
    </style>
    
 </head>
-
 
 <?php $this->load->view("global") ?>
 <body class="menubar-gradient gradient-topbar topbar-dark">
