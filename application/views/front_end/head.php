@@ -4,7 +4,9 @@
     <meta charset="utf-8" />
     <title><?php echo ucfirst(strtolower($rec->nama_website))." - ".$title ; ?></title>
     <meta name="theme-color" content="#ffffff">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover,user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover,user-scalable=no"> -->
     <meta name="robots" content="index, follow">
     <meta content="Onhacker.net" name="author" />
     <meta name="description" content="<?= htmlspecialchars($deskripsi) ?>">
@@ -47,6 +49,12 @@
        body {
         padding-bottom: 0px;
        }
+       html { 
+        font-size:16px; 
+        -webkit-text-size-adjust:100%;
+        text-size-adjust:100%;
+      }
+
    </style>
    
 </head>
