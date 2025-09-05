@@ -141,7 +141,7 @@
               aria-label="Download di Google Play">
               <img alt="Download di Google Play"
               style="height:56px; width:auto"
-              src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png">
+              src="<?php echo base_url("assets/images/gp.png") ?>">
             </a>
 
             <!-- Atau, kalau mau versi tombol saja -->
