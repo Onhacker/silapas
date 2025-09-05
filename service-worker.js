@@ -36,7 +36,6 @@ const urlsToCache = [
   '/assets/admin/fonts/fa-brands-400.ttf',
   '/assets/admin/SliderCaptcha-master/src/disk/longbow.slidercaptcha.js',
   '/assets/admin/SliderCaptcha-master/src/disk/slidercaptcha.css',
-  '/assets/admin/libs/chart-js/Chart.bundle.min.js',
   '/assets/admin/js/zxing-browser.min.js',
   '/assets/admin/chart/highcharts.js',
   '/assets/admin/chart/exporting.js',

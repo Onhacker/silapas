@@ -103,7 +103,7 @@
 <div class="col-md-6">
   <div class="form-group mb-2">
     <label for="alamat" class="form-label label-required">Alamat Tamu</label>
-    <input type="text" id="alamat" name="alamat" class="form-control" placeholder="Nama lengkap" required>
+    <input type="text" id="alamat" name="alamat" class="form-control" placeholder="Alamat lengkap" required>
     <small class="help-hint">Alamat sesuai KTP.</small>
 
   </div>
@@ -297,6 +297,7 @@
 <div class="form-group mb-2">
   <label for="unit_tujuan" class="form-label label-required">Unit Tujuan</label>
   <select id="unit_tujuan" name="unit_tujuan" class="form-control" title="-- Pilih Unit --" required>
+    <option value="">-- Pilih Unit --</option>
     <?php 
     function render_options($tree, $level = 0) {
       $no = 1;

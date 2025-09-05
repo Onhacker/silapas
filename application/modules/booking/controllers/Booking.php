@@ -699,7 +699,7 @@ private function normalize_date_mysql(?string $s): ?string {
         );
 
         // Tujuan internal Lapas
-        $this->form_validation->set_rules('unit_tujuan','Unit Tujuan','required|integer');
+        $this->form_validation->set_rules('unit_tujuan','Unit Tujuan','required');
 
         // Kategori asal + instansi
         $this->form_validation->set_rules(
