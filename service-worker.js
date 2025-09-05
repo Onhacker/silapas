@@ -1,12 +1,14 @@
-const CACHE_NAME = 'sila-5';
+// === versi cache (ganti setiap update) ===
+const CACHE_NAME = 'sila-6';
 const OFFLINE_URL = '/assets/offline.html';
-const BASE_PATH = '/';
 
+// ====== daftar precache ======
+// (biarkan mp4 TIDAK di-precache saat install; bisa diambil saat runtime)
 const urlsToCache = [
-  '/', '/home','/hal/alur', '/booking', '/hal/kontak', '/hal/struktur','/hal/privacy_policy','/hal',
+  '/', '/home', '/hal', '/hal/alur', '/hal/kontak', '/hal/struktur', '/hal/privacy_policy',
   '/developer/manifest?v=4',
   '/assets/offline.html',
-  '/assets/admin/images/bg-login.mp4',
+
   '/assets/admin/js/jquery-3.1.1.min.js',
   '/assets/admin/js/vendor.min.js',
   '/assets/admin/js/app.min.js',
@@ -40,90 +42,85 @@ const urlsToCache = [
   '/assets/admin/chart/exporting.js',
   '/assets/admin/chart/export-data.js',
   '/assets/admin/chart/accessibility.js',
+  // JANGAN precache video besar saat install:
+  // '/assets/admin/images/bg-login.mp4',
 ];
 
-const cachedPaths = urlsToCache.map(url => url.split('?')[0]);
+// ===== helper normalisasi key (tanpa query & trailing slash) =====
+const normKey = (reqOrUrl) => {
+  const u = new URL(typeof reqOrUrl === 'string' ? reqOrUrl : reqOrUrl.url, self.location.origin);
+  return (u.pathname.replace(/\/+$/, '') || '/');
+};
 
-// INSTALL
-self.addEventListener('install', event => {
-  console.log('[SW] Installing...');
+// ===== INSTALL (best-effort, tidak gagal total) =====
+self.addEventListener('install', (event) => {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('[SW] Caching static files...');
-        return cache.addAll(urlsToCache);
+  const SKIP_BIG = /\.(mp4|mov|webm|zip|pdf)$/i;
+
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await Promise.allSettled(
+      urlsToCache.map(async (url) => {
+        try {
+          if (SKIP_BIG.test(url)) return;                 // skip file besar
+          const res = await fetch(url, { cache: 'no-cache' });
+          if (res && res.ok) await cache.put(normKey(url), res.clone());
+        } catch (_) { /* jangan gagalkan install */ }
       })
-      .then(() => console.log('[SW] Caching complete ✅'))
-      .catch(err => console.error('[SW] ❌ Caching failed:', err))
-  );
+    );
+  })());
 });
 
-// ACTIVATE
-self.addEventListener('activate', event => {
-  console.log('[SW] Activating...');
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            console.log('[SW] Deleting old cache:', key);
-            return caches.delete(key);
-          }
-        })
-      )
-    ).then(() => self.clients.claim())
-  );
+// ===== ACTIVATE (hapus cache lama & klaim klien) =====
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names.map((n) => n === CACHE_NAME ? null : caches.delete(n)));
+    await self.clients.claim();
+  })());
 });
 
-// FETCH
-self.addEventListener('fetch', event => {
+// ===== FETCH =====
+self.addEventListener('fetch', (event) => {
   const req = event.request;
-  const url = new URL(req.url);
-
   if (req.method !== 'GET') return;
 
-  const pathname = url.pathname.split('?')[0];
+  const accept = req.headers.get('accept') || '';
+  const key = normKey(req);
+  const sameOrigin = new URL(req.url).origin === self.location.origin;
 
-  // Images from /assets/images/
-  if (pathname.startsWith(BASE_PATH + 'assets/images/')) {
-    event.respondWith(
-      caches.match(req).then(cached => {
-        return cached || fetch(req).then(res => {
-          if (res.ok) {
-            const resClone = res.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(req, resClone));
-          }
-          return res;
-        }).catch(() => caches.match(OFFLINE_URL));
-      })
-    );
+  // 1) Navigasi/HTML → network-first + fallback cache/offline
+  if (req.mode === 'navigate' || accept.includes('text/html')) {
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(req);
+        const c = await caches.open(CACHE_NAME);
+        c.put(key, fresh.clone());
+        return fresh;
+      } catch (_) {
+        return (await caches.match(key, { ignoreSearch: true })) ||
+               (await caches.match('/', { ignoreSearch: true })) ||
+               (await caches.match(OFFLINE_URL, { ignoreSearch: true })) ||
+               new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } });
+      }
+    })());
     return;
   }
 
-  // Cache-first for known paths
-  if (cachedPaths.includes(pathname)) {
-    event.respondWith(
-      caches.match(req).then(cached => {
-        if (cached) return cached;
-        return fetch(req).then(res => {
-          if (res && res.status === 200) {
-            const resClone = res.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(req, resClone));
-          }
-          return res;
-        }).catch(() => caches.match(OFFLINE_URL));
-      })
-    );
+  // 2) Aset same-origin → stale-while-revalidate (cepat dari cache, update di belakang)
+  if (sameOrigin) {
+    event.respondWith((async () => {
+      const c = await caches.open(CACHE_NAME);
+      const cached = await c.match(key, { ignoreSearch: true });
+      const updating = fetch(req).then(res => {
+        if (res && res.ok) c.put(key, res.clone());
+        return res;
+      }).catch(() => null);
+      return cached || (await updating) || new Response('', { status: 504 });
+    })());
     return;
   }
 
-  // Network-first fallback
-  event.respondWith(
-    fetch(req).catch(() =>
-      caches.match(req).then(cached =>
-        cached || (req.headers.get('accept')?.includes('text/html') ? caches.match(OFFLINE_URL) : null)
-      )
-    )
-  );
+  // 3) Cross-origin → network-first, fallback cache kalau ada
+  event.respondWith(fetch(req).catch(() => caches.match(key, { ignoreSearch: true })));
 });
