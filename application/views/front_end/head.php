@@ -8,6 +8,7 @@
     <meta name="robots" content="index, follow">
     <meta content="Onhacker.net" name="author" />
     <meta name="description" content="<?= htmlspecialchars($deskripsi) ?>">
+    <meta name="keyword" content="<?= htmlspecialchars($rec->meta_keyword) ?>">
     <meta property="og:title" content="<?= htmlspecialchars($rec->nama_website." - ".$title) ?>" />
     <meta property="og:description" content="<?= htmlspecialchars($deskripsi) ?>" />
     <meta property="og:image" content="<?= $prev ?>" />
@@ -99,7 +100,7 @@
                 </a>
             </h4>
             <div class="font-13 text-success mb-2 text-truncate">
-                <code><?php echo strtoupper($rec->meta_keyword." ") ?></code>
+                <code><?php echo strtoupper($rec->meta_deskripsi." ") ?></code>
             </div>
         </div>
     </div>
