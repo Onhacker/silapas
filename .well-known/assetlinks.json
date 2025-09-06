@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "org.silaturahmi.twa",
-        "sha256_cert_fingerprints": ["2A:86:F8:DE:5B:05:62:07:32:34:D8:B1:F2:76:F8:A0:F9:5F:92:9F:B8:5D:E9:B1:17:CF:1D:C9:A4:6B:77:D7"]
+        "sha256_cert_fingerprints": ["32:21:C8:E3:8D:02:A9:8D:86:C9:EB:FA:BB:6A:BB:BC:93:4F:78:6F:59:C2:94:90:4F:6E:A4:52:8D:46:DC:5C"]
       }
     }]
