@@ -121,6 +121,19 @@ class Admin_dashboard extends Admin_Controller
         echo json_encode(['total' => $total]);
     }
 
+    public function cron_test($param = "default")
+{
+    if (!$this->input->is_cli_request()) {
+        show_404();
+        return;
+    }
+
+    $now = date('Y-m-d H:i:s');
+    echo "[CRON TEST] Cron dipanggil @ {$now} dengan param={$param}" . PHP_EOL;
+    log_message('error', "[CRON TEST] Jalan @ {$now} dengan param={$param}");
+}
+
+
     public function cek_notifikasi()
     {
         $id_session     = $this->session->userdata("admin_session");
