@@ -22,8 +22,8 @@ class Developer extends MX_Controller {
         header('Content-Type: application/json');
         $manifest = [
             "id" => "/",
-            "name" => "Silaturahmi Makassar",
-            "short_name" => "Silaturahmi Makassar",
+            "name" => "SILATURAHMI MAKASSAR",
+            "short_name" => "SILATURAHMI",
             "start_url" => site_url("/home"),
             "scope"      => "/",
             "display" => "standalone",

@@ -1,10 +1,10 @@
 // === versi cache (ganti setiap update) ===
-const CACHE_NAME = 'sila-14';
+const CACHE_NAME = 'sila-15';
 const OFFLINE_URL = '/assets/offline.html';
 
 const urlsToCache = [
   '/', '/home', '/hal', '/hal/alur', '/hal/kontak', '/hal/struktur', '/hal/privacy_policy',
-  '/developer/manifest?v=5',
+  '/developer/manifest?v=6',
   '/assets/offline.html',
 
   '/assets/admin/js/jquery-3.1.1.min.js',
