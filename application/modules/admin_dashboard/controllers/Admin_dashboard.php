@@ -123,11 +123,21 @@ class Admin_dashboard extends Admin_Controller
 
     public function cron_test($param = "default")
 {
-    echo "Cron_test jalan! Param={$param} @ " . date('Y-m-d H:i:s') . PHP_EOL;
-    file_put_contents(APPPATH . 'logs/cron_debug.log',
-        "Cron_test jalan! Param={$param} @ " . date('Y-m-d H:i:s') . PHP_EOL,
-        FILE_APPEND
-    );
+    // Jangan batasi ke CLI dulu, kita mau lihat outputnya.
+    $now = date('Y-m-d H:i:s');
+    $msg = "[CRON TEST] file=".__FILE__." | apppath=".APPPATH." | param={$param} | at={$now}\n";
+
+    // 1) Pakai CI Output class (lebih pasti keluar)
+    $this->output
+         ->set_content_type('text/plain')
+         ->set_output($msg);
+
+    // 2) Tulis ke file yg pasti writable (public_html)
+    $logFile = FCPATH.'cron_debug.log'; // FCPATH = public_html/
+    @file_put_contents($logFile, $msg, FILE_APPEND);
+
+    // 3) Tulis juga ke application/logs
+    @file_put_contents(APPPATH.'logs/cron_debug.log', $msg, FILE_APPEND);
 }
 
     public function cek_notifikasi()
@@ -489,20 +499,29 @@ public function monitor_data()
      * Contoh:
      *   php index.php cron expire_bookings 30
      */
-    public function expire_bookings($grace_minutes = 30)
-    {
-        if (!$this->input->is_cli_request()) {
-            show_404();
-            return;
-        }
-        echo "[PING] ".date('c').PHP_EOL;
-        log_message('error', '[CRON] expire_bookings triggered @ '.date('c'));
-        $grace = (int)$grace_minutes;
-        if ($grace < 0 || $grace > 1440) $grace = 30;
+   public function expire_bookings($grace_minutes = 30)
+{
+    // sementara nonaktifkan blokir CLI supaya bisa dites di browser juga
+    // if (!$this->input->is_cli_request()) { show_404(); return; }
 
-        $affected = $this->ma->expire_past_bookings($grace, 'Asia/Makassar');
-        echo "[OK] expired={$affected}, grace={$grace}m, time=" . date('Y-m-d H:i:s') . PHP_EOL;
-    }
+    $grace = (int)$grace_minutes;
+    if ($grace < 0 || $grace > 1440) $grace = 30;
+
+    $affected = $this->ma->expire_past_bookings($grace, 'Asia/Makassar');
+
+    $msg = "[EXPIRE] affected={$affected}, grace={$grace}m, time=".date('Y-m-d H:i:s')."\n";
+
+    // Output via CI Output class
+    $this->output->set_content_type('text/plain')->set_output($msg);
+
+    // Duplikasi ke file
+    @file_put_contents(FCPATH.'cron_debug.log', $msg, FILE_APPEND);
+    @file_put_contents(APPPATH.'logs/cron_debug.log', $msg, FILE_APPEND);
+
+    // CI log
+    log_message('error', "[CRON] ".$msg);
+}
+
 
     /**
      * Versi HTTP (opsional) — panggil via cron dengan GET param `token`.
