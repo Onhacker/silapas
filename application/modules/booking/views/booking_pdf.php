@@ -195,9 +195,9 @@
       </td>
     </tr>
   </table>
-
   <div class="foot">
-    Sistem Antrian Tamu • <?= htmlspecialchars(base_url()) ?>
+   <?php echo $rec->nama_website." • ". $rec->meta_deskripsi ?>
+     • <?php echo site_url() ?>
   </div>
 </div>
 </body>

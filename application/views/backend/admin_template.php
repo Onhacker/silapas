@@ -82,11 +82,11 @@ if ($this->session->userdata("admin_level") == "admin") {
         <div class="kepala">
           <h4 class="mb-1 ml-2">
             <span class="header-title2">
-              <?php echo htmlspecialchars($web->nama_website." ".$web->kabupaten, ENT_QUOTES) ?>
+              <?php echo htmlspecialchars($web->nama_website." ".strtoupper($web->kabupaten), ENT_QUOTES) ?>
             </span>
           </h4>
           <div class="font-13 text-success mb-2 ml-2 text-truncate">
-            <code><?php echo strtoupper($web->meta_keyword." ".$us->kota) ?></code>
+            <code><?php echo strtoupper($web->meta_deskripsi." ".$us->kota) ?></code>
           </div>
         </div>
       </div>

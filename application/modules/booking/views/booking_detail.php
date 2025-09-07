@@ -367,6 +367,20 @@ if (!function_exists('hari_id')) {
             <div class="text-muted small">QR belum tersedia.</div>
           <?php endif; ?>
         </div>
+
+         <div class="d-flex flex-wrap mt-3" style="gap:.5rem;">
+          <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalPDF_<?= $kode_safe ?>">
+            <i class="mdi mdi-file-pdf-box"></i> Lihat 
+          </button>
+          <a href="<?= site_url('booking/print_pdf/'.$booking->kode_booking) ?>?t=<?= urlencode($booking->access_token ?? '') ?>&dl=1" class="btn btn-danger">
+            <i class="mdi mdi-download"></i> Unduh 
+          </a>
+        </div>
+
+
+
+
+
         <div class="modal fade" id="modalPDF_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width:95%;">
     <div class="modal-content">
@@ -392,7 +406,7 @@ if (!function_exists('hari_id')) {
 </div>
 
 
-        <div class="p-3 bg-light rounded mb-3">
+        <div class="p-3 bg-light rounded mt-3">
           <div class="kv-label mb-2"><i class="mdi mdi-information-outline"></i> Catatan</div>
           <ul class="mb-0 pl-3">
             <li>Datang ±10 menit sebelum jadwal.</li>
@@ -401,14 +415,7 @@ if (!function_exists('hari_id')) {
             <li>Unduh & simpan berkas agar tidak hilang.</li>
           </ul>
         </div>
-        <div class="d-flex flex-wrap mt-3" style="gap:.5rem;">
-  <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalPDF_<?= $kode_safe ?>">
-    <i class="mdi mdi-file-pdf-box"></i> Lihat PDF
-  </button>
-  <a href="<?= site_url('booking/print_pdf/'.$booking->kode_booking) ?>?t=<?= urlencode($booking->access_token ?? '') ?>&dl=1" class="btn btn-danger">
-    <i class="mdi mdi-download"></i> Unduh PDF
-  </a>
-</div>
+
 
      
 

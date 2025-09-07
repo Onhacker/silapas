@@ -176,7 +176,7 @@ $printed_at = fmt_hari_tanggal(time(), true);
     <span class="badge" style="background:<?= $badgeBg ?>;margin-right:4px;"><?= e($badgeText) ?></span>
     <span class="print-at">Dicetak: <?= e($printed_at) ?></span>
   </div>
-
+<?php $web = $this->om->web_me(); ?>
   <!-- Catatan -->
   <div class="note">
     <ul>
@@ -186,7 +186,8 @@ $printed_at = fmt_hari_tanggal(time(), true);
   </div>
 
   <div class="foot">
-    SILATURAHMI (Sistem Layanan Tamu Resmi Antar Instansi Yang Humanis, Modern, Dan Integratif) Makassar • <?= e(base_url()) ?>
+    <?php echo $web->nama_website." • ". $web->meta_deskripsi ?>
+     • <?= e(base_url()) ?>
   </div>
 
 </body>

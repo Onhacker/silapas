@@ -55,9 +55,17 @@ class Booking extends MX_Controller {
 
     private function _booked_error($msg)
     {
+        // 410 lebih tepat untuk link sudah tidak berlaku; 404 juga boleh.
+        $this->output
+        ->set_status_header(410, 'Gone') // atau 404
+        ->set_header('X-Robots-Tag: noindex, nofollow, noarchive')
+        ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+        ->set_header('Pragma: no-cache');
         $data = [
             "controller" => get_class($this),
+            "rec"        => $this->fm->web_me(),
             "title"      => "Link Tidak Berlaku",
+            "prev"       => base_url("assets/images/booking.png"),
             "deskripsi"  => $msg
         ];
         $this->load->view('booking_error', $data);
@@ -979,6 +987,10 @@ private function normalize_date_mysql(?string $s): ?string {
         $tanggal_disp  = !empty($d['tanggal']) ? date("d-m-Y", strtotime($d['tanggal'])) : '-';
         $jam_disp      = isset($d['jam']) ? $d['jam'] : '-';
         $qr_url        = isset($d['qr_url']) ? $d['qr_url'] : '';
+        $pdf = site_url("print_pdf/").$kode;
+        $web       = $this->fm->web_me();
+
+        $vcfUrl = base_url('uploads/contact-silaturahmi.vcf');
 
         $pesan = "*[Konfirmasi Booking Kunjungan]*\n\n"
         ."Halo *".$nama."*,\n\n"
@@ -992,12 +1004,23 @@ private function normalize_date_mysql(?string $s): ?string {
         ."🕒 Jam            : ".$jam_disp."\n"
         ."📝 Keperluan      : ".$keperluan."\n\n";
 
-        if ($qr_url !== '') {
-            $pesan .= "🔳 QR Booking:\n".$qr_url."\n\n";
-        }
+        // if ($qr_url !== '') {
+        //     $pesan .= "🔳 Download Kode Booking:\n".$qr_url."\n\n";
+        // }
+        
+       // 1) Buat file VCF sekali saat kirim pesan
+      
 
-        $pesan .= "🔗 Detail booking:\n".$redirect_url."\n\n"
-        ."_Pesan ini dikirim otomatis oleh sistem antrian tamu Lapas._";
+// (Opsional) pastikan mime-type benar saat diserve:
+// header('Content-Type: text/vcard'); atau text/x-vcard
+
+// 2) Sisipkan ke pesan
+       $pesan  = "";
+       $pesan .= "🔳 Download kode booking:\n{$pdf}\n\n";
+       $pesan .= "🔗 Detail booking:\n{$redirect_url}\n\n";
+       $pesan .= "📇 Simpan kontak kami agar link dapat diklik:\n{$vcfUrl}\n\n";
+       $pesan .= "_Pesan ini dikirim otomatis oleh Aplikasi {$web->nama_website}._";
+
 
         if (function_exists('send_wa_single')) {
             try {
@@ -1074,6 +1097,7 @@ private function normalize_date_mysql(?string $s): ?string {
         if (!$row) show_error('Token/booking tidak valid.', 403);
         if ((int)$row->token_revoked === 1) show_error('Token dicabut.', 403);
         if (!empty($row->checkout_at)) show_error('Token sudah tidak berlaku (checkout).', 403);
+        $data["rec"]        = $this->fm->web_me();
 
         $data['booking'] = $row;
         $html = $this->load->view('booking_pdf', $data, TRUE);
@@ -1118,6 +1142,7 @@ private function normalize_date_mysql(?string $s): ?string {
         if (method_exists($this, '_normalize_msisdn_id')) {
             $hp_unit = $this->_normalize_msisdn_id($hp_unit);
         }
+        $web       = $this->fm->web_me();
 
         $kode        = trim((string)($d['kode'] ?? '-'));
         $nama        = trim((string)($d['nama'] ?? '-'));
@@ -1161,7 +1186,8 @@ private function normalize_date_mysql(?string $s): ?string {
             $lines[] = $redir;
         }
         $lines[] = '';
-        $lines[] = '_Pesan otomatis Sistem Antrian Tamu Lapas._';
+        $lines[] = 'Simpan nomor ini agar link dapat diklik';
+        $lines[] = '_Pesan otomatis Aplikasi '.$web->nama_website.'._';
 
         try {
             send_wa_single($hp_unit, implode("\n", $lines));
