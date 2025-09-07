@@ -28,11 +28,11 @@ class Developer extends MX_Controller {
             "scope"      => "/",
             "display" => "standalone",
             "display_override" => ["window-controls-overlay", "standalone"],
-            "background_color"=> "#ffffff",   
+            "background_color"=> "#f56042",   
             "theme_color"=> "#0f172a",        
             "icons" => [
                 [
-                    "src" => site_url("/assets/images/icon_appx.png"),
+                    "src" => site_url("/assets/images/maskable_icon_new.png"),
                     "sizes" => "192x192",
                     "type" => "image/png",
                     "purpose" => "any",
