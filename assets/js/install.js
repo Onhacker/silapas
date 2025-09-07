@@ -1,7 +1,9 @@
-let deferredPrompt;
+
+let deferredPrompt = null;
 
 function isAppInstalled() {
-  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  return window.matchMedia("(display-mode: standalone)").matches
+         || window.navigator.standalone === true; // iOS Safari
 }
 
 async function checkRelatedApps() {
@@ -16,6 +18,41 @@ async function checkRelatedApps() {
   return false;
 }
 
+// Sediakan fallback panduan iOS bila belum ada
+(function ensureIOSGuide(){
+  if (typeof window.showIOSInstallGuide === 'function') return;
+  window.showIOSInstallGuide = function(e){
+    if (e) e.preventDefault();
+    const ua = navigator.userAgent || navigator.vendor || '';
+    const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+    if (!isSafari) {
+      Swal.fire({
+        title: 'Buka di Safari',
+        html:
+          '<p>Untuk menambahkan ke Layar Utama di iPhone/iPad, buka halaman ini di <b>Safari</b>.</p>' +
+          '<ol style="text-align:left;max-width:520px;margin:0 auto">' +
+          '<li>Ketuk ikon <b>Bagikan</b> (kotak dengan panah ke atas).</li>' +
+          '<li>Pilih <b>Tambahkan ke Layar Utama</b>.</li>' +
+          '<li>Ketuk <b>Tambahkan</b>.</li>' +
+          '</ol>',
+        icon: 'info'
+      });
+      return false;
+    }
+    Swal.fire({
+      title: 'Instal ke iOS',
+      html:
+        '<ol style="text-align:left;max-width:520px;margin:0 auto">' +
+        '<li>Ketuk ikon <b>Bagikan</b> (kotak dengan panah ke atas).</li>' +
+        '<li>Gulir, pilih <b>Tambahkan ke Layar Utama</b>.</li>' +
+        '<li>Ketuk <b>Tambahkan</b>.</li>' +
+        '</ol>',
+      icon: 'info'
+    });
+    return false;
+  };
+})();
+
 function showInstallSwal() {
   Swal.fire({
     title: "Instal Aplikasi?",
@@ -23,25 +60,19 @@ function showInstallSwal() {
     icon: "info",
     showCancelButton: true,
     confirmButtonText: "Instal",
-    cancelButtonText: "Nanti saja",
-    // footer: '<div><input type="checkbox" id="dontShowAgain" /> Jangan tampilkan lagi peringatan ini</div>'
-  }).then((t) => {
+    cancelButtonText: "Nanti saja"
+  }).then(async (t) => {
     if (t.isConfirmed && deferredPrompt) {
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choice) => {
-        if (choice.outcome === "accepted") {
-          Swal.fire("Berhasil!", "Aplikasi sedang diinstal.", "success");
-          document.getElementById("installButton").style.display = "none";
-        } else {
-          Swal.fire("Dibatalkan", "Anda membatalkan instalasi.", "info");
-        }
-        deferredPrompt = null;
-      });
-    }
-
-    const check = document.getElementById("dontShowAgain");
-    if (check && check.checked) {
-      localStorage.setItem("dontShowInstallSwal", "true");
+      const choice = await deferredPrompt.userChoice;
+      if (choice && choice.outcome === "accepted") {
+        Swal.fire("Berhasil!", "Aplikasi sedang diinstal.", "success");
+        const b = document.getElementById("installButton");
+        if (b) b.style.display = "none";
+      } else {
+        Swal.fire("Dibatalkan", "Anda membatalkan instalasi.", "info");
+      }
+      deferredPrompt = null;
     }
   });
 }
@@ -50,59 +81,64 @@ async function setupInstallButton() {
   const installButton = document.getElementById("installButton");
   if (!installButton) return;
 
-  const relatedInstalled = await checkRelatedApps();
+  const ua = navigator.userAgent || navigator.vendor || '';
+  const isIOS = /iPad|iPhone|iPod/i.test(ua) || (ua.includes('Macintosh') && 'ontouchend' in document);
 
+  // 1) Jika sudah terpasang / ada related app -> sembunyikan & selesai
+  const relatedInstalled = await checkRelatedApps();
   if (isAppInstalled() || relatedInstalled) {
     installButton.style.display = "none";
     return;
   }
 
-  // Jika sudah pernah muncul prompt sebelumnya, tampilkan tombol
-  if (localStorage.getItem("hasInstallPrompt") === "true") {
+  // 2) Alur iOS (tidak ada beforeinstallprompt)
+  if (isIOS) {
     installButton.style.display = "inline-block";
+    installButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.showIOSInstallGuide(e);
+    });
+    return; // penting: jangan pasang handler Android di bawah
   }
 
+  // 3) Alur Android/Chrome (PWA prompt)
   window.addEventListener("beforeinstallprompt", (e) => {
-    console.log("✅ Event beforeinstallprompt fired");
+    console.log("✅ beforeinstallprompt");
     e.preventDefault();
     deferredPrompt = e;
-
-    localStorage.setItem("hasInstallPrompt", "true");
+    sessionStorage.setItem("hasInstallPrompt", "true");
     installButton.style.display = "inline-block";
-
-    // if (localStorage.getItem("dontShowInstallSwal") !== "true") {
-    //   showInstallSwal();
-    // }
   });
 
-  installButton.addEventListener("click", () => {
-  if (!deferredPrompt) {
-    Swal.fire("Belum Siap", "Aplikasi belum bisa diinstal saat ini.", "warning");
-    return;
-  }
-  // Tampilkan konfirmasi hanya saat user menekan tombol
-  // showInstallSwal();
-});
-  
-  installButton.addEventListener("click", () => {
-    console.log("Install button clicked");
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choice) => {
-        if (choice.outcome === "accepted") {
-          Swal.fire("Berhasil!", "Aplikasi sedang diinstal.", "success");
-          installButton.style.display = "none";
-        } else {
-          Swal.fire("Dibatalkan", "Anda membatalkan instalasi.", "info");
-        }
-        deferredPrompt = null;
-      });
-    } else {
+  installButton.addEventListener("click", async (e) => {
+    e.preventDefault();
+    if (!deferredPrompt) {
       Swal.fire("Belum Siap", "Aplikasi belum bisa diinstal saat ini.", "warning");
+      return;
     }
+    // Langsung prompt, atau panggil showInstallSwal() bila ingin konfirmasi dulu
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    if (choice && choice.outcome === "accepted") {
+      Swal.fire("Berhasil!", "Aplikasi sedang diinstal.", "success");
+      installButton.style.display = "none";
+    } else {
+      Swal.fire("Dibatalkan", "Anda membatalkan instalasi.", "info");
+    }
+    deferredPrompt = null;
   });
+
+  window.addEventListener("appinstalled", () => {
+    console.log("✅ App installed");
+    installButton.style.display = "none";
+    sessionStorage.removeItem("hasInstallPrompt");
+    localStorage.removeItem("hasInstallPrompt");
+  });
+
+  if (sessionStorage.getItem("hasInstallPrompt") === "true") {
+    installButton.style.display = "inline-block";
+  }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  setupInstallButton();
-});
+document.addEventListener("DOMContentLoaded", setupInstallButton);
+
