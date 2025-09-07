@@ -1,8 +1,19 @@
-// === versi cache (ganti setiap update) ===
-const CACHE_NAME = 'sila-16';
-const OFFLINE_URL = '/assets/offline.html';
+/* =========================
+   SILATURAHMI – Service Worker
+   ========================= */
 
-const urlsToCache = [
+/** 👉 Ganti versi setiap rilis agar cache lama dibersihkan */
+const APP      = 'sila';
+const VERSION  = '17';                 // ⬅️ bump saat deploy
+const STATIC_CACHE  = `${APP}-static-v${VERSION}`;
+const RUNTIME_CACHE = `${APP}-runtime-v${VERSION}`;
+const KEEP = [STATIC_CACHE, RUNTIME_CACHE];
+
+/** Halaman offline/navigasi fallback (ubah jika home-mu berbeda) */
+const OFFLINE_FALLBACK = '/';
+
+/** File inti (app-shell) yang diprecache saat install */
+const PRECACHE_URLS = [
   '/', '/home', '/hal', '/hal/alur', '/hal/kontak', '/hal/struktur', '/hal/privacy_policy',
   '/developer/manifest?v=7',
   '/assets/offline.html',
@@ -42,81 +53,110 @@ const urlsToCache = [
   '/assets/admin/chart/accessibility.js',
 ];
 
-// ===== helper normalisasi key (tanpa query & trailing slash) =====
-const normKey = (reqOrUrl) => {
-  const u = new URL(typeof reqOrUrl === 'string' ? reqOrUrl : reqOrUrl.url, self.location.origin);
-  return (u.pathname.replace(/\/+$/, '') || '/');
-};
+/* Util: apakah same-origin? */
+const sameOrigin = url => self.location.origin === url.origin;
 
-// ===== INSTALL (best-effort, tidak gagal total) =====
+/* ========== INSTALL ========== */
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then(cache => cache.addAll(PRECACHE_URLS))
+  );
+  // langsung masuk waiting → biar bisa dipromosikan ke active via SKIP_WAITING
   self.skipWaiting();
-  const SKIP_BIG = /\.(mp4|mov|webm|zip|pdf)$/i;
-
-  event.waitUntil((async () => {
-    const cache = await caches.open(CACHE_NAME);
-    await Promise.allSettled(
-      urlsToCache.map(async (url) => {
-        try {
-          if (SKIP_BIG.test(url)) return;                 // skip file besar
-          const res = await fetch(url, { cache: 'no-cache' });
-          if (res && res.ok) await cache.put(normKey(url), res.clone());
-        } catch (_) { /* jangan gagalkan install */ }
-      })
-    );
-  })());
 });
 
-// ===== ACTIVATE (hapus cache lama & klaim klien) =====
+/* ========== ACTIVATE (bersihkan cache lama) ========== */
 self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
-    const names = await caches.keys();
-    await Promise.all(names.map((n) => n === CACHE_NAME ? null : caches.delete(n)));
-    await self.clients.claim();
-  })());
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(k => k.startsWith(`${APP}-`) && !KEEP.includes(k))
+          .map(k => caches.delete(k))
+      )
+    ).then(() => self.clients.claim())
+  );
 });
 
-// ===== FETCH =====
+/* ========== FETCH ========== */
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-  if (req.method !== 'GET') return;
+  if (req.method !== 'GET') return; // jangan cache POST/PUT/… 
 
-  const accept = req.headers.get('accept') || '';
-  const key = normKey(req);
-  const sameOrigin = new URL(req.url).origin === self.location.origin;
+  const url = new URL(req.url);
 
-  // 1) Navigasi/HTML → network-first + fallback cache/offline
-  if (req.mode === 'navigate' || accept.includes('text/html')) {
+  // 1) Navigasi/HTML → network-first (lebih cepat update konten), fallback offline
+  const isNavigate = req.mode === 'navigate' || req.destination === 'document';
+  if (isNavigate) {
+    event.respondWith(
+      fetch(req).catch(() =>
+        caches.match(OFFLINE_FALLBACK).then(r => r || caches.match('/'))
+      )
+    );
+    return;
+  }
+
+  // 2) Static assets same-origin (css, js, font, images) → stale-while-revalidate ringan
+  const isStaticAsset =
+    sameOrigin(url) &&
+    ['style','script','font','image'].includes(req.destination);
+
+  if (isStaticAsset) {
+    event.respondWith((async () => {
+      const cache = await caches.open(RUNTIME_CACHE);
+      const cached = await cache.match(req, { ignoreVary: true, ignoreSearch: false });
+      const fetchAndPut = fetch(req).then(resp => {
+        // hanya simpan response OK (status 200) atau opaques dari CDN gambar/font
+        if (resp && (resp.ok || resp.type === 'opaque')) {
+          cache.put(req, resp.clone());
+        }
+        return resp;
+      }).catch(() => cached); // kalau offline, gunakan yang ada
+      // SWR: utamakan cache bila ada, sambil refresh di background
+      return cached || fetchAndPut;
+    })());
+    return;
+  }
+
+  // 3) Lainnya (mis. API GET same-origin) → network-first agar selalu segar
+  if (sameOrigin(url)) {
     event.respondWith((async () => {
       try {
-        const fresh = await fetch(req);
-        const c = await caches.open(CACHE_NAME);
-        c.put(key, fresh.clone());
-        return fresh;
-      } catch (_) {
-        return (await caches.match(key, { ignoreSearch: true })) ||
-               (await caches.match('/', { ignoreSearch: true })) ||
-               (await caches.match(OFFLINE_URL, { ignoreSearch: true })) ||
-               new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } });
+        const resp = await fetch(req);
+        const cache = await caches.open(RUNTIME_CACHE);
+        if (resp && resp.ok) cache.put(req, resp.clone());
+        return resp;
+      } catch (err) {
+        const cached = await caches.match(req);
+        if (cached) return cached;
+        throw err;
       }
     })());
     return;
   }
 
-  // 2) Aset same-origin → stale-while-revalidate (cepat dari cache, update di belakang)
-  if (sameOrigin) {
-    event.respondWith((async () => {
-      const c = await caches.open(CACHE_NAME);
-      const cached = await c.match(key, { ignoreSearch: true });
-      const updating = fetch(req).then(res => {
-        if (res && res.ok) c.put(key, res.clone());
-        return res;
-      }).catch(() => null);
-      return cached || (await updating) || new Response('', { status: 504 });
-    })());
-    return;
-  }
-
-  // 3) Cross-origin → network-first, fallback cache kalau ada
-  event.respondWith(fetch(req).catch(() => caches.match(key, { ignoreSearch: true })));
+  // 4) Cross-origin: coba network, fallback cache bila ada
+  event.respondWith(
+    fetch(req).catch(() => caches.match(req))
+  );
 });
+
+/* ========== MESSAGE (untuk tombol "Update tersedia") ========== */
+self.addEventListener('message', (event) => {
+  const data = event.data || {};
+  if (data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (data.type === 'CLEAR_ALL_CACHES') {
+    event.waitUntil(
+      caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))))
+    );
+  }
+});
+
+/* (Opsional) bantu client tahu SW aktif & versinya */
+async function broadcast(message) {
+  const clients = await self.clients.matchAll({ includeUncontrolled: true });
+  clients.forEach(c => c.postMessage(message));
+}
+broadcast({ type: 'SW_READY', version: VERSION }).catch(()=>{});
