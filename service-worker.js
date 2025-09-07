@@ -1,9 +1,9 @@
 // === versi cache (ganti setiap rilis) ===
-const CACHE_NAME = 'sila-18';                 // ⬅️ bump saat deploy
+const CACHE_NAME = 'sila-19';                 // ⬅️ bump saat deploy
 const OFFLINE_URL = '/assets/offline.html';
 
 const urlsToCache = [
-  '/', '/home', '/hal', '/hal/alur', '/hal/kontak', '/hal/struktur', '/hal/privacy_policy',
+  '/', '/home', '/hal', '/hal/alur', '/hal/kontak', '/hal/struktur','/home/chart_data', '/hal/privacy_policy',
   '/developer/manifest?v=7',
   '/assets/offline.html',
 
