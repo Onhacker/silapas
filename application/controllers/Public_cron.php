@@ -7,27 +7,32 @@ class Public_cron extends Onhacker_Controller
     {
         parent::__construct();
         $this->load->database();
-
-        // Controller ini sengaja tanpa cek session/login
-        // Pastikan dilindungi dengan secret key (lihat fungsi _require_key di bawah)
+        $this->output->set_content_type('text/plain'); // biar respons jelas
     }
 
-    /** JANGAN panggil tanpa key */
-    private function _require_key()
+    /** Izinkan CLI tanpa key; HTTP wajib pakai key */
+    private function _require_key(): void
     {
-        // izinkan CLI tanpa key
         if ($this->input->is_cli_request()) return;
-
-        $key = $this->input->get('key', true);
-        $expect = $this->config->item('cron_secret');
-        if (!$expect || !hash_equals($expect, (string)$key)) {
-            show_404(); // atau: show_error('Forbidden', 403);
+        $key    = (string)$this->input->get('key', true);
+        $expect = (string)$this->config->item('cron_secret');
+        if (!$expect || !hash_equals($expect, $key)) {
+            show_404();
             exit;
         }
     }
 
-    /** Ping untuk uji cepat */
-    public function ping()
+    /** Hitung cutoff WITA dari menit grace */
+    private function _cutoff(int $grace, string $tz = 'Asia/Makassar'): string
+    {
+        if ($grace < 0 || $grace > 1440) $grace = 30;
+        $dt = new DateTime('now', new DateTimeZone($tz));
+        if ($grace > 0) $dt->modify("-{$grace} minutes");
+        return $dt->format('Y-m-d H:i:s');
+    }
+
+    /** Ping cepat */
+    public function ping(): void
     {
         $this->_require_key();
         $msg = "[PING] ".date('c')."\n";
@@ -36,60 +41,67 @@ class Public_cron extends Onhacker_Controller
         exit(0);
     }
 
-    public function korban(){
-    	$c = $this->db->query("
-    		SELECT COUNT(*) AS n
-    		FROM `booking_tamu`
-    		WHERE `checkin_at` IS NULL
-    		AND `status` IN ('pending','approved')
-    		AND `schedule_dt` IS NOT NULL
-    		AND `schedule_dt` < ?
-    		", [$cutoff])->row()->n;
+    /** Dry-run: hitung yang akan di-expire */
+    public function korban($grace_minutes = 30): void
+    {
+        $this->_require_key();
+        $cutoff = $this->_cutoff((int)$grace_minutes);
 
-    	echo "[CHECK] will_expire={$c}\n";
+        $q = $this->db->query("
+            SELECT COUNT(*) AS n
+              FROM booking_tamu
+             WHERE checkin_at IS NULL
+               AND status IN ('pending','approved')
+               AND jadwal_at < ?
+        ", [$cutoff])->row();
 
+        $will = (int)($q->n ?? 0);
+        echo "[CHECK] will_expire={$will}, cutoff={$cutoff}\n";
+        exit(0);
     }
 
-    /** Expire booking (HTTP + token / CLI) */
-    public function expire_bookings($grace_minutes = 30)
+    /** Eksekusi expire */
+    public function expire_bookings($grace_minutes = 30): void
     {
         $this->_require_key();
 
-        $grace = (int)$grace_minutes;
-        if ($grace < 0 || $grace > 1440) $grace = 30;
+        $grace  = (int)$grace_minutes;
+        $cutoff = $this->_cutoff($grace);
 
-        // Jika Anda punya model $this->ma->expire_past_bookings(), pakai ini:
-        // $this->load->model('M_admin','ma');
-        // $affected = (int)$this->ma->expire_past_bookings($grace, 'Asia/Makassar');
+        // Hitung calon (untuk log)
+        $will = (int)$this->db->query("
+            SELECT COUNT(*) AS n
+              FROM booking_tamu
+             WHERE checkin_at IS NULL
+               AND status IN ('pending','approved')
+               AND jadwal_at < ?
+        ", [$cutoff])->row()->n;
 
-        // Fallback raw SQL (aman & cepat)
-        $tz = new DateTimeZone('Asia/Makassar');
-$dt = new DateTime('now', $tz);
-if ($grace > 0) $dt->modify("-{$grace} minutes");
-$cutoff = $dt->format('Y-m-d H:i:s');
+        // Update: set expired + cap waktu sekarang
+        $this->db->query("
+            UPDATE booking_tamu
+               SET status = 'expired',
+                   expired_at = NOW()
+             WHERE checkin_at IS NULL
+               AND status IN ('pending','approved')
+               AND jadwal_at < ?
+        ", [$cutoff]);
 
-$sql = "
-UPDATE `booking_tamu`
-   SET `status` = 'expired',
-       `expired_at` = NOW()
- WHERE `checkin_at` IS NULL
-   AND `status` IN ('pending','approved')
-   AND `schedule_dt` IS NOT NULL
-   AND `schedule_dt` < ?
-";
+        $err = $this->db->error();
+        $affected = $this->db->affected_rows();
 
-$this->db->query($sql, [$cutoff]);
+        if (!empty($err['code'])) {
+            $msg = "[SQLERR] code={$err['code']} msg={$err['message']} cutoff={$cutoff}\n";
+            echo $msg;
+            log_message('error', "[CRON] ".$msg);
+            @file_put_contents('/tmp/cron_expire.log', $msg, FILE_APPEND);
+            exit(1);
+        }
 
-$err = $this->db->error();            // << tangkap error SQL
-$affected = $this->db->affected_rows();
-
-if (!empty($err['code'])) {
-    echo "[SQLERR] code={$err['code']} msg={$err['message']}\n";
-    // boleh log juga:
-    log_message('error', "[CRON][SQLERR] {$err['code']} {$err['message']}");
-} else {
-    echo "[OK] expired={$affected}, grace={$grace}m, cutoff={$cutoff}\n";
-}
-
+        $msg = "[EXPIRE] will={$will} affected={$affected} grace={$grace}m cutoff={$cutoff}\n";
+        echo $msg;
+        log_message('error', "[CRON] ".trim($msg));
+        @file_put_contents('/tmp/cron_expire.log', $msg, FILE_APPEND);
+        exit(0);
     }
 }
