@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Public_cron extends CI_Controller
+class Public_cron extends Onhacker_Controller
 {
     public function __construct()
     {
