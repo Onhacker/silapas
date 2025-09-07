@@ -33,7 +33,7 @@
   <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
 
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <link rel="manifest" href="<?= site_url('developer/manifest') ?>?v=1">
+  <link rel="manifest" href="<?= site_url('developer/manifest') ?>?v=7">
   <link rel="icon" href="<?php echo base_url('assets/images/favicon.ico') ?>" type="image/x-icon" />
   <link rel="shortcut icon" href="<?php echo base_url('assets/images/favicon.ico') ?>" type="image/x-icon" />
 
@@ -65,7 +65,7 @@
 
   <div class="navbar-custom">
     <div class="container-fluid">
-        
+
         <div class="logo-desktop d-flex align-items-center mb-3">
             <div class="me-3">
                 <img src="<?php echo base_url('assets/images/').$rec->gambar ?>" alt="Logo <?php echo $rec->nama_website ?>" height="50px">
