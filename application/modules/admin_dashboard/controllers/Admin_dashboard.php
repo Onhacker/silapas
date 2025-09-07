@@ -556,6 +556,15 @@ public function expire_bookings($grace_minutes = 30)
     log_message('error', "[CRON] ".trim($msg));
     exit(0);
 }
+public function paths()
+{
+    $msg = "FILE=".__FILE__."\nAPPPATH=".APPPATH."\nFCPATH=".FCPATH."\nAT=".date('c')."\n\n";
+    // keluarkan ke STDOUT
+    $this->output->set_content_type('text/plain')->set_output($msg);
+    // Tulis juga ke /tmp agar kelihatan walau STDOUT 'hening'
+    @file_put_contents('/tmp/ci_paths.txt', $msg, FILE_APPEND);
+    exit(0);
+}
 
 
     /**
