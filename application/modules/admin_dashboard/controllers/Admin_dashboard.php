@@ -123,16 +123,12 @@ class Admin_dashboard extends Admin_Controller
 
     public function cron_test($param = "default")
 {
-    if (!$this->input->is_cli_request()) {
-        show_404();
-        return;
-    }
-
-    $now = date('Y-m-d H:i:s');
-    echo "[CRON TEST] Cron dipanggil @ {$now} dengan param={$param}" . PHP_EOL;
-    log_message('error', "[CRON TEST] Jalan @ {$now} dengan param={$param}");
+    echo "Cron_test jalan! Param={$param} @ " . date('Y-m-d H:i:s') . PHP_EOL;
+    file_put_contents(APPPATH . 'logs/cron_debug.log',
+        "Cron_test jalan! Param={$param} @ " . date('Y-m-d H:i:s') . PHP_EOL,
+        FILE_APPEND
+    );
 }
-
 
     public function cek_notifikasi()
     {
