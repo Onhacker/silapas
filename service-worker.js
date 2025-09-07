@@ -1,5 +1,5 @@
 // === versi cache (ganti setiap update) ===
-const CACHE_NAME = 'sila-8';
+const CACHE_NAME = 'sila-9';
 const OFFLINE_URL = '/assets/offline.html';
 
 const urlsToCache = [
