@@ -514,9 +514,9 @@ public function cron_test($param = 'default')
 }
 
 
-// --- simpan versi ini, hapus versi expire_bookings lain ---
 public function expire_bookings($grace_minutes = 30)
 {
+    // sementara: izinkan via browser untuk verifikasi (?web=1)
     if (!$this->input->is_cli_request() && $this->input->get('web') !== '1') {
         show_404();
         return;
@@ -525,7 +525,6 @@ public function expire_bookings($grace_minutes = 30)
     $grace = (int)$grace_minutes;
     if ($grace < 0 || $grace > 1440) $grace = 30;
 
-    // gunakan model jika ada; jika tidak, fallback SQL
     if (isset($this->ma) && method_exists($this->ma, 'expire_past_bookings')) {
         $affected = (int) $this->ma->expire_past_bookings($grace, 'Asia/Makassar');
     } else {
@@ -548,12 +547,14 @@ public function expire_bookings($grace_minutes = 30)
     }
 
     $msg = "[EXPIRE] affected={$affected}, grace={$grace}m, at=".date('Y-m-d H:i:s')."\n";
-    $this->output->set_content_type('text/plain')->set_output($msg);
+
+    // tulis ke dua tempat + echo
     @file_put_contents(FCPATH.'cron_debug.log', $msg, FILE_APPEND);
     @file_put_contents(APPPATH.'logs/cron_debug.log', $msg, FILE_APPEND);
-    log_message('error', "[CRON] ".trim($msg));
+    echo $msg;
 
-    exit(is_numeric($affected) ? 0 : 1);
+    log_message('error', "[CRON] ".trim($msg));
+    exit(0);
 }
 
 
