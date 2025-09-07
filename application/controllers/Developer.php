@@ -31,7 +31,7 @@ class Developer extends MX_Controller {
             "theme_color"=> "#FF8C00",        
             "icons" => [
                 [
-                    "src" => site_url("/assets/images/maskable_icon_new.png"),
+                    "src" => site_url("/assets/images/maskable_icon_new_192.png"),
                     "sizes" => "192x192",
                     "type" => "image/png",
                     "purpose" => "any",
