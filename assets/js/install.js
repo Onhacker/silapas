@@ -81,26 +81,26 @@ async function setupInstallButton() {
     return;
   }
   // Tampilkan konfirmasi hanya saat user menekan tombol
-  showInstallSwal();
+  // showInstallSwal();
 });
   
-  // installButton.addEventListener("click", () => {
-  //   console.log("Install button clicked");
-  //   if (deferredPrompt) {
-  //     deferredPrompt.prompt();
-  //     deferredPrompt.userChoice.then((choice) => {
-  //       if (choice.outcome === "accepted") {
-  //         Swal.fire("Berhasil!", "Aplikasi sedang diinstal.", "success");
-  //         installButton.style.display = "none";
-  //       } else {
-  //         Swal.fire("Dibatalkan", "Anda membatalkan instalasi.", "info");
-  //       }
-  //       deferredPrompt = null;
-  //     });
-  //   } else {
-  //     Swal.fire("Belum Siap", "Aplikasi belum bisa diinstal saat ini.", "warning");
-  //   }
-  // });
+  installButton.addEventListener("click", () => {
+    console.log("Install button clicked");
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choice) => {
+        if (choice.outcome === "accepted") {
+          Swal.fire("Berhasil!", "Aplikasi sedang diinstal.", "success");
+          installButton.style.display = "none";
+        } else {
+          Swal.fire("Dibatalkan", "Anda membatalkan instalasi.", "info");
+        }
+        deferredPrompt = null;
+      });
+    } else {
+      Swal.fire("Belum Siap", "Aplikasi belum bisa diinstal saat ini.", "warning");
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
