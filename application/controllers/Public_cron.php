@@ -19,7 +19,7 @@ class Public_cron extends Onhacker_Controller
         if ($this->input->is_cli_request()) return;
 
         $key = $this->input->get('key', true);
-        $expect = $this->config->item('cron_key');
+        $expect = $this->config->item('cron_secret');
         if (!$expect || !hash_equals($expect, (string)$key)) {
             show_404(); // atau: show_error('Forbidden', 403);
             exit;
