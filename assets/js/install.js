@@ -1,110 +1,120 @@
 let deferredPrompt = null;
 
 function isAppInstalled() {
-  return window.matchMedia("(display-mode: standalone)").matches
-         || window.navigator.standalone === true; // iOS Safari
+  return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true; // iOS Safari
 }
 function isIOSUA() {
   const ua = navigator.userAgent || navigator.vendor || '';
   return /iPad|iPhone|iPod/i.test(ua) || (ua.includes('Macintosh') && 'ontouchend' in document);
 }
 
-/* Fallback panduan iOS (A2HS) */
+/* Pastikan panduan iOS tersedia */
 (function ensureIOSGuide(){
   if (typeof window.showIOSInstallGuide === 'function') return;
   window.showIOSInstallGuide = function(e){
     if (e) e.preventDefault();
     const ua = navigator.userAgent || navigator.vendor || '';
     const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
-
-    const show = (title, html, icon) => {
-      if (window.Swal) Swal.fire({title, html, icon});
-      else alert(title.replace(/<[^>]+>/g,'') + '\n\n' + html.replace(/<[^>]+>/g,''));
-    };
-
-    if (!isSafari) {
-      show('Buka di Safari',
-        '<p>Untuk menambahkan ke Layar Utama di iPhone/iPad, buka halaman ini di <b>Safari</b>.</p>' +
-        '<ol style="text-align:left;max-width:520px;margin:0 auto">' +
-        '<li>Ketuk ikon <b>Bagikan</b> (kotak dengan panah ke atas).</li>' +
-        '<li>Pilih <b>Tambahkan ke Layar Utama</b>.</li>' +
-        '<li>Ketuk <b>Tambahkan</b>.</li>' +
-        '</ol>',
-        'info'
-      );
-      return false;
-    }
-    show('Instal ke iOS',
+    const htmlSafari =
       '<ol style="text-align:left;max-width:520px;margin:0 auto">' +
       '<li>Ketuk ikon <b>Bagikan</b> (kotak dengan panah ke atas).</li>' +
-      '<li>Gulir, pilih <b>Tambahkan ke Layar Utama</b>.</li>' +
+      '<li>Pilih <b>Tambahkan ke Layar Utama</b>.</li>' +
       '<li>Ketuk <b>Tambahkan</b>.</li>' +
-      '</ol>',
-      'info'
-    );
+      '</ol>';
+    if (!window.Swal) { alert('Buka menu Bagikan → Tambahkan ke Layar Utama'); return false; }
+    if (!isSafari) {
+      Swal.fire({title:'Buka di Safari', html:'Buka halaman ini di <b>Safari</b> untuk menginstal PWA.<br><br>'+htmlSafari, icon:'info'});
+      return false;
+    }
+    Swal.fire({title:'Instal ke iOS', html:htmlSafari, icon:'info'});
     return false;
   };
 })();
 
-/* SIMPAN event, jangan prompt otomatis */
-window.addEventListener("beforeinstallprompt", (e) => {
+/* Tunggu SweetAlert siap sebelum menampilkan popup (maks 3 detik) */
+function whenSwalReady(run, timeout=3000){
+  const t0 = Date.now();
+  (function tick(){
+    if (window.Swal && typeof Swal.fire === 'function') return run(false);
+    if (Date.now()-t0 > timeout) return run(true); // fallback
+    setTimeout(tick, 50);
+  })();
+}
+
+/* Tampilkan info “sudah terinstal” sekali per sesi */
+function showStandaloneNoticeOnce(){
+  if (!isAppInstalled() || sessionStorage.getItem('shownStandaloneNotice')) return;
+  whenSwalReady((fallback)=>{
+    if (!fallback) {
+      Swal.fire('Aplikasi Sudah Terinstal','Anda menjalankan aplikasi dalam mode mandiri (standalone).','info')
+          .then(()=> sessionStorage.setItem('shownStandaloneNotice','1'));
+    } else {
+      alert('Aplikasi berjalan dalam mode mandiri (standalone).');
+      sessionStorage.setItem('shownStandaloneNotice','1');
+    }
+  });
+}
+
+/* Tangkap PWA prompt — JANGAN auto-show */
+window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  console.log("✅ beforeinstallprompt ditangkap (siap saat user klik badge).");
+  console.log('✅ beforeinstallprompt siap.');
 });
 
-/* Notifikasi jika sudah standalone (sekali per sesi tab) */
-document.addEventListener("DOMContentLoaded", () => {
-  if (isAppInstalled() && !sessionStorage.getItem("shownStandaloneNotice")) {
-    if (window.Swal) Swal.fire("Aplikasi Sudah Terinstal","Anda sedang menjalankan aplikasi dalam mode mandiri (standalone).","info");
-    else alert("Aplikasi Sudah Terinstal - Anda sedang menjalankan aplikasi dalam mode mandiri (standalone).");
-    sessionStorage.setItem("shownStandaloneNotice","1");
-  }
+/* Jalankan setelah semua resource termuat (lebih aman di Android PWA) */
+window.addEventListener('load', showStandaloneNoticeOnce);
 
-  /* Klik badge iOS/PWA → baru tampilkan prompt/panduan */
-  const installButton = document.getElementById("installButton");
+/* Klik badge iOS/Android → baru tampilkan prompt/panduan */
+document.addEventListener('DOMContentLoaded', () => {
+  const installButton = document.getElementById('installButton');
   if (!installButton) return;
-  installButton.addEventListener("click", async (e) => {
+
+  installButton.addEventListener('click', async (e) => {
     e.preventDefault();
 
-    // Jika sudah terpasang/standalone → beri peringatan (tombol tetap tidak disembunyikan)
+    // Jika sudah standalone (mis. WebAPK) -> beri info (jangan sembunyikan tombol)
     if (isAppInstalled()) {
-      if (window.Swal) Swal.fire("Aplikasi Sudah Terinstal","Aplikasi sudah berjalan dalam mode mandiri (standalone).","info");
-      else alert("Aplikasi Sudah Terinstal - Aplikasi sudah berjalan dalam mode mandiri (standalone).");
-      return;
+      return whenSwalReady((fallback)=>{
+        if (!fallback) Swal.fire('Aplikasi Sudah Terinstal','Aplikasi sedang berjalan dalam mode mandiri.','info');
+        else alert('Aplikasi sudah terinstal (standalone).');
+      });
     }
 
-    // iOS: panduan A2HS (tidak ada beforeinstallprompt)
-    if (isIOSUA()) {
-      return window.showIOSInstallGuide(e);
-    }
+    // iOS: panduan A2HS
+    if (isIOSUA()) return window.showIOSInstallGuide(e);
 
-    // Android/Chrome: gunakan deferredPrompt jika tersedia
+    // Android/Chrome: gunakan prompt jika ada
     if (!deferredPrompt) {
-      if (window.Swal) Swal.fire("Belum Siap","Aplikasi belum bisa diinstal saat ini (syarat PWA belum terpenuhi).","warning");
-      else alert("Belum Siap - Aplikasi belum bisa diinstal saat ini.");
-      return;
+      return whenSwalReady((fallback)=>{
+        if (!fallback) Swal.fire('Belum Siap','Aplikasi belum memenuhi syarat PWA untuk ditawarkan instal.','warning');
+        else alert('Instal belum siap.');
+      });
     }
 
     deferredPrompt.prompt();
     const choice = await deferredPrompt.userChoice;
-    if (choice && choice.outcome === "accepted") {
-      if (window.Swal) Swal.fire("Berhasil!","Aplikasi sedang diinstal.","success");
-      else alert("Berhasil! Aplikasi sedang diinstal.");
+    if (choice && choice.outcome === 'accepted') {
+      whenSwalReady((fallback)=>{
+        if (!fallback) Swal.fire('Berhasil!','Aplikasi sedang diinstal.','success');
+      });
     } else {
-      if (window.Swal) Swal.fire("Dibatalkan","Anda membatalkan instalasi.","info");
-      else alert("Dibatalkan - Anda membatalkan instalasi.");
+      whenSwalReady((fallback)=>{
+        if (!fallback) Swal.fire('Dibatalkan','Anda membatalkan instalasi.','info');
+      });
     }
     deferredPrompt = null;
   });
 });
 
-/* Event saat terinstal */
-window.addEventListener("appinstalled", () => {
-  console.log("✅ App installed");
-  if (window.Swal) Swal.fire("Terpasang","Aplikasi berhasil diinstal.","success");
-  else alert("Aplikasi berhasil diinstal.");
+/* Event sukses instal */
+window.addEventListener('appinstalled', () => {
+  console.log('✅ App installed');
+  whenSwalReady((fallback)=>{
+    if (!fallback) Swal.fire('Terpasang','Aplikasi berhasil diinstal.','success');
+  });
 });
 
-/* Fallback agar onclick="openPlayStore(event)" tidak error */
+/* Agar onclick="openPlayStore(event)" aman meski kamu override di tempat lain */
 function openPlayStore(e){ return true; }
