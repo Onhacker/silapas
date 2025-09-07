@@ -36,6 +36,20 @@ class Public_cron extends Onhacker_Controller
         exit(0);
     }
 
+    public function korban(){
+    	$c = $this->db->query("
+    		SELECT COUNT(*) AS n
+    		FROM `booking_tamu`
+    		WHERE `checkin_at` IS NULL
+    		AND `status` IN ('pending','approved')
+    		AND `schedule_dt` IS NOT NULL
+    		AND `schedule_dt` < ?
+    		", [$cutoff])->row()->n;
+
+    	echo "[CHECK] will_expire={$c}\n";
+
+    }
+
     /** Expire booking (HTTP + token / CLI) */
     public function expire_bookings($grace_minutes = 30)
     {
