@@ -972,6 +972,30 @@ private function normalize_date_mysql(?string $s): ?string {
         imagedestroy($logoResized); imagedestroy($logo); imagedestroy($qr);
     }
 
+    public function contact_vcf()
+    {
+        $path = FCPATH.'uploads/contact-silaturahmi.vcf';
+        if (!is_file($path)) { show_404(); return; }
+
+    // Header ketat + kompatibel
+        $filename = 'SilaturahmiMakassar.vcf';
+        $this->output
+        ->set_header('Content-Type: text/vcard; charset=utf-8') // atau text/x-vcard
+        ->set_header('X-Content-Type-Options: nosniff')
+        ->set_header('Content-Disposition: attachment; filename="'.$filename.'"')
+        ->set_header('Content-Length: '.filesize($path))
+        ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+        ->set_header('Pragma: no-cache')
+        ->set_header('Expires: 0');
+
+    // KIRIM file langsung
+        @ob_clean(); @flush();
+        readfile($path);
+        exit;
+    }
+
+
+
     private function _send_wa_konfirmasi($no_hp, array $d)
     {
         $redirect_url = !empty($d['redirect_url'])
@@ -990,36 +1014,24 @@ private function normalize_date_mysql(?string $s): ?string {
         $pdf = site_url("print_pdf/").$kode;
         $web       = $this->fm->web_me();
 
-        $vcfUrl = base_url('uploads/contact-silaturahmi.vcf');
+        $vcfUrl = site_url('booking/contact_vcf');
 
-        $pesan = "*[Konfirmasi Booking Kunjungan]*\n\n"
-        ."Halo *".$nama."*,\n\n"
-        ."Pengajuan kunjungan Anda telah *BERHASIL* didaftarkan dengan detail berikut:\n\n"
-        ."🆔 Kode Booking   : *".$kode."*\n"
-        ."👤 Nama Tamu      : ".$nama."\n"
-        ."🏢 Instansi Asal  : ".$instansi_asal."\n"
-        ."🏛️ Unit Tujuan    : ".$unit_tujuan."\n"
-        ."👔 Pejabat Unit   : ".$nama_petugas_instansi."\n"
-        ."📅 Tanggal        : ".$tanggal_disp."\n"
-        ."🕒 Jam            : ".$jam_disp."\n"
-        ."📝 Keperluan      : ".$keperluan."\n\n";
+        $pesan  = "*[Konfirmasi Booking Kunjungan]*\n\n";
+        $pesan .= "Halo *{$nama}*,\n\n";
+        $pesan .= "Pengajuan kunjungan Anda telah *BERHASIL* didaftarkan dengan detail berikut:\n\n";
+        $pesan .= "🆔 Kode Booking   : *{$kode}*\n";
+        $pesan .= "👤 Nama Tamu      : {$nama}\n";
+        $pesan .= "🏢 Instansi Asal  : {$instansi_asal}\n";
+        $pesan .= "🏛️ Unit Tujuan    : {$unit_tujuan}\n";
+        $pesan .= "👔 Pejabat Unit   : {$nama_petugas_instansi}\n";
+        $pesan .= "📅 Tanggal        : {$tanggal_disp}\n";
+        $pesan .= "🕒 Jam            : {$jam_disp}\n";
+        $pesan .= "📝 Keperluan      : {$keperluan}\n\n";
+        $pesan .= "🔳 Download kode booking (PDF):\n{$pdf}\n\n";
+        $pesan .= "🔗 Detail booking:\n{$redirect_url}\n\n";
+        $pesan .= "📇 Simpan kontak kami agar link bisa diklik langsung:\n{$vcfUrl}\n\n";
+        $pesan .= "_Pesan ini dikirim otomatis oleh Aplikasi {$web->nama_website}._";
 
-        // if ($qr_url !== '') {
-        //     $pesan .= "🔳 Download Kode Booking:\n".$qr_url."\n\n";
-        // }
-        
-       // 1) Buat file VCF sekali saat kirim pesan
-      
-
-// (Opsional) pastikan mime-type benar saat diserve:
-// header('Content-Type: text/vcard'); atau text/x-vcard
-
-// 2) Sisipkan ke pesan
-       $pesan  = "";
-       $pesan .= "🔳 Download kode booking:\n{$pdf}\n\n";
-       $pesan .= "🔗 Detail booking:\n{$redirect_url}\n\n";
-       $pesan .= "📇 Simpan kontak kami agar link dapat diklik:\n{$vcfUrl}\n\n";
-       $pesan .= "_Pesan ini dikirim otomatis oleh Aplikasi {$web->nama_website}._";
 
 
         if (function_exists('send_wa_single')) {

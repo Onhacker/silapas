@@ -668,6 +668,9 @@ window.pdDel = async function(i){
     if (target !== pendamping.length){
       throw new Error(`Jumlah pendamping terisi ${pendamping.length}/${target}.`);
     }
+    if (pendamping.some(p => !/^\d{16}$/.test(p.nik) || !p.nama?.trim())) {
+      throw new Error('Lengkapi NIK (16 digit) dan Nama semua pendamping.');
+    }
   };
 
   // ------ EXPOSE ke global agar dipanggil stepper ------

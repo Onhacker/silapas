@@ -35,6 +35,7 @@ class M_admin_dashboard extends CI_Model
         WHERE checkin_at IS NULL
         AND status IN ('pending','approved')
         AND schedule_dt < ?
+        AND schedule_dt IS NOT NULL
         ";
 
         $this->db->query($sql, [$cutoff]);
