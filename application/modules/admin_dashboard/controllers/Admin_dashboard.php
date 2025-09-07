@@ -8,6 +8,14 @@ class Admin_dashboard extends Admin_Controller
         parent::__construct();
         $this->load->model("M_admin_dashboard","ma");
         date_default_timezone_set('Asia/Makassar');
+        // === BYPASS untuk CLI & method cron ===
+        $method = isset($this->router) ? $this->router->method : null;
+        $whitelist = ['paths', 'cron_test', 'expire_bookings']; // tambahkan jika ada cron lain
+
+        if ($this->input->is_cli_request() || in_array($method, $whitelist, true)) {
+            // Jangan cek session/login, jangan redirect, langsung lolos
+            return;
+        }
         // cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
     }
 
@@ -496,22 +504,14 @@ private function _emit($msg)
      *   php index.php cron expire_bookings 30
      */
   // --- simpan versi ini, hapus versi cron_test lain ---
-public function cron_test($param = 'default')
+public function cron_test($param='default')
 {
-    // Tulis file pasti—tanpa syarat apa pun:
-    @file_put_contents(FCPATH.'cron_touch.txt',
-        "TOUCHED @ ".date('c')." param={$param}\n", FILE_APPEND);
-
-    // Tulis juga ke application/logs
-    @file_put_contents(APPPATH.'logs/cron_debug.log',
-        "CRON_TEST @ ".date('c')." param={$param} file=".__FILE__." apppath=".APPPATH."\n", FILE_APPEND);
-
-    // Keluarkan teks langsung (kalau STDOUT tidak dimakan host, ini akan terlihat)
-    echo "cron_test HIT @ ".date('c')." param={$param}\n";
-
-    // Hentikan eksekusi supaya output langsung flush
+    $msg = "[CRON TEST] file=".__FILE__." apppath=".APPPATH." at=".date('c')." param={$param}\n";
+    echo $msg; // kalau STDOUT tidak disilent, akan tampil
+    @file_put_contents('/tmp/cron_touch.txt', $msg, FILE_APPEND);
     exit(0);
 }
+
 
 
 public function expire_bookings($grace_minutes = 30)
@@ -559,12 +559,11 @@ public function expire_bookings($grace_minutes = 30)
 public function paths()
 {
     $msg = "FILE=".__FILE__."\nAPPPATH=".APPPATH."\nFCPATH=".FCPATH."\nAT=".date('c')."\n\n";
-    // keluarkan ke STDOUT
     $this->output->set_content_type('text/plain')->set_output($msg);
-    // Tulis juga ke /tmp agar kelihatan walau STDOUT 'hening'
     @file_put_contents('/tmp/ci_paths.txt', $msg, FILE_APPEND);
     exit(0);
 }
+
 
 
     /**
