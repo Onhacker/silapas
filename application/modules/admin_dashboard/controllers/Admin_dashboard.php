@@ -121,24 +121,7 @@ class Admin_dashboard extends Admin_Controller
         echo json_encode(['total' => $total]);
     }
 
-    public function cron_test($param = "default")
-{
-    // Jangan batasi ke CLI dulu, kita mau lihat outputnya.
-    $now = date('Y-m-d H:i:s');
-    $msg = "[CRON TEST] file=".__FILE__." | apppath=".APPPATH." | param={$param} | at={$now}\n";
 
-    // 1) Pakai CI Output class (lebih pasti keluar)
-    $this->output
-         ->set_content_type('text/plain')
-         ->set_output($msg);
-
-    // 2) Tulis ke file yg pasti writable (public_html)
-    $logFile = FCPATH.'cron_debug.log'; // FCPATH = public_html/
-    @file_put_contents($logFile, $msg, FILE_APPEND);
-
-    // 3) Tulis juga ke application/logs
-    @file_put_contents(APPPATH.'logs/cron_debug.log', $msg, FILE_APPEND);
-}
 
     public function cek_notifikasi()
     {
@@ -512,60 +495,59 @@ private function _emit($msg)
      * Contoh:
      *   php index.php cron expire_bookings 30
      */
-   public function cron_test($param = 'default')
-    {
-        // SENGAJA: untuk debug, endpoint ini bisa diakses via web/CLI
-        // (nanti kalau sudah oke, boleh batasi ke CLI seperti expire_bookings)
+  // --- simpan versi ini, hapus versi cron_test lain ---
+public function cron_test($param = 'default')
+{
+    $now = date('Y-m-d H:i:s');
+    $msg = "[CRON TEST] file=".__FILE__." | apppath=".APPPATH." | param={$param} | at={$now}\n";
 
-        $now = date('Y-m-d H:i:s');
-        $msg = "[CRON TEST] file=".__FILE__." | apppath=".APPPATH." | param={$param} | at={$now}\n";
-        $this->_emit($msg);
+    $this->output->set_content_type('text/plain')->set_output($msg);
+    @file_put_contents(FCPATH.'cron_debug.log', $msg, FILE_APPEND);
+    @file_put_contents(APPPATH.'logs/cron_debug.log', $msg, FILE_APPEND);
+    log_message('error', trim($msg));
+}
+
+// --- simpan versi ini, hapus versi expire_bookings lain ---
+public function expire_bookings($grace_minutes = 30)
+{
+    if (!$this->input->is_cli_request() && $this->input->get('web') !== '1') {
+        show_404();
+        return;
     }
 
-    /** CRON utama: expire booking lama */
-    public function expire_bookings($grace_minutes = 30)
-    {
-        // Izinkan test via browser pakai ?web=1, selain itu wajib CLI
-        if (!$this->input->is_cli_request() && $this->input->get('web') !== '1') {
-            show_404();
-            return;
-        }
+    $grace = (int)$grace_minutes;
+    if ($grace < 0 || $grace > 1440) $grace = 30;
 
-        $grace = (int)$grace_minutes;
-        if ($grace < 0 || $grace > 1440) $grace = 30;
+    // gunakan model jika ada; jika tidak, fallback SQL
+    if (isset($this->ma) && method_exists($this->ma, 'expire_past_bookings')) {
+        $affected = (int) $this->ma->expire_past_bookings($grace, 'Asia/Makassar');
+    } else {
+        $tz = new DateTimeZone('Asia/Makassar');
+        $dt = new DateTime('now', $tz);
+        if ($grace > 0) $dt->modify("-{$grace} minutes");
+        $cutoff = $dt->format('Y-m-d H:i:s');
 
-        $affected = 0;
+        $this->db->query("
+            UPDATE booking_tamu
+               SET status = 'expired',
+                   expired_at = NOW()
+             WHERE checkin_at IS NULL
+               AND status IN ('pending','approved')
+               AND schedule_dt IS NOT NULL
+               AND schedule_dt < ?
+        ", [$cutoff]);
 
-        // Jika model $this->ma dengan method expire_past_bookings ada, gunakan;
-        // kalau tidak, fallback ke SQL langsung (supaya tidak macet hanya karena model beda nama).
-        if (isset($this->ma) && method_exists($this->ma, 'expire_past_bookings')) {
-            $affected = (int) $this->ma->expire_past_bookings($grace, 'Asia/Makassar');
-        } else {
-            // === FALLBACK RAW SQL (semantik sama dengan yang Anda kirim sebelumnya) ===
-            $tz = new DateTimeZone('Asia/Makassar');
-            $dt = new DateTime('now', $tz);
-            if ($grace > 0) $dt->modify("-{$grace} minutes");
-            $cutoff = $dt->format('Y-m-d H:i:s');
-
-            $this->db->query("
-                UPDATE booking_tamu
-                   SET status = 'expired',
-                       expired_at = NOW()
-                 WHERE checkin_at IS NULL
-                   AND status IN ('pending','approved')
-                   AND schedule_dt IS NOT NULL
-                   AND schedule_dt < ?
-            ", [$cutoff]);
-
-            $affected = $this->db->affected_rows();
-        }
-
-        $msg = "[EXPIRE] affected={$affected}, grace={$grace}m, at=".date('Y-m-d H:i:s')."\n";
-        $this->_emit($msg);
-
-        // Exit code berguna untuk monitor (0 = ok)
-        exit(is_numeric($affected) ? 0 : 1);
+        $affected = $this->db->affected_rows();
     }
+
+    $msg = "[EXPIRE] affected={$affected}, grace={$grace}m, at=".date('Y-m-d H:i:s')."\n";
+    $this->output->set_content_type('text/plain')->set_output($msg);
+    @file_put_contents(FCPATH.'cron_debug.log', $msg, FILE_APPEND);
+    @file_put_contents(APPPATH.'logs/cron_debug.log', $msg, FILE_APPEND);
+    log_message('error', "[CRON] ".trim($msg));
+
+    exit(is_numeric($affected) ? 0 : 1);
+}
 
 
     /**
