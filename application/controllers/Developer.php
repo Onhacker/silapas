@@ -27,7 +27,6 @@ class Developer extends MX_Controller {
             "start_url" => site_url("/home"),
             "scope"      => "/",
             "display" => "standalone",
-            "display": "standalone",
             "background_color"=> "#ffffff",   
             "theme_color"=> "#FF8C00",        
             "icons" => [
