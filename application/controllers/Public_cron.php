@@ -64,26 +64,32 @@ class Public_cron extends Onhacker_Controller
 
         // Fallback raw SQL (aman & cepat)
         $tz = new DateTimeZone('Asia/Makassar');
-        $dt = new DateTime('now', $tz);
-        if ($grace > 0) $dt->modify("-{$grace} minutes");
-        $cutoff = $dt->format('Y-m-d H:i:s');
+$dt = new DateTime('now', $tz);
+if ($grace > 0) $dt->modify("-{$grace} minutes");
+$cutoff = $dt->format('Y-m-d H:i:s');
 
-        $this->db->query("
-            UPDATE booking_tamu
-               SET status = 'expired',
-                   expired_at = NOW()
-             WHERE checkin_at IS NULL
-               AND status IN ('pending','approved')
-               AND schedule_dt IS NOT NULL
-               AND schedule_dt < ?
-        ", [$cutoff]);
+$sql = "
+UPDATE `booking_tamu`
+   SET `status` = 'expired',
+       `expired_at` = NOW()
+ WHERE `checkin_at` IS NULL
+   AND `status` IN ('pending','approved')
+   AND `schedule_dt` IS NOT NULL
+   AND `schedule_dt` < ?
+";
 
-        $affected = $this->db->affected_rows();
+$this->db->query($sql, [$cutoff]);
 
-        $msg = "[EXPIRE] affected={$affected} grace={$grace}m cutoff={$cutoff} at=".date('c')."\n";
-        echo $msg;
-        @file_put_contents('/tmp/cron_expire.log', $msg, FILE_APPEND);
-        log_message('error', "[CRON] ".trim($msg));
-        exit(0);
+$err = $this->db->error();            // << tangkap error SQL
+$affected = $this->db->affected_rows();
+
+if (!empty($err['code'])) {
+    echo "[SQLERR] code={$err['code']} msg={$err['message']}\n";
+    // boleh log juga:
+    log_message('error', "[CRON][SQLERR] {$err['code']} {$err['message']}");
+} else {
+    echo "[OK] expired={$affected}, grace={$grace}m, cutoff={$cutoff}\n";
+}
+
     }
 }
