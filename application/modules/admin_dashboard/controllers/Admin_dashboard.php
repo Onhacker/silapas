@@ -498,14 +498,21 @@ private function _emit($msg)
   // --- simpan versi ini, hapus versi cron_test lain ---
 public function cron_test($param = 'default')
 {
-    $now = date('Y-m-d H:i:s');
-    $msg = "[CRON TEST] file=".__FILE__." | apppath=".APPPATH." | param={$param} | at={$now}\n";
+    // Tulis file pasti—tanpa syarat apa pun:
+    @file_put_contents(FCPATH.'cron_touch.txt',
+        "TOUCHED @ ".date('c')." param={$param}\n", FILE_APPEND);
 
-    $this->output->set_content_type('text/plain')->set_output($msg);
-    @file_put_contents(FCPATH.'cron_debug.log', $msg, FILE_APPEND);
-    @file_put_contents(APPPATH.'logs/cron_debug.log', $msg, FILE_APPEND);
-    log_message('error', trim($msg));
+    // Tulis juga ke application/logs
+    @file_put_contents(APPPATH.'logs/cron_debug.log',
+        "CRON_TEST @ ".date('c')." param={$param} file=".__FILE__." apppath=".APPPATH."\n", FILE_APPEND);
+
+    // Keluarkan teks langsung (kalau STDOUT tidak dimakan host, ini akan terlihat)
+    echo "cron_test HIT @ ".date('c')." param={$param}\n";
+
+    // Hentikan eksekusi supaya output langsung flush
+    exit(0);
 }
+
 
 // --- simpan versi ini, hapus versi expire_bookings lain ---
 public function expire_bookings($grace_minutes = 30)
