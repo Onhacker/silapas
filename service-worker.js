@@ -1,5 +1,5 @@
 // === versi cache (ganti setiap rilis) ===
-const CACHE_NAME = 'sila-17';                 // ⬅️ bump saat deploy
+const CACHE_NAME = 'sila-18';                 // ⬅️ bump saat deploy
 const OFFLINE_URL = '/assets/offline.html';
 
 const urlsToCache = [
@@ -26,7 +26,7 @@ const urlsToCache = [
   '/assets/admin/libs/tippy-js/tippy.all.min.js',
   '/assets/admin/libs/jquery-toast/jquery.toast.min.js',
   '/assets/admin/js/sw.min.js',
-  '/assets/admin/js/install.js',
+  '/assets/js/install.js',
   // '/assets/admin/js/aos.min.js',
   // '/assets/admin/js/jspdf.umd.min.js',
   // '/assets/admin/js/jspdf.plugin.autotable.min.js',
@@ -35,7 +35,7 @@ const urlsToCache = [
   '/assets/admin/fonts/fa-brands-400.ttf',
   '/assets/admin/SliderCaptcha-master/src/disk/longbow.slidercaptcha.js',
   '/assets/admin/SliderCaptcha-master/src/disk/slidercaptcha.css',
-  '/assets/admin/js/zxing-browser.min.js',
+  '/assets/js/zxing-browser.min.js',
   '/assets/admin/chart/highcharts.js',
   '/assets/admin/chart/exporting.js',
   '/assets/admin/chart/export-data.js',
