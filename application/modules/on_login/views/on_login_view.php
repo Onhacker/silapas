@@ -250,7 +250,7 @@
                 </p>
 
                 <p class="lead mb-3" data-aos="fade-right" data-aos-delay="800">
-                    <strong><?php echo $rec->meta_keyword ?></strong>
+                    <strong><?php echo $rec->meta_deskripsi ?></strong>
                 </p>
 
                 <p class="lead" data-aos="fade-right" data-aos-delay="1100">

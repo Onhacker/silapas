@@ -32,8 +32,8 @@
 
           <!-- Flowchart (opsional) -->
           <!-- <div class="text-center text-muted">Form → Approved & Ticket (QR) → Check-in (Scan) → Layanan → Checkout → Statistik</div> -->
-           <a href="<?php echo base_url("assets/images/flowcart.png") ?>" class="image-popup" title="Alur">
-              <img src="<?php echo base_url("assets/images/flowcart.png") ?>" class="img-fluid" alt="work-thumbnail">
+           <a href="<?php echo base_url("assets/images/flowcart.webp") ?>" class="image-popup" title="Alur">
+              <img src="<?php echo base_url("assets/images/flowcart.webp") ?>" class="img-fluid" alt="work-thumbnail">
             </a>
           <ul class="list-unstyled timeline-sm mt-4">
             <!-- Step 1 -->

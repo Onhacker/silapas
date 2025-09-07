@@ -47,8 +47,8 @@
           </style>
            <link href="<?= base_url('assets/admin/libs/magnific-popup/magnific-popup.css'); ?>" rel="stylesheet" type="text/css" />
             <div class="gal-box">
-            <a href="<?php echo base_url("assets/images/struktur_organisasi.png") ?>" class="image-popup" title="Struktur Organisasi">
-              <img src="<?php echo base_url("assets/images/struktur_organisasi.png") ?>" class="img-fluid" alt="work-thumbnail">
+            <a href="<?php echo base_url("assets/images/struktur_organisasi.webp") ?>" class="image-popup" title="Struktur Organisasi">
+              <img src="<?php echo base_url("assets/images/struktur_organisasi.webp") ?>" class="img-fluid" alt="work-thumbnail">
             </a>
             <div class="gall-info">
               <h4 class="font-16 mt-0">Struktur Organisasi</h4>

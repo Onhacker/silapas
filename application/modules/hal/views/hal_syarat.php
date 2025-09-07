@@ -8,9 +8,9 @@
 
           <!-- Header -->
           <header class="mb-3 text-center">
-            <h1 class="h2 mb-2">📜 Syarat &amp; Ketentuan SILATURAHMI Makassar</h1>
+            <h1 class="h2 mb-2">📜 Syarat &amp; Ketentuan  <?php echo $rec->nama_website." ".$rec->kabupaten ?></h1>
             <p class="text-muted fw-semibold mb-2">
-              SILATURAHMI Makassar (Sistem Layanan Kunjungan Tamu Lapas)
+              <?php echo $rec->nama_website." ".$rec->kabupaten." (".$rec->meta_deskripsi.")" ?>
             </p>
             <div class="d-flex justify-content-center gap-2">
               <span class="badge bg-light text-dark border">Versi 1.0</span>

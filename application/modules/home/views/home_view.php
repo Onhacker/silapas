@@ -3,21 +3,21 @@
 <?php
 $slides = [
   [
-    'src'   => base_url("assets/images/slide/booking.png"),
+    'src'   => base_url("assets/images/slide/booking.webp"),
     'alt'   => 'Area layanan kunjungan',
     'title' => 'Booking Online',
     'text'  => 'Pesan jadwal kunjungan langsung dari ponsel Anda.',
     'href'  => site_url('booking'),
   ],
   [
-    'src'   => base_url("assets/images/slide/unit.png"),
+    'src'   => base_url("assets/images/slide/unit.webp"),
     'alt'   => 'Siap Menyambut Anda',
     'title' => 'Siap Menyambut Anda',
     'text'  => 'Kenali unit dan pejabat terkait layanan.',
     'href'  => site_url('hal/struktur'),
   ],
   [
-    'src'   => base_url("assets/images/slide/laptop.png"),
+    'src'   => base_url("assets/images/slide/laptop.webp"),
     'alt'   => 'Download Aplikasi Di Playstore atau Gunakan Browser',
     'title' => 'Ramah Akses',
     'text'  => 'Download Aplikasi Di Playstore atau Gunakan Browser',
@@ -71,11 +71,25 @@ $slides = [
 @media(max-width:480px){.quickmenu-wrap{--btn:42px}.menu-circle{width:66px;height:66px}}
 /* ===== CHART ===== */
 #visit-line-chart{min-height:300px;width:100%}
+/* ===== Quickmenu: sembunyikan panah & fade di desktop (>=992px) ===== */
+@media (min-width: 992px){
+  .quickmenu-btn,
+  .quickmenu-fade{
+    display: none !important; /* hilang di layar besar */
+  }
+}
+
+/* ===== Quickmenu: kecilkan panah di mobile (<=576px) ===== */
+@media (max-width: 576px){
+  .quickmenu-wrap{ --btn: 25px; }  /* semula 48px / 42px */
+  .quickmenu-btn{ font-size: 14px; } /* ikon panah lebih kecil */
+}
+
 </style>
 
 <div class="container-fluid">
-
-  <div class="row mt-2">
+ 
+  <div class="row mt-1">
     <!-- LEFT: HERO -->
     <div class="col-xl-4">
       <section class="pwa-hero" role="region" aria-label="Slideshow sorotan">
@@ -107,11 +121,11 @@ $slides = [
     </div>
 
     <!-- RIGHT: RIBBON + QUICK MENU -->
-    <div class="col-xl-8">
+    <div class="col-xl-8 mt-2">
       <div class="card-box ribbon-box d-none d-md-block">
-        <div class="ribbon-two ribbon-two-blue"><span>SILATURAHMI</span></div>
-        <p class="mb-2" style="margin-left:22px;margin-top:12px">
-          Sistem Layanan Tamu Resmi Antar Instansi yang Humanis, Modern, dan Integratif yang memudahkan proses pendaftaran, pengelolaan jadwal, serta pemantauan kunjungan secara transparan dan real-time di Lapas Kelas I Makassar.
+        <div class="ribbon ribbon-blue float-left"><span><?php echo $rec->nama_website." ".strtoupper($rec->kabupaten) ?></span></div>
+        <p class="mb-2 ribbon-content" style="margin-left:22px;margin-top:12px">
+           <?php echo $rec->meta_deskripsi ?> yang memudahkan proses pendaftaran, pengelolaan jadwal, serta pemantauan kunjungan secara transparan dan real-time di Lapas Kelas I Makassar.
         </p>
       </div>
 
@@ -150,9 +164,15 @@ $slides = [
       </div>
     </div>
   </div><!-- /row -->
-
+ <!-- RIBBON MOBILE -->
+  <div class="card-box ribbon-box d-block d-md-none mt-2">
+    <div class="ribbon ribbon-blue float-left"><span><?php echo $rec->nama_website." ".strtoupper($rec->kabupaten) ?></span></div>
+    <p class=" ribbon-content" style="margin-left:12px;margin-top:8px">
+       <?php echo $rec->meta_deskripsi ?>
+    </p>
+  </div>
   <!-- STATISTIK -->
-  <div class="card mt-3">
+  <div class="card mt-2">
     <div class="card-body">
       <h4 class="header-title">Statistik Kunjungan</h4>
       <div class="row text-center">
@@ -173,13 +193,7 @@ $slides = [
     </div>
   </div>
 
-  <!-- RIBBON MOBILE -->
-  <div class="card-box ribbon-box d-block d-md-none mt-3">
-    <div class="ribbon-two ribbon-two-blue"><span>SILATURAHMI</span></div>
-    <p class="mb-2" style="margin-left:22px;margin-top:12px">
-      Sistem Layanan Tamu Resmi Antar Instansi yang Humanis, Modern, dan Integratif yang memudahkan proses pendaftaran, pengelolaan jadwal, serta pemantauan kunjungan secara transparan dan real-time di Lapas Kelas I Makassar.
-    </p>
-  </div>
+  
 
   <!-- KEUNGGULAN -->
   <ul class="sortable-list taskList list-unstyled ui-sortable" id="upcoming">
@@ -249,7 +263,7 @@ $slides = [
       </div>
       <div class="media-body">
         <h4 class="mt-0 mb-1"><strong>Instal Aplikasi atau Pakai Browser</strong></h4>
-        <p>Pilih yang paling nyaman: <strong>instal aplikasi dari Google Play Store</strong> untuk pengalaman lebih praktis, atau <strong>gunakan peramban (browser) favorit</strong>—tautan tiket dan detail kunjungan tetap bisa dibuka langsung dari pesan yang Anda terima.</p>
+        <p>Pilih cara yang paling nyaman: <strong>unduh aplikasi di Google Play (Android), instal ke iOS sebagai PWA</strong> untuk pengalaman lebih praktis, atau <strong>gunakan peramban (browser) favorit</strong>—tautan tiket dan detail kunjungan tetap bisa dibuka langsung dari pesan yang Anda terima.</p>
       </div>
     </li>
 
@@ -476,5 +490,53 @@ function forceClearCacheAndUnregisterSW() {
   updateUI(0);
   const eager2 = slides[1]?.querySelector('img'); if(eager2) eager2.loading='eager';
   startAuto();
+})();
+</script>
+<script>
+(function(){
+  const scroller = document.getElementById('quickmenu');
+  const btnL = document.querySelector('.quickmenu-btn.left');
+  const btnR = document.querySelector('.quickmenu-btn.right');
+  if (!scroller || !btnL || !btnR || scroller.dataset.inited) return;
+  scroller.dataset.inited = "1";
+
+  // Langkah scroll = 90% lebar viewport kontainer (minimal 160px)
+  const STEP = () => Math.max(scroller.clientWidth * 0.9, 160);
+
+  const atStart = () => scroller.scrollLeft <= 2;
+  const atEnd   = () => scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 2;
+
+  function update() {
+    btnL.disabled = atStart();
+    btnR.disabled = atEnd();
+  }
+
+  function scrollByDir(dir) {
+    scroller.scrollTo({
+      left: scroller.scrollLeft + dir * STEP(),
+      behavior: 'smooth'
+    });
+  }
+
+  btnL.addEventListener('click', () => scrollByDir(-1));
+  btnR.addEventListener('click', () => scrollByDir(1));
+
+  // Update state saat discroll/resize
+  let ticking = false;
+  scroller.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { update(); ticking = false; });
+  }, { passive: true });
+  window.addEventListener('resize', update);
+
+  // Akses keyboard saat fokus di list
+  scroller.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); scrollByDir(1); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); scrollByDir(-1); }
+  });
+
+  // Inisialisasi
+  update();
 })();
 </script>

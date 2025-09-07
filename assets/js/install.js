@@ -24,7 +24,7 @@ function showInstallSwal() {
     showCancelButton: true,
     confirmButtonText: "Instal",
     cancelButtonText: "Nanti saja",
-    footer: '<div><input type="checkbox" id="dontShowAgain" /> Jangan tampilkan lagi peringatan ini</div>'
+    // footer: '<div><input type="checkbox" id="dontShowAgain" /> Jangan tampilkan lagi peringatan ini</div>'
   }).then((t) => {
     if (t.isConfirmed && deferredPrompt) {
       deferredPrompt.prompt();
@@ -70,28 +70,37 @@ async function setupInstallButton() {
     localStorage.setItem("hasInstallPrompt", "true");
     installButton.style.display = "inline-block";
 
-    if (localStorage.getItem("dontShowInstallSwal") !== "true") {
-      showInstallSwal();
-    }
+    // if (localStorage.getItem("dontShowInstallSwal") !== "true") {
+    //   showInstallSwal();
+    // }
   });
 
   installButton.addEventListener("click", () => {
-    console.log("Install button clicked");
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choice) => {
-        if (choice.outcome === "accepted") {
-          Swal.fire("Berhasil!", "Aplikasi sedang diinstal.", "success");
-          installButton.style.display = "none";
-        } else {
-          Swal.fire("Dibatalkan", "Anda membatalkan instalasi.", "info");
-        }
-        deferredPrompt = null;
-      });
-    } else {
-      Swal.fire("Belum Siap", "Aplikasi belum bisa diinstal saat ini.", "warning");
-    }
-  });
+  if (!deferredPrompt) {
+    Swal.fire("Belum Siap", "Aplikasi belum bisa diinstal saat ini.", "warning");
+    return;
+  }
+  // Tampilkan konfirmasi hanya saat user menekan tombol
+  showInstallSwal();
+});
+  
+  // installButton.addEventListener("click", () => {
+  //   console.log("Install button clicked");
+  //   if (deferredPrompt) {
+  //     deferredPrompt.prompt();
+  //     deferredPrompt.userChoice.then((choice) => {
+  //       if (choice.outcome === "accepted") {
+  //         Swal.fire("Berhasil!", "Aplikasi sedang diinstal.", "success");
+  //         installButton.style.display = "none";
+  //       } else {
+  //         Swal.fire("Dibatalkan", "Anda membatalkan instalasi.", "info");
+  //       }
+  //       deferredPrompt = null;
+  //     });
+  //   } else {
+  //     Swal.fire("Belum Siap", "Aplikasi belum bisa diinstal saat ini.", "warning");
+  //   }
+  // });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

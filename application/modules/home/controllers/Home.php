@@ -16,11 +16,10 @@ class Home extends MX_Controller
      */
     public function index()
     {
-        $data['title']     = 'Home';
-        $data['deskripsi'] = 'Silaturahmi Makassar (Sistem Layanan Tamu Resmi Antar Instansi yang Humanis, Modern, dan Integratif) adalah aplikasi untuk pemesanan (booking) kunjungan tamu, check-in/out Lapas Makassar';
-        $data['prev']      = base_url('assets/images/icon_app.png');
         $data['rec']       = $this->fm->web_me();
-        
+        $data['title']     = 'Home';
+        $data['deskripsi'] = $data["rec"]->nama_website." ".$data["rec"]->kabupaten." ".$data["rec"]->meta_deskripsi." adalah aplikasi untuk pemesanan (booking) kunjungan tamu, check-in/out di Lapas Kelas I Makassar";
+        $data['prev']      = base_url('assets/images/icon_app.png');
         $this->load->view('home_view', $data);
     }
 

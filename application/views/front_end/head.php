@@ -19,42 +19,42 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="google" content="notranslate">
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "<?php echo $rec->nama_website ; ?>",
-      "url": "<?php echo site_url(); ?>",
-      "logo": "<?php echo base_url('assets/images/logo.png'); ?>"
-    }
-    </script>
-    <!-- Light -->
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-    <!-- Dark -->
-    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "<?php echo $rec->nama_website ; ?>",
+          "url": "<?php echo site_url(); ?>",
+          "logo": "<?php echo base_url('assets/images/logo.png'); ?>"
+      }
+  </script>
+  <!-- Light -->
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <!-- Dark -->
+  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
 
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <link rel="manifest" href="<?= site_url('developer/manifest') ?>?v=1">
-    <link rel="icon" href="<?php echo base_url('assets/images/favicon.ico') ?>" type="image/x-icon" />
-    <link rel="shortcut icon" href="<?php echo base_url('assets/images/favicon.ico') ?>" type="image/x-icon" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link rel="manifest" href="<?= site_url('developer/manifest') ?>?v=1">
+  <link rel="icon" href="<?php echo base_url('assets/images/favicon.ico') ?>" type="image/x-icon" />
+  <link rel="shortcut icon" href="<?php echo base_url('assets/images/favicon.ico') ?>" type="image/x-icon" />
 
-    <link href="<?php echo base_url('assets/admin/css/bootstrap.min.css'); ?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo base_url('assets/admin/css/icons.min.css'); ?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo base_url('assets/admin/css/app.min.css'); ?>" rel="stylesheet" type="text/css" />
-    <link href="<?php echo base_url() ?>assets/admin/libs/animate/animate.min.css" rel="stylesheet" type="text/css" />
-    <link href="<?php echo base_url('assets/admin') ?>/libs/sweetalert2/sweetalert2.min.css" rel="stylesheet" type="text/css" />
+  <link href="<?php echo base_url('assets/admin/css/bootstrap.min.css'); ?>" rel="stylesheet" type="text/css" />
+  <link href="<?php echo base_url('assets/admin/css/icons.min.css'); ?>" rel="stylesheet" type="text/css" />
+  <link href="<?php echo base_url('assets/admin/css/app.min.css'); ?>" rel="stylesheet" type="text/css" />
+  <link href="<?php echo base_url() ?>assets/admin/libs/animate/animate.min.css" rel="stylesheet" type="text/css" />
+  <link href="<?php echo base_url('assets/admin') ?>/libs/sweetalert2/sweetalert2.min.css" rel="stylesheet" type="text/css" />
 
-    <style type="text/css">
-       .d-flex.align-items-center.mb-3>.me-3 img{max-height:50px;width:auto;display:block;transition:all .3s ease-in-out;filter:drop-shadow(2px 2px 6px rgba(0,0,0,.3))}.d-flex.align-items-center.mb-3>.me-3{margin-right:1rem}@media (max-width:767.98px){.logo-desktop{display:none!important}}.search-result-box .kepala{padding-bottom:20px;border-bottom:1px solid #f1f5f7;margin-bottom:20px}.header-title2{font-size:1.2rem;font-weight:600;color:#555;text-align:left;margin:10px 0;font-family:'Arial',sans-serif;border-left:4px solid #ff5722;padding-left:10px;text-shadow:1px 1px 2px rgba(0,0,0,.15)}.d-flex.align-items-center.mb-3>.me-3 img:hover{filter:drop-shadow(0 0 10px rgba(255,87,34,.6));transform:scale(1.05)}.bord{border-left:4px solid #ff5722;padding-left:10px}
-       body {
-        padding-bottom: 0px;
-       }
-   </style>
-   
+  <style type="text/css">
+   .d-flex.align-items-center.mb-3>.me-3 img{max-height:50px;width:auto;display:block;transition:all .3s ease-in-out;filter:drop-shadow(2px 2px 6px rgba(0,0,0,.3))}.d-flex.align-items-center.mb-3>.me-3{margin-right:1rem}@media (max-width:767.98px){.logo-desktop{display:none!important}}.search-result-box .kepala{padding-bottom:20px;border-bottom:1px solid #f1f5f7;margin-bottom:20px}.header-title2{font-size:1.2rem;font-weight:600;color:#555;text-align:left;margin:10px 0;font-family:'Arial',sans-serif;border-left:4px solid #ff5722;padding-left:10px;text-shadow:1px 1px 2px rgba(0,0,0,.15)}.d-flex.align-items-center.mb-3>.me-3 img:hover{filter:drop-shadow(0 0 10px rgba(255,87,34,.6));transform:scale(1.05)}.bord{border-left:4px solid #ff5722;padding-left:10px}
+   body {
+    padding-bottom: 0px;
+}
+</style>
+
 </head>
 
 <?php $this->load->view("global") ?>
 <body class="menubar-gradient gradient-topbar topbar-dark">
-<div id="preloader">
+    <div id="preloader">
         <div id="status">
          <div class="image-container animated flip infinite">
           <img src="<?php echo base_url('assets/images/').$rec->gambar ?>" alt="Foto" style="display: none;" onload="this.style.display='block';" />
@@ -65,33 +65,11 @@
 
   <div class="navbar-custom">
     <div class="container-fluid">
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-          const container = document.getElementById('header_notif_container');
-
-          function initDropdowns(ctx) {
-            // Bootstrap 4 (pakai jQuery)
-            if (window.jQuery && $.fn.dropdown) {
-              $(ctx).find('.dropdown-toggle').dropdown();
-              return;
-            }
-            // Bootstrap 5 (tanpa jQuery)
-            if (window.bootstrap && bootstrap.Dropdown) {
-              ctx.querySelectorAll('[data-bs-toggle="dropdown"],[data-toggle="dropdown"]').forEach(el => {
-                // hindari duplikasi instance
-                try { bootstrap.Dropdown.getOrCreateInstance(el); } catch(e){}
-              });
-            }
-          }
-        });
-</script>
-
-
-
+        
         <div class="logo-desktop d-flex align-items-center mb-3">
             <div class="me-3">
                 <img src="<?php echo base_url('assets/images/').$rec->gambar ?>" alt="Logo <?php echo $rec->nama_website ?>" height="50px">
-              
+
             </div>
             <div class="kepala">
                 <h4 class="mb-1">
@@ -123,9 +101,9 @@
         .logo-smx img {
             height: 40px;
             margin-right: 10px;
-                filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
+            filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
 
-            
+
         }
 
 
@@ -163,20 +141,19 @@
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
         }
 
-  </style>
-<div class="logo-boxx d-block d-md-none">
-    <div class="logox">
-        <div class="logo-smx">
-            <img src="<?php echo base_url('assets/images/') . $rec->gambar ?>" alt="Logo <?php echo $rec->nama_website ?>">
+    </style>
+    <div class="logo-boxx d-block d-md-none">
+        <div class="logox">
+            <div class="logo-smx">
+                <img src="<?php echo base_url('assets/images/') . $rec->gambar ?>" alt="Logo <?php echo $rec->nama_website ?>">
 
-        </div>
-        <div class="logo-text">
-            <!-- <span class="header-title-top white-shadow-text"><?php echo $rec->nama_website ?></span> -->
-            <span class="header-title-top white-shadow-text">SILATURAHMI</span>
-            <span class="header-title-bottom white-shadow-text">Makassar</span>
+            </div>
+            <div class="logo-text">
+                <span class="header-title-top white-shadow-text"><?php echo $rec->nama_website ?></span>
+                <span class="header-title-bottom white-shadow-text"><?php echo $rec->kabupaten ?></span>
+            </div>
         </div>
     </div>
-</div>
 
 </div>
 </div>

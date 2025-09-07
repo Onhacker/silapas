@@ -6,11 +6,11 @@
            <div class="card-box">
                 <section style="margin: auto; padding: 2rem; font-family: sans-serif; line-height: 1.7;">
 
-                    <h3 class="text-center mb-3"><strong>🛡️ Kebijakan Privasi SILATURAHMI Makaassar</strong></h3>
+                    <h3 class="text-center mb-3"><strong>🛡️ Kebijakan Privasi <?php echo $rec->nama_website." ".$rec->kabupaten ?></strong></h3>
 
                     <p><em>Terakhir diperbarui: 29 Agustus 2025</em></p>
 
-                    <p>Selamat datang di <strong>SILATURAHMI Makaassar (Sistem Layanan Kunjungan Tamu Lapas)</strong>. Kami menghargai privasi Anda dan berkomitmen untuk melindungi informasi pribadi yang Anda berikan saat menggunakan layanan kunjungan. Kebijakan Privasi ini menjelaskan bagaimana data Anda dikumpulkan, digunakan, dan dijaga keamanannya.</p>
+                    <p>Selamat datang di <strong><?php echo $rec->nama_website." ".$rec->kabupaten." (".$rec->meta_deskripsi.")" ?></strong>. Kami menghargai privasi Anda dan berkomitmen untuk melindungi informasi pribadi yang Anda berikan saat menggunakan layanan kunjungan. Kebijakan Privasi ini menjelaskan bagaimana data Anda dikumpulkan, digunakan, dan dijaga keamanannya.</p>
 
                     <hr style="border: 0; height: 2px; background: #ccc; margin: 2rem 0;">
 
@@ -22,7 +22,7 @@
                         <li>Data kunjungan (tanggal, jam, tujuan kunjungan, unit tujuan)</li>
                         <li>Informasi pendukung (hubungan dengan WBP, surat izin, dsb.)</li>
                         <li>Data teknis seperti alamat IP dan perangkat akses</li>
-                        <p>Informasi ini dikumpulkan melalui formulir pendaftaran kunjungan di SILATURAHMI Makaassar.</p>
+                        <p>Informasi ini dikumpulkan melalui formulir pendaftaran kunjungan di <?php echo $rec->nama_website." ".$rec->kabupaten ?>.</p>
                     </ul>
 
                     <h4><strong>🔍 2. Cara Kami Menggunakan Informasi Anda</strong></h4>
@@ -66,7 +66,7 @@
                     <h4><strong>📬 7. Kontak Kami</strong></h4>
                     <p>Jika ada pertanyaan mengenai Kebijakan Privasi SILATURAHMI Makaassar, silakan hubungi:</p>
                     <address>
-                        <strong>Admin SILATURAHMI Makaassar</strong><br>
+                        <strong>Admin <?php echo $rec->nama_website." ".$rec->kabupaten ?></strong><br>
                         Email: <a href="mailto:admin@silaturahmi.org">admin@silaturahmi.org</a><br>
                         WhatsApp: +62 812-xxxx-xxxx<br>
                         Alamat: Lapas Kelas I Makassar, Jl. Sultan Alauddin, Kota Makassar

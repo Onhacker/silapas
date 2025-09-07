@@ -9,19 +9,21 @@ class Hal extends MX_Controller {
 	}
 
 	function index(){
-		$data["title"] = "Syarat dan Ketentuan";
-		$data["deskripsi"] = "Dokumen ini mengatur ketentuan penggunaan aplikasi/laman Silaturahmi Makassar (“Aplikasi”). Dengan membuat booking, menggunakan fitur check-in/check-out, atau mengakses Aplikasi, Anda (“Pengguna”) menyatakan telah membaca, memahami, dan menyetujui Syarat & Ketentuan ini.";
-		$data["prev"] = base_url("assets/images/icon_app.png");
 		$data["rec"] = $this->fm->web_me();
+		$data["title"] = "Syarat dan Ketentuan";
+		$data["deskripsi"] = "Dokumen ini mengatur ketentuan penggunaan aplikasi/laman ".$data["rec"]->nama_website." ".$data["rec"]->kabupaten." (“Aplikasi”). Dengan membuat booking, menggunakan fitur check-in/check-out, atau mengakses Aplikasi, Anda (“Pengguna”) menyatakan telah membaca, memahami, dan menyetujui Syarat & Ketentuan ini.";
+		$data["prev"] = base_url("assets/images/icon_app.png");
+		
 		$this->load->view('hal_syarat',$data);
 
 	}
 
 	function alur(){
-		$data["title"] = "Alur Permohonan Kunjungan";
-		$data["deskripsi"] = "Alur permohonan Kunjungan Silaturahmi Makassar merupakan rangkaian tahapan yang harus dilalui oleh pemohon untuk mengajukan suatu permohonan kunjungan kepada Lapas Kelas I Makassar.";
-		$data["prev"] = base_url("assets/images/flow_icon.jpg");
 		$data["rec"] = $this->fm->web_me();
+		$data["title"] = "Alur Permohonan Kunjungan";
+		$data["deskripsi"] = "Alur permohonan Kunjungan ".$data["rec"]->nama_website." ".$data["rec"]->kabupaten." merupakan rangkaian tahapan yang harus dilalui oleh pemohon untuk mengajukan suatu permohonan kunjungan kepada Lapas Kelas I Makassar.";
+		$data["prev"] = base_url("assets/images/flow_icon.jpg");
+		
 		$this->load->view('hal_view',$data);
 	}
 
@@ -91,7 +93,7 @@ $this->sort_tree_custom($tree); // <-- ganti dari sort_tree_by_name()
     $data = [
         'controller' => get_class($this),
         'deskripsi'  => 'Struktur Organisasi Lapas Kelas I Makassar.',
-        'prev'       => base_url('assets/images/struktur.png'),
+        'prev'       => base_url('assets/images/struktur_organisasi.webp'),
         'title'      => 'Struktur Organisasi',
         'rec'        => $this->fm->web_me(),
         'tree'       => $tree,

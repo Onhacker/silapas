@@ -1,9 +1,7 @@
 // === versi cache (ganti setiap update) ===
-const CACHE_NAME = 'sila-6';
+const CACHE_NAME = 'sila-7';
 const OFFLINE_URL = '/assets/offline.html';
 
-// ====== daftar precache ======
-// (biarkan mp4 TIDAK di-precache saat install; bisa diambil saat runtime)
 const urlsToCache = [
   '/', '/home', '/hal', '/hal/alur', '/hal/kontak', '/hal/struktur', '/hal/privacy_policy',
   '/developer/manifest?v=4',
@@ -28,6 +26,7 @@ const urlsToCache = [
   '/assets/admin/libs/tippy-js/tippy.all.min.js',
   '/assets/admin/libs/jquery-toast/jquery.toast.min.js',
   '/assets/admin/js/sw.min.js',
+  '/assets/admin/js/install.js',
   '/assets/admin/js/aos.min.js',
   '/assets/admin/js/jspdf.umd.min.js',
   '/assets/admin/js/jspdf.plugin.autotable.min.js',
@@ -41,8 +40,6 @@ const urlsToCache = [
   '/assets/admin/chart/exporting.js',
   '/assets/admin/chart/export-data.js',
   '/assets/admin/chart/accessibility.js',
-  // JANGAN precache video besar saat install:
-  // '/assets/admin/images/bg-login.mp4',
 ];
 
 // ===== helper normalisasi key (tanpa query & trailing slash) =====
