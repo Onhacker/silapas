@@ -27,9 +27,9 @@ class Developer extends MX_Controller {
             "start_url" => site_url("/home"),
             "scope"      => "/",
             "display" => "standalone",
-            "display_override" => ["window-controls-overlay", "standalone"],
-            "background_color"=> "#f56042",   
-            "theme_color"=> "#0f172a",        
+            "display": "standalone",
+            "background_color"=> "#ffffff",   
+            "theme_color"=> "#FF8C00",        
             "icons" => [
                 [
                     "src" => site_url("/assets/images/maskable_icon_new.png"),

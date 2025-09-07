@@ -28,7 +28,7 @@
       }
   </script>
   <!-- Light -->
-  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#FF8C00" media="(prefers-color-scheme: light)">
   <!-- Dark -->
   <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
 
