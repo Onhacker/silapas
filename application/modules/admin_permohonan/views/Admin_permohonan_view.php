@@ -21,25 +21,25 @@
 
           <form id="form-filter" onsubmit="return false;" autocomplete="off">
             <div class="form-row">
-              <div class="col-md-3 mb-2">
+              <div class="col-md-2 mb-2">
                 <label class="small mb-1" for="tanggal_mulai">Tanggal Mulai</label>
                 <input type="date" id="tanggal_mulai" name="tanggal_mulai" class="form-control">
               </div>
-              <div class="col-md-3 mb-2">
+              <div class="col-md-2 mb-2">
                 <label class="small mb-1" for="tanggal_selesai">Tanggal Selesai</label>
                 <input type="date" id="tanggal_selesai" name="tanggal_selesai" class="form-control">
               </div>
-              <div class="col-md-3 mb-2">
+              <div class="col-md-2 mb-2">
                 <label class="small mb-1" for="unit_tujuan">Unit Tujuan</label>
                 <?php echo form_dropdown('unit_tujuan', $arr_units, '', 'id="unit_tujuan" class="form-control select2"'); ?>
               </div>
-              <div class="col-md-3 mb-2">
+              <div class="col-md-4 mb-2">
                 <label class="small mb-1" for="form_asal">Form Asal</label>
                 <input type="text" id="form_asal" name="form_asal" class="form-control" placeholder="Nama tamu / Instansi">
               </div>
 
-              <div class="col-md-3 mb-2">
-                <div class="form-group mb-3">
+              <div class="col-md-2">
+                <div class="form-group">
                   <label class="small mb-1" for="filter_status">Status</label>
                   <select id="filter_status" name="status" class="form-control">
                     <option value="">== Semua Status ==</option>
@@ -52,7 +52,7 @@
                 </div>
               </div>
 
-              <div class="col-md-9 mb-2 text-right">
+              <div class="col-md-12 mb-2 text-right">
                 <button type="button" id="btn-filter" class="btn btn-primary btn-sm mr-1">
                   <i class="fa fa-search"></i> Tampilkan
                 </button>
@@ -174,3 +174,38 @@ $(function(){
   });
 });
 </script>
+<script>
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('.btn-copy-kode');
+  if (!btn) return;
+
+  const text = btn.getAttribute('data-kode') || '';
+  if (!text) return;
+
+  const ok = (t) => {
+    if (window.Swal) {
+      Swal.fire({toast:true, position:'center', icon:'success', title:'Kode disalin', timer:1500, showConfirmButton:false});
+    }
+  };
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(ok).catch(fallback);
+  } else {
+    fallback();
+  }
+
+  function fallback(){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly','');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch(e){}
+    document.body.removeChild(ta);
+    ok();
+  }
+});
+</script>
+

@@ -74,250 +74,245 @@ class Booking extends MX_Controller {
     /** =========================
      *  SUBMIT BOOKING (AJAX)
      *  ========================= */
-    public function add(){
-        $data = $this->input->post(NULL, TRUE);
-        $this->load->library('form_validation');
+    public function add()
+        {
+            $data = $this->input->post(NULL, TRUE);
+            $this->load->library('form_validation');
 
-        // >>> PENTING: inisialisasi variabel upload agar selalu ada
-        $surat_tugas = null;
-        $foto        = null;
+            // -- inisialisasi supaya selalu ada
+            $surat_tugas = null;
+            $foto        = null;
 
-        $this->_set_rules();
-        if ($this->form_validation->run() == FALSE) {
-            return $this->output->set_content_type('application/json')
-                ->set_output(json_encode([
-                    "success"=>false,"title"=>"Validasi Gagal","pesan"=>validation_errors()
-                ]));
-        }
-
-        // 1) Validasi tanggal & jam
-        [$ok, $tanggal, $jam, $err] = $this->_validate_jadwal($data['tanggal'], $data['jam']);
-        if (!$ok) {
-            return $this->output->set_content_type('application/json')
-                ->set_output(json_encode(["success"=>false,"title"=>"Validasi Gagal","pesan"=>$err]));
-        }
-
-        // 2) Pendamping vs unit_tujuan (cek batas di tabel unit)
-        $unit_id    = (int)$data['unit_tujuan'];
-        $dimintaRaw = $this->input->post('jumlah_pendamping', true);
-        $diminta    = ($dimintaRaw === '' || $dimintaRaw === null) ? 0 : (int)$dimintaRaw;
-
-        [$ok, $unit_nama, $err] = $this->_validate_pendamping($unit_id, $diminta);
-        if (!$ok) {
-            return $this->output->set_content_type('application/json')
-                ->set_output(json_encode(["success"=>false,"title"=>"Melebihi Batas Pendamping","pesan"=>$err]));
-        }
-
-        // 3) Instansi asal (kategori + instansi_id ATAU manual 'lainnya')
-        $kategori   = strtolower((string)$this->input->post('kategori', true));
-        $instansiId = (int)$this->input->post('instansi_id', true);
-        if ($kategori === 'lainnya') {
-            $instansiNama = trim((string)$this->input->post('target_instansi_nama', true));
-            if ($instansiNama === '' || mb_strlen($instansiNama) < 3) {
+            $this->_set_rules();
+            if ($this->form_validation->run() === FALSE) {
                 return $this->output->set_content_type('application/json')
-                    ->set_output(json_encode(["success"=>false,"title"=>"Validasi Gagal","pesan"=>"Nama instansi wajib diisi (minimal 3 karakter) saat memilih kategori Lainnya."]));
+                    ->set_output(json_encode([
+                        "success"=>false, "title"=>"Validasi Gagal", "pesan"=>validation_errors()
+                    ]));
             }
-            $instansiId = null; // abaikan id saat 'lainnya'
-        } else {
-            [$ok, $instansiNama, $err] = $this->_resolve_instansi_asal($kategori, $instansiId);
+
+            // 1) Validasi tanggal & jam
+            [$ok, $tanggal, $jam, $err] = $this->_validate_jadwal($data['tanggal'], $data['jam']);
             if (!$ok) {
                 return $this->output->set_content_type('application/json')
                     ->set_output(json_encode(["success"=>false,"title"=>"Validasi Gagal","pesan"=>$err]));
             }
-        }
 
-        // 4) Kode & token
-        $kode_booking = $this->_make_kode_booking();
-        $access_token = bin2hex(random_bytes(24));
+            // 2) Cek batas pendamping per unit
+            $unit_id    = (int)$data['unit_tujuan'];
+            $dimintaRaw = $this->input->post('jumlah_pendamping', true);
+            $diminta    = ($dimintaRaw === '' || $dimintaRaw === null) ? 0 : (int)$dimintaRaw;
 
-        // 5) Upload opsional (jangan gagal kalau user tidak pilih file)
-        $no_file = function(string $field){
-            return empty($_FILES[$field]) ||
-                (isset($_FILES[$field]['error']) && $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) ||
-                (isset($_FILES[$field]['name']) && $_FILES[$field]['name'] === '');
-        };
-
-        if (!$no_file('surat_tugas')) {
-            $tmp = $this->_upload('surat_tugas', './uploads/surat_tugas/', 'pdf|jpg|jpeg|png', 2048, 'surat_tugas');
-            if ($tmp === null) {
-                $msg = $this->get_last_upload_error();
-                if ($msg && stripos($msg, 'did not select a file') === false) {
-                    return $this->output->set_content_type('application/json')
-                        ->set_output(json_encode([
-                            "success"=>false,"title"=>"Upload Gagal",
-                            "pesan"=>$msg ?: "Surat tugas melebihi batas ukuran (2MB)."
-                        ]));
-                }
-            } else {
-                $surat_tugas = $tmp;
+            [$ok, $unit_nama, $err] = $this->_validate_pendamping($unit_id, $diminta);
+            if (!$ok) {
+                return $this->output->set_content_type('application/json')
+                    ->set_output(json_encode(["success"=>false,"title"=>"Melebihi Batas Pendamping","pesan"=>$err]));
             }
-        }
 
-        if (!$no_file('foto')) {
-            $tmp = $this->_upload('foto', './uploads/foto/', 'jpg|jpeg|png', 1536, 'foto');
-            if ($tmp === null) {
-                $msg = $this->get_last_upload_error();
-                if ($msg && stripos($msg, 'did not select a file') === false) {
+            // 3) Instansi asal
+            $kategori   = strtolower((string)$this->input->post('kategori', true));
+            $instansiId = (int)$this->input->post('instansi_id', true);
+            if ($kategori === 'lainnya') {
+                $instansiNama = trim((string)$this->input->post('target_instansi_nama', true));
+                if ($instansiNama === '' || mb_strlen($instansiNama) < 3) {
                     return $this->output->set_content_type('application/json')
-                        ->set_output(json_encode([
-                            "success"=>false,"title"=>"Upload Gagal",
-                            "pesan"=>$msg ?: "Foto melebihi batas ukuran (1.5MB)."
-                        ]));
+                        ->set_output(json_encode(["success"=>false,"title"=>"Validasi Gagal","pesan"=>"Nama instansi (Lainnya) minimal 3 karakter."]));
                 }
+                $instansiId = null;
             } else {
-                $foto = $tmp;
+                [$ok, $instansiNama, $err] = $this->_resolve_instansi_asal($kategori, $instansiId);
+                if (!$ok) {
+                    return $this->output->set_content_type('application/json')
+                        ->set_output(json_encode(["success"=>false,"title"=>"Validasi Gagal","pesan"=>$err]));
+                }
             }
-        }
 
-        // 5.x) petugas instansi default dari unit_tujuan (opsional)
-        $nama_petugas_instansi = null;
-        $unit = $this->db->select('nama_pejabat, nama_unit')
-            ->from('unit_tujuan')->where('id', $unit_id)->limit(1)->get()->row();
-        if ($unit) {
-            $nama_petugas_instansi = !empty($unit->nama_pejabat) ? trim($unit->nama_pejabat) : null;
-        }
+            // 4) Token akses
+            $access_token = bin2hex(random_bytes(24));
 
-        // ------- PENDAMPING -------
-        $pendampingRows  = [];
-        $pendamping_json = $this->input->post('pendamping_json', true);
-        $nik_tamu        = preg_replace('/\D+/', '', (string)$this->input->post('nik', true));
+            // 5) Upload opsional
+            $no_file = function(string $field){
+                return empty($_FILES[$field]) ||
+                       (isset($_FILES[$field]['error']) && $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) ||
+                       (isset($_FILES[$field]['name']) && $_FILES[$field]['name'] === '');
+            };
 
-        if ($pendamping_json !== null && $pendamping_json !== '') {
-            $arr = json_decode($pendamping_json, true);
-            if (!is_array($arr)) {
+            if (!$no_file('surat_tugas')) {
+                $tmp = $this->_upload('surat_tugas', './uploads/surat_tugas/', 'pdf|jpg|jpeg|png', 2048, 'surat_tugas');
+                if ($tmp === null) {
+                    $msg = $this->get_last_upload_error();
+                    if ($msg && stripos($msg, 'did not select a file') === false) {
+                        return $this->output->set_content_type('application/json')
+                            ->set_output(json_encode(["success"=>false,"title"=>"Upload Gagal","pesan"=>$msg ?: "Surat tugas melebihi 2MB."]));
+                    }
+                } else { $surat_tugas = $tmp; }
+            }
+
+            if (!$no_file('foto')) {
+                $tmp = $this->_upload('foto', './uploads/foto/', 'jpg|jpeg|png', 1536, 'foto');
+                if ($tmp === null) {
+                    $msg = $this->get_last_upload_error();
+                    if ($msg && stripos($msg, 'did not select a file') === false) {
+                        return $this->output->set_content_type('application/json')
+                            ->set_output(json_encode(["success"=>false,"title"=>"Upload Gagal","pesan"=>$msg ?: "Foto melebihi 1.5MB."]));
+                    }
+                } else { $foto = $tmp; }
+            }
+
+            // 5.x) default nama petugas instansi dari unit_tujuan
+            $nama_petugas_instansi = null;
+            $unit = $this->db->select('nama_pejabat, nama_unit')
+                             ->from('unit_tujuan')->where('id', $unit_id)->limit(1)->get()->row();
+            if ($unit && !empty($unit->nama_pejabat)) $nama_petugas_instansi = trim($unit->nama_pejabat);
+
+            // ------- DATA PENDAMPING (validasi JSON) -------
+            $pendampingRows  = [];
+            $pendamping_json = $this->input->post('pendamping_json', true);
+            $nik_tamu        = preg_replace('/\D+/', '', (string)$this->input->post('nik', true));
+
+            if ($pendamping_json !== null && $pendamping_json !== '') {
+                $arr = json_decode($pendamping_json, true);
+                if (!is_array($arr)) {
+                    return $this->output->set_content_type('application/json')
+                        ->set_output(json_encode(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"Format data pendamping tidak valid."]));
+                }
+                $seen = [];
+                foreach ($arr as $i => $p) {
+                    $nik  = preg_replace('/\D+/', '', (string)($p['nik'] ?? ''));
+                    $nama = trim((string)($p['nama'] ?? ''));
+                    if ($nik === '' && $nama === '') continue;
+
+                    if (!preg_match('/^\d{16}$/', $nik)) {
+                        return $this->output->set_content_type('application/json')
+                            ->set_output(json_encode(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"NIK pendamping #".($i+1)." harus 16 digit."]));
+                    }
+                    if ($nama === '') {
+                        return $this->output->set_content_type('application/json')
+                            ->set_output(json_encode(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"Nama pendamping #".($i+1)." wajib diisi."]));
+                    }
+                    if ($nik === $nik_tamu) {
+                        return $this->output->set_content_type('application/json')
+                            ->set_output(json_encode(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"NIK pendamping #".($i+1)." tidak boleh sama dengan NIK tamu."]));
+                    }
+                    if (isset($seen[$nik])) {
+                        return $this->output->set_content_type('application/json')
+                            ->set_output(json_encode(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"NIK pendamping #".($i+1)." duplikat."]));
+                    }
+                    $seen[$nik] = true;
+                    $pendampingRows[] = ['nik'=>$nik,'nama'=>$nama]; // kode_booking diisi saat insert
+                }
+            }
+            if ($diminta > 0 && count($pendampingRows) !== $diminta) {
                 return $this->output->set_content_type('application/json')
                     ->set_output(json_encode([
                         "success"=>false,"title"=>"Validasi Pendamping",
-                        "pesan"=>"Format data pendamping tidak valid."
+                        "pesan"=>"Jumlah pendamping yang diisi (".count($pendampingRows).") tidak sama dengan jumlah pendamping ($diminta)."
                     ]));
             }
-            $seen = [];
-            foreach ($arr as $i => $p) {
-                $nik  = preg_replace('/\D+/', '', (string)($p['nik'] ?? ''));
-                $nama = trim((string)($p['nama'] ?? ''));
-                if ($nik === '' && $nama === '') continue;
+            // ------- END PENDAMPING -------
 
-                if (!preg_match('/^\d{16}$/', $nik)) {
+            // ===== INSERT dengan proteksi duplikasi kode_booking =====
+            $insert_base = [
+                "nama_tamu"             => $data['nama_tamu'],
+                "jabatan"               => $data['jabatan'],
+                "nik"                   => $data['nik'],
+                "no_hp"                 => $data['no_hp'],
+                "instansi"              => $data['instansi'] ?? null,
+                "unit_tujuan"           => $unit_id,
+                "target_kategori"       => $kategori,
+                "target_instansi_id"    => $instansiId,
+                "target_instansi_nama"  => $instansiNama,
+                "nama_petugas_instansi" => $nama_petugas_instansi,
+                "keperluan"             => $data['keperluan'] ?? null,
+                "surat_tugas"           => $surat_tugas,
+                "jumlah_pendamping"     => $diminta,
+                "tanggal"               => $tanggal,
+                "jam"                   => $jam,
+                "foto"                  => $foto,
+                "tanggal_lahir"         => $this->normalize_date_mysql($data['tanggal_lahir'] ?? ''),
+                "tempat_lahir"          => $data["tempat_lahir"] ?? null,
+                "alamat"                => $data["alamat"] ?? null,
+                "status"                => "approved",
+                "access_token"          => $access_token,
+                "token_issued_at"       => date('Y-m-d H:i:s'),
+                "token_revoked"         => 0
+            ];
+
+            $MAX_TRY = 7;
+            $lastErr = null;
+            for ($try=1; $try<=$MAX_TRY; $try++) {
+
+                $kode_booking = $this->_make_kode_booking(); // pastikan ada UNIQUE index di kolom ini
+                $insert = $insert_base;
+                $insert["kode_booking"] = $kode_booking;
+
+                $this->db->trans_begin();
+
+                $okMain = $this->db->insert("booking_tamu", $insert);
+                if (!$okMain) {
+                    $err = $this->db->error(); // ['code'=>..., 'message'=>...]
+                    $this->db->trans_rollback();
+
+                    // 1062 → duplikat kode_booking → ulangi generate
+                    if ((int)$err['code'] === 1062 && stripos($err['message'], 'kode_booking') !== false) {
+                        $lastErr = $err;
+                        continue;
+                    }
+
+                    // error lain → stop
                     return $this->output->set_content_type('application/json')
                         ->set_output(json_encode([
-                            "success"=>false,"title"=>"Validasi Pendamping",
-                            "pesan"=>"NIK pendamping #".($i+1)." harus 16 digit."
+                            "success"=>false,"title"=>"Gagal Menyimpan",
+                            "pesan"=>"Terjadi kendala saat menyimpan data booking. [DB-{$err['code']}]"
                         ]));
                 }
-                if ($nama === '') {
-                    return $this->output->set_content_type('application/json')
-                        ->set_output(json_encode([
-                            "success"=>false,"title"=>"Validasi Pendamping",
-                            "pesan"=>"Nama pendamping #".($i+1)." wajib diisi."
-                        ]));
+
+                // Insert pendamping (jika ada)
+                if (!empty($pendampingRows)) {
+                    $values = [];
+                    foreach ($pendampingRows as $r) {
+                        $values[] = $this->db->escape($kode_booking).','.$this->db->escape($r['nik']).','.$this->db->escape($r['nama']);
+                    }
+                    $sql = "INSERT INTO booking_pendamping (kode_booking, nik, nama) VALUES ".
+                           '('.implode('),(', $values).') '.
+                           "ON DUPLICATE KEY UPDATE nama = VALUES(nama)";
+                    $okPend = $this->db->query($sql);
+                    if (!$okPend) {
+                        $err = $this->db->error();
+                        $this->db->trans_rollback();
+                        return $this->output->set_content_type('application/json')
+                            ->set_output(json_encode([
+                                "success"=>false,"title"=>"Gagal Menyimpan Pendamping",
+                                "pesan"=>"Silakan ulangi pengisian pendamping. [DB-{$err['code']}]"
+                            ]));
+                    }
                 }
-                if ($nik === $nik_tamu) {
-                    return $this->output->set_content_type('application/json')
-                        ->set_output(json_encode([
-                            "success"=>false,"title"=>"Validasi Pendamping",
-                            "pesan"=>"NIK pendamping #".($i+1)." tidak boleh sama dengan NIK tamu."
-                        ]));
-                }
-                if (isset($seen[$nik])) {
-                    return $this->output->set_content_type('application/json')
-                        ->set_output(json_encode([
-                            "success"=>false,"title"=>"Validasi Pendamping",
-                            "pesan"=>"NIK pendamping #".($i+1)." duplikat."
-                        ]));
-                }
-                $seen[$nik] = true;
-                $pendampingRows[] = [
-                    'kode_booking' => $kode_booking,
-                    'nik'          => $nik,
-                    'nama'         => $nama
-                ];
-            }
-        }
 
-        if ($diminta > 0 && count($pendampingRows) !== $diminta) {
-            return $this->output->set_content_type('application/json')
-                ->set_output(json_encode([
-                    "success"=>false,"title"=>"Validasi Pendamping",
-                    "pesan"=>"Jumlah pendamping yang diisi (".count($pendampingRows).") tidak sama dengan jumlah pendamping ($diminta)."
-                ]));
-        }
-        // ------- END PENDAMPING -------
+                $this->db->trans_commit();
 
-        // 6) INSERT (transaksi)
-        $this->db->trans_begin();
+                // Berhasil!
+                $qr_url       = $this->_make_qr($kode_booking);
+                $redirect_url = site_url('booking/booked?t='.urlencode($access_token));
 
-        $insert = [
-            "kode_booking"          => $kode_booking,
-            "nama_tamu"             => $data['nama_tamu'],
-            "jabatan"               => $data['jabatan'],
-            "nik"                   => $data['nik'],
-            "no_hp"                 => $data['no_hp'],
-            "instansi"              => $data['instansi'] ?? null,
-            "unit_tujuan"           => $unit_id,
-            "target_kategori"       => $kategori,
-            "target_instansi_id"    => $instansiId,
-            "nama_petugas_instansi" => $nama_petugas_instansi,
-            "target_instansi_nama"  => $instansiNama,
-            "keperluan"             => $data['keperluan'] ?? null,
-            "surat_tugas"           => $surat_tugas,
-            "jumlah_pendamping"     => $diminta,
-            "tanggal"               => $tanggal,
-            "jam"                   => $jam,
-            "foto"                  => $foto,
-            // $mysqlDate = $this->normalize_date_mysql($posted['tanggal'] ?? '');
-            "tanggal_lahir"         => $this->normalize_date_mysql($data['tanggal_lahir'] ?? ''),
-            "tempat_lahir"         => $data["tempat_lahir"],
-            "alamat"                => $data["alamat"],
-            "status"                => "approved",
-            "access_token"          => $access_token,
-            "token_issued_at"       => date('Y-m-d H:i:s'),
-            "token_revoked"         => 0
-        ];
-        $okInsert = $this->db->insert("booking_tamu", $insert);
-        if (!$okInsert) {
-            $this->db->trans_rollback();
-            return $this->output->set_content_type('application/json')
-                ->set_output(json_encode([
-                    "success"=>false,"title"=>"Gagal Menyimpan","pesan"=>"Terjadi kendala saat menyimpan data booking."
-                ]));
-        }
-
-        // 6b) INSERT pendamping batch (kalau ada)
-        if (!empty($pendampingRows)) {
-            $values = [];
-            foreach ($pendampingRows as $r) {
-                $values[] = $this->db->escape($r['kode_booking']).','.$this->db->escape($r['nik']).','.$this->db->escape($r['nama']);
-            }
-            $sql = "INSERT INTO booking_pendamping (kode_booking, nik, nama) VALUES ".
-                '('.implode('),(', $values).') '.
-                "ON DUPLICATE KEY UPDATE nama = VALUES(nama)";
-            $this->db->query($sql);
-            if ($this->db->affected_rows() < 0) {
-                $this->db->trans_rollback();
                 return $this->output->set_content_type('application/json')
                     ->set_output(json_encode([
-                        "success"=>false,"title"=>"Gagal Menyimpan Pendamping","pesan"=>"Silakan ulangi pengisian pendamping."
-                    ]));
+                        "success"      => true,
+                        "title"        => "Booking Berhasil",
+                        "pesan"        => "Kunjungan berhasil didaftarkan.<br>Kode Booking: <b>".$kode_booking."</b>",
+                        "kode_booking" => $kode_booking,
+                        "qr_url"       => $qr_url,
+                        "redirect_url" => $redirect_url
+                    ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
             }
+
+            // Sampai sini artinya 7x percobaan masih bentrok (hampir mustahil)
+            return $this->output->set_content_type('application/json')
+                ->set_output(json_encode([
+                    "success"=>false,"title"=>"Gagal",
+                    "pesan"=>"Gagal membuat kode booking unik. Silakan coba lagi."
+                ]));
         }
 
-        $this->db->trans_commit();
-
-        // 7) QR + redirect
-        $qr_url       = $this->_make_qr($kode_booking);
-        $redirect_url = site_url('booking/booked?t='.urlencode($access_token));
-
-        // 8) Balas JSON
-        return $this->output->set_content_type('application/json')
-            ->set_output(json_encode([
-                "success"      => true,
-                "title"        => "Booking Berhasil",
-                "pesan"        => "Kunjungan berhasil didaftarkan.<br>Kode Booking: <b>".$kode_booking."</b>",
-                "kode_booking" => $kode_booking,
-                "qr_url"       => $qr_url,
-                "redirect_url" => $redirect_url
-            ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
-    }
 
     /** =========================
      *  API Pendamping (opsional)
@@ -837,26 +832,35 @@ private function normalize_date_mysql(?string $s): ?string {
         ];
     }
 
-    private function _make_kode_booking(int $rand_len = 6): string
+   private function _make_kode_booking(int $len = 6): string
     {
-        $prefix = date('ymd');
-        $rand_digits = function(int $len){
-            $out = '';
-            for ($i=0; $i<$len; $i++) {
-                $out .= (string) random_int(0, 9);
+        // Hindari karakter membingungkan: I, O, 0, 1
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        $alphabetLen = strlen($alphabet);
+
+        $gen = function(int $n) use ($alphabet, $alphabetLen) {
+            $s = '';
+            for ($i = 0; $i < $n; $i++) {
+                $s .= $alphabet[random_int(0, $alphabetLen - 1)];
             }
-            return $out;
+            return $s;
         };
-        for ($try=0; $try<10; $try++) {
-            $code = $prefix . $rand_digits($rand_len);
+
+        // Coba beberapa kali sampai dapat yang unik
+        for ($try = 0; $try < 20; $try++) {
+            $code = $gen($len);
             $exists = $this->db->select('1', false)
                 ->from('booking_tamu')
                 ->where('kode_booking', $code)
                 ->limit(1)->get()->num_rows() > 0;
+
             if (!$exists) return $code;
         }
-        return $prefix . $rand_digits($rand_len + 3);
+
+        // Fallback: panjang +2 jika (sangat jarang) semua bentrok
+        return $gen($len + 2);
     }
+
 
     public function get_last_upload_error() {
         return $this->last_upload_error;
@@ -931,46 +935,109 @@ private function normalize_date_mysql(?string $s): ?string {
         if ($with_logo) {
             $logo_path = FCPATH.'assets/images/logo.png';
             if (is_file($logo_path)) {
+        // false = overwrite file QR asli, true = simpan file baru dengan sufiks
                 $this->_qr_overlay_logo($dir.$file, $logo_path, 0.22, false);
             }
         }
+
         return base_url('uploads/qr/'.$file);
     }
 
-    private function _qr_overlay_logo($qrPath, $logoPath, $scale = 0.22, $unused = false)
+    /**
+     * Tempelkan logo ke tengah QR code.
+     *
+     * @param string  $qr_path      Path file QR (png/jpg)
+     * @param string  $logo_path    Path file logo (png/jpg, png transparan didukung)
+     * @param float   $scale        Skala lebar logo relatif lebar QR (0.10–0.35 disarankan)
+     * @param bool    $save_as_new  true = simpan ke file baru (pakai suffix), false = overwrite
+     * @param string  $suffix       Sufiks nama file baru jika $save_as_new = true (mis. _logo)
+     * @return string|false         Path output bila sukses, false bila gagal
+     */
+    private function _qr_overlay_logo($qr_path, $logo_path, $scale = 0.22, $save_as_new = false, $suffix = '_logo')
     {
-        if (!extension_loaded('gd')) { log_message('error','GD tidak aktif'); return; }
+        try {
+            if (!is_file($qr_path) || !is_file($logo_path)) {
+                log_message('error', 'QR/Logo path tidak ditemukan.');
+                return false;
+            }
 
-        $qr = @imagecreatefrompng($qrPath);
-        if (!$qr) { log_message('error','Gagal buka QR'); return; }
-        imagealphablending($qr, true); imagesavealpha($qr, true);
-        $qrW = imagesx($qr); $qrH = imagesy($qr);
+            // --- helper buat image dari file (png/jpg) ---
+            $makeImg = function($path) {
+                $info = getimagesize($path);
+                if (!$info) return [null, null];
+                switch ($info[2]) {
+                    case IMAGETYPE_PNG:  $img = imagecreatefrompng($path);  $ext = 'png';  break;
+                    case IMAGETYPE_JPEG: $img = imagecreatefromjpeg($path); $ext = 'jpg';  break;
+                    default: return [null, null];
+                }
+                return [$img, $ext];
+            };
 
-        $ext = strtolower(pathinfo($logoPath, PATHINFO_EXTENSION));
-        $logo = ($ext === 'png') ? @imagecreatefrompng($logoPath)
-               : (($ext==='jpg'||$ext==='jpeg') ? @imagecreatefromjpeg($logoPath) : null);
-        if (!$logo) { imagedestroy($qr); log_message('error','Gagal buka logo'); return; }
-        imagealphablending($logo, true); imagesavealpha($logo, true);
+            list($qr,   $qrExt)   = $makeImg($qr_path);
+            list($logo, $logoExt) = $makeImg($logo_path);
+            if (!$qr || !$logo) {
+                log_message('error', 'Gagal membaca gambar (format harus PNG/JPG).');
+                return false;
+            }
 
-        $logoW = imagesx($logo); $logoH = imagesy($logo);
-        $targetW = max(20, (int)round($qrW * $scale));
-        $ratio = $targetW / $logoW;
-        $targetH = (int)round($logoH * $ratio);
+            // pastikan canvas truecolor + alpha untuk PNG
+            imagealphablending($qr, true);
+            imagesavealpha($qr, true);
+            imagealphablending($logo, true);
+            imagesavealpha($logo, true);
 
-        $logoResized = imagecreatetruecolor($targetW, $targetH);
-        imagealphablending($logoResized, false);
-        $transparent = imagecolorallocatealpha($logoResized, 0, 0, 0, 127);
-        imagefilledrectangle($logoResized, 0, 0, $targetW, $targetH, $transparent);
-        imagesavealpha($logoResized, true);
-        imagecopyresampled($logoResized, $logo, 0, 0, 0, 0, $targetW, $targetH, $logoW, $logoH);
+            $qr_w = imagesx($qr);  $qr_h = imagesy($qr);
+            $lg_w = imagesx($logo);$lg_h = imagesy($logo);
 
-        $dstX = (int)round(($qrW - $targetW) / 2);
-        $dstY = (int)round(($qrH - $targetH) / 2);
-        imagecopy($qr, $logoResized, $dstX, $dstY, 0, 0, $targetW, $targetH);
+            // clamp scale
+            $scale = max(0.10, min(0.35, (float)$scale));
 
-        imagepng($qr, $qrPath, 6);
-        imagedestroy($logoResized); imagedestroy($logo); imagedestroy($qr);
+            // ukuran logo target (proporsional)
+            $target_w = (int) round($qr_w * $scale);
+            $target_h = (int) round($lg_h * ($target_w / max(1, $lg_w)));
+
+            // posisi tengah
+            $dst_x = (int) round(($qr_w - $target_w) / 2);
+            $dst_y = (int) round(($qr_h - $target_h) / 2);
+
+            // resize logo ke buffer agar hasil tajam
+            $logo_resized = imagecreatetruecolor($target_w, $target_h);
+            // jaga transparansi
+            imagealphablending($logo_resized, false);
+            imagesavealpha($logo_resized, true);
+            $transparent = imagecolorallocatealpha($logo_resized, 0, 0, 0, 127);
+            imagefilledrectangle($logo_resized, 0, 0, $target_w, $target_h, $transparent);
+
+            imagecopyresampled($logo_resized, $logo, 0, 0, 0, 0, $target_w, $target_h, $lg_w, $lg_h);
+
+            // tempel ke QR
+            imagecopy($qr, $logo_resized, $dst_x, $dst_y, 0, 0, $target_w, $target_h);
+
+            // tentukan output path
+            if ($save_as_new) {
+                $pi = pathinfo($qr_path);
+                $out = $pi['dirname'].'/'.$pi['filename'].$suffix.'.png'; // output sebagai PNG
+            } else {
+                $out = $qr_path; // timpa file asli
+            }
+
+            // simpan PNG dengan kualitas baik (0-9 → 6 kompromi)
+            $ok = imagepng($qr, $out, 6);
+            imagedestroy($qr);
+            imagedestroy($logo);
+            imagedestroy($logo_resized);
+
+            if (!$ok) {
+                log_message('error', 'Gagal menyimpan QR hasil overlay.');
+                return false;
+            }
+            return $out;
+        } catch (Throwable $e) {
+            log_message('error', 'QR overlay error: '.$e->getMessage());
+            return false;
+        }
     }
+
 
     public function contact_vcf()
     {

@@ -104,7 +104,16 @@
               <i class="mdi mdi-close"></i>
             </button>
           </div>
-
+          <div class="form-inline mb-2">
+              <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" id="modeCheckin" name="scanMode" value="checkin" class="custom-control-input" checked>
+                <label class="custom-control-label" for="modeCheckin">Check-in</label>
+              </div>
+              <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" id="modeCheckout" name="scanMode" value="checkout" class="custom-control-input">
+                <label class="custom-control-label" for="modeCheckout">Checkout</label>
+              </div>
+            </div>
           <div class="d-flex flex-wrap align-items-center" style="gap:.5rem;">
             <select id="cameraSelect" class="form-control" style="max-width:320px"></select>
 
@@ -130,17 +139,22 @@
             </button>
 
             <!-- Mode Scan (radio) -->
-            <div class="form-inline ml-sm-2">
-              <div class="custom-control custom-radio custom-control-inline">
-                <input type="radio" id="modeCheckin" name="scanMode" value="checkin" class="custom-control-input" checked>
-                <label class="custom-control-label" for="modeCheckin">Check-in</label>
-              </div>
-              <div class="custom-control custom-radio custom-control-inline">
-                <input type="radio" id="modeCheckout" name="scanMode" value="checkout" class="custom-control-input">
-                <label class="custom-control-label" for="modeCheckout">Checkout</label>
-              </div>
+            
+          </div>
+           <!-- <div class="card shadow-sm mt-3"> -->
+        <!-- <div class="card-body"> -->
+          <h6 class="mb-2"><i class="mdi mdi-keyboard-outline"></i> Input Manual / Barcode Gun</h6>
+          <div class="input-group">
+            <input type="text" id="kodeManual" class="form-control" placeholder="Tempel atau ketik kode booking lalu Enter">
+            <div class="input-group-append">
+              <button class="btn btn-outline-primary" id="btnManual">Kirim</button>
             </div>
           </div>
+          <small class="text-muted d-block mt-1">
+            Format harus sama dengan pada QR (contoh: <em>20250827-U1-opd-12-123</em>).
+          </small>
+        <!-- </div> -->
+      <!-- </div> -->
 
           <small class="text-muted d-block mt-2">
             Tips: akses via HTTPS/localhost, gunakan kamera belakang untuk akurasi & senter, double-click video / tekan <b>F</b> untuk toggle layar penuh.
@@ -165,20 +179,7 @@
       </div>
 
       <!-- Fallback manual / barcode gun -->
-      <div class="card shadow-sm mt-3">
-        <div class="card-body">
-          <h6 class="mb-2"><i class="mdi mdi-keyboard-outline"></i> Input Manual / Barcode Gun</h6>
-          <div class="input-group">
-            <input type="text" id="kodeManual" class="form-control" placeholder="Tempel atau ketik kode booking lalu Enter">
-            <div class="input-group-append">
-              <button class="btn btn-outline-primary" id="btnManual">Kirim</button>
-            </div>
-          </div>
-          <small class="text-muted d-block mt-1">
-            Format harus sama dengan pada QR (contoh: <em>20250827-U1-opd-12-123</em>).
-          </small>
-        </div>
-      </div>
+     
     </div>
   </div>
 </div>
@@ -534,21 +535,24 @@ function sfx(kind){
         `;
 
         Swal.fire({
-          icon,
-          title: isCheckout ? 'Checkout Berhasil' : 'Check-in Berhasil',
-          html,
-          showCancelButton: true,
-          confirmButtonText: (j.detail_url ? 'Buka Detail Booking' : 'Tutup'),
-          cancelButtonText: 'Scan lagi',
-          reverseButtons: true,
-          allowOutsideClick: false
-        }).then((res)=>{
-          if (res.isConfirmed && j.detail_url){
-            window.open(j.detail_url, '_blank', 'noopener');
-          }
-          // lanjut scan lagi
-          startScan(sel.value || null);
-        });
+            icon,
+            title: isCheckout ? 'Checkout Berhasil' : 'Check-in Berhasil',
+            html,
+            showCancelButton: true,
+            confirmButtonText: (j.detail_url ? 'Buka Detail Booking' : 'Tutup'),
+            cancelButtonText: 'Scan lagi',
+            reverseButtons: true,
+            allowOutsideClick: false
+          }).then((res) => {
+            if (res.isConfirmed && j.detail_url) {
+              // buka di tab yang sama (tanpa _blank)
+              window.location.href = j.detail_url; // atau: location.assign(j.detail_url)
+              return; // hentikan agar tidak lanjut startScan()
+            }
+            // lanjut scan lagi
+            startScan(sel.value || null);
+          });
+
 
       } else {
         sfx('error');

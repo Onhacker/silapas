@@ -24,7 +24,7 @@ class Admin_permohonan extends Admin_Controller {
         }
 
         $data['controller'] = get_class($this);
-        $data['title']      = "Monitoring Booking Tamu";
+        $data['title']      = "Data Booking Tamu";
         $data['subtitle']   = "Semua Booking";
         $data['deskripsi']  = "Data seluruh booking kunjungan tamu";
 
@@ -65,21 +65,32 @@ class Admin_permohonan extends Admin_Controller {
         $asal = $row->asal ?: '-'; // dari COALESCE(target_instansi_nama, instansi)
         $unit = $row->unit_tujuan_nama ?: '-';
 
-        $data[] = [
-            'no'   => $start,
-            'kode' => '<a href="'.site_url('admin_permohonan/detail/'.rawurlencode($row->kode_booking)).'" '.
-                      'class="badge badge-info" title="Lihat detail">'.
-                      htmlspecialchars($row->kode_booking).'</a>',
-            'tgljam' => hari_ini($row->tanggal).",".htmlspecialchars(tgl_view($row->tanggal)).' '.$row->jam,
-            'tamu'   => '<b>'.htmlspecialchars($row->nama_tamu).'</b>'.
-                        '<div class="text-muted small">'.htmlspecialchars($row->jabatan ?: '-').'</div>',
-            'asal'   => htmlspecialchars($asal),
-            'instansi' => '<b>'.htmlspecialchars($unit).'</b>'.
-                          ( !empty($row->nama_petugas_instansi)
-                              ? '<div class="small text-muted">'.htmlspecialchars($row->nama_petugas_instansi).'</div>'
-                              : '' ),
-            'status' => $badge
-        ];
+        $kode    = (string)$row->kode_booking;
+$kodeEsc = htmlspecialchars($kode, ENT_QUOTES, 'UTF-8');
+
+            $kodeHtml =
+              '<a href="'.site_url('admin_permohonan/detail/'.rawurlencode($kode)).'" '.
+              'class="badge badge-info" title="Lihat detail">'.
+              $kodeEsc.'</a>'.
+              ' <button type="button" class="btn text-muted btn-copy-kode" '.
+              'data-kode="'.$kodeEsc.'" title="Salin kode" aria-label="Salin kode">'.
+              '<i class="fe-copy"></i></button>';
+
+            $data[] = [
+              'no'      => $start,
+              'kode'    => $kodeHtml,
+              'tgljam'  => hari_ini($row->tanggal).", ".htmlspecialchars(tgl_view($row->tanggal)).' '.$row->jam,
+              'tamu'    => '<b>'.htmlspecialchars($row->nama_tamu).'</b>'.
+                           '<div class="text-muted small">'.htmlspecialchars($row->jabatan ?: '-').'</div>',
+              'asal'    => htmlspecialchars($asal),
+              'instansi'=> '<b>'.htmlspecialchars($unit).'</b>'.
+                           (!empty($row->nama_petugas_instansi)
+                               ? '<div class="small text-muted">'.htmlspecialchars($row->nama_petugas_instansi).'</div>'
+                               : ''),
+              'status'  => $badge
+            ];
+
+
     }
 
     $output = [

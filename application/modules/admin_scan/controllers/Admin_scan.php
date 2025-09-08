@@ -186,24 +186,36 @@ class Admin_scan extends Admin_Controller {
     }
 
     // Proses check-in baru
-    $now = date('Y-m-d H:i:s');
-    $this->db->where('kode_booking', $kode)->update('booking_tamu', [
-        'checkin_at'       => $now,
-        'status'           => 'checked_in',
-        'petugas_checkin'  => $petugas ?: null,
-    ]);
+        $ts = time(); // timestamp sekarang
 
-    return $this->json_exit([
-        "ok"=>true, "msg"=>"Check-in berhasil",
-        "detail_url"=>$detail_url,
-        "data"=>[
-            "kode"             => $row['kode_booking'],
-            "nama"             => $row['nama_tamu'],
-            "checkin_at"       => $now,
-            "status"           => "checked_in",
-            "petugas_checkin"  => $petugas ?: null,
-        ]
-    ], 200);
+        $hari_id = [
+          'Sun'=>'Minggu','Mon'=>'Senin','Tue'=>'Selasa',
+          'Wed'=>'Rabu','Thu'=>'Kamis','Fri'=>'Jumat','Sat'=>'Sabtu'
+        ];
+
+        $now_db    = date('Y-m-d H:i:s', $ts); // untuk DB
+        $now_label = date('H:i:s', $ts).' '.($hari_id[date('D',$ts)] ?? date('D',$ts)).', '.date('d-m-Y', $ts);
+
+        $this->db->where('kode_booking', $kode)->update('booking_tamu', [
+          'checkin_at'      => $now_db,
+          'status'          => 'checked_in',
+          'petugas_checkin' => $petugas ?: null,
+        ]);
+
+        return $this->json_exit([
+          "ok"        => true,
+          "msg"       => "Check-in berhasil",
+          "detail_url"=> $detail_url,
+          "data"      => [
+            "kode"            => $row['kode_booking'],
+            "nama"            => $row['nama_tamu'],
+            "checkin_at"      => $now_label,     // label untuk tampilan (dengan detik)
+            // "checkin_at_raw"=> $now_db,       // <-- opsional kalau mau kirim juga format DB
+            "status"          => "checked_in",
+            "petugas_checkin" => $petugas ?: null,
+          ]
+        ], 200);
+
 }
 
 
@@ -247,25 +259,38 @@ public function checkout_api(){
     }
 
     // Proses checkout baru
-    $now = date('Y-m-d H:i:s');
+    $ts = time();
+
+    $hari_id = [
+      'Sun'=>'Minggu','Mon'=>'Senin','Tue'=>'Selasa',
+      'Wed'=>'Rabu','Thu'=>'Kamis','Fri'=>'Jumat','Sat'=>'Sabtu'
+  ];
+
+    $now_db    = date('Y-m-d H:i:s', $ts); // simpan ke DB
+    $now_label = date('H:i:s', $ts).' '.($hari_id[date('D',$ts)] ?? date('D',$ts)).', '.date('d-m-Y', $ts);
+
+        // kalau mau dengan detik: ganti 'H:i' -> 'H:i:s'
+
     $this->db->where('kode_booking', $kode)->update('booking_tamu', [
-        'checkout_at'      => $now,
-        'status'           => 'checked_out',
-        'token_revoked'    => 1,
-        'petugas_checkout' => $petugas, // <— isi petugas
-    ]);
+      'checkout_at'      => $now_db,
+      'status'           => 'checked_out',
+      'token_revoked'    => 1,
+      'petugas_checkout' => $petugas,
+  ]);
 
     return $this->json_exit([
-        "ok"=>true, "msg"=>"Checkout berhasil",
-        "detail_url"=>$detail_url,
-        "data"=>[
-            "kode"              => $row['kode_booking'],
-            "nama"              => $row['nama_tamu'],
-            "checkout_at"       => $now,
-            "status"            => "checked_out",
-            "petugas_checkout"  => $petugas ?: null,
+      "ok" => true,
+      "msg" => "Checkout berhasil",
+      "detail_url" => $detail_url,
+      "data" => [
+        "kode"             => $row['kode_booking'],
+        "nama"             => $row['nama_tamu'],
+            "checkout_at"      => $now_label,   // "HH:ii Hari, dd-mm-yyyy"
+            "status"           => "checked_out",
+            "petugas_checkout" => $petugas ?: null,
         ]
     ], 200);
+
 }
 
 
