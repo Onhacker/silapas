@@ -23,16 +23,16 @@ class Api extends MX_Controller {
     $MENU_DEF = [
         [ 'label'=>'Statistik',  'url'=>site_url('admin_dashboard'),         'icon'=>'fe-activity',
           // boleh pakai beberapa alias require:
-          'require'=>['Statistik','dashboard','admin_dashboard'] ],
-
-        [ 'label'=>'Scan',       'url'=>site_url('admin_scan'),              'icon'=>'mdi mdi-qrcode-scan',
-          'require'=>['Scan QR','scan','admin_scan'] ],
+        'require'=>['Statistik','dashboard','admin_dashboard'] ],
 
         [ 'label'=>'Monitoring', 'url'=>site_url('admin_dashboard/monitor'), 'icon'=>'fe-eye',
-          'require'=>['Monitoring','admin_dashboard/monitor','admin_monitor'] ],
+        'require'=>['Monitoring','admin_dashboard/monitor','admin_monitor'] ],
+
+        [ 'label'=>'Scan',       'url'=>site_url('admin_scan'),              'icon'=>'mdi mdi-qrcode-scan',
+        'require'=>['Scan QR','scan','admin_scan'] ],
 
         [ 'label'=>'Data',       'url'=>site_url('admin_permohonan'),        'icon'=>'fe-eye',
-          'require'=>['Admin Permohonan','admin_permohonan'] ],
+        'require'=>['Admin Permohonan','admin_permohonan'] ],
     ];
 
     // Opsi group admin (hanya muncul jika user punya akses child-nya)
@@ -118,21 +118,43 @@ public function get_menu_mobile()
 
     // Definisi quick actions (mobile)
     $ACTIONS_DEF = [
-        [
-            'id'      => 'admin_user',
-            'label'   => 'Manajemen User',
-            'url'     => site_url('admin_user'),
-            'icon'    => 'fas fa-map-marked-alt',
-            'require' => ['admin_user','manajemen user','user']
+      [
+        'id'      => 'admin_user',
+        'label'   => 'Manajemen User',
+        'url'     => site_url('admin_user'),
+        'icon'    => 'fas fa-users-cog',
+        'require' => ['admin_user'] // cukup link modul
         ],
         [
             'id'      => 'admin_permohonan',
             'label'   => 'Data',
             'url'     => site_url('admin_permohonan'),
             'icon'    => 'fe-file-text',
-            'require' => ['admin_permohonan','admin permohonan']
+            'require' => ['admin_permohonan'] // cukup link modul
+        ],
+        [
+            'id'      => 'admin_scan',
+            'label'   => 'Checkin/Checkout',
+            'url'     => site_url('admin_scan'),
+            'icon'    => 'mdi mdi-qrcode-scan',
+            'require' => ['admin_scan'] // cukup link modul
+        ],
+        [
+            'id'      => 'admin_dashboard/monitor',
+            'label'   => 'Monitoring',
+            'url'     => site_url('admin_dashboard/monitor'),
+            'icon'    => 'mdi mdi-qrcode-scan',
+            'require' => ['admin_dashboard/monitor'] // cukup link modul
+        ],
+        [
+            'id'      => 'admin_dashboard',
+            'label'   => 'Statistik',
+            'url'     => site_url('admin_dashboard'),
+            'icon'    => 'mdi mdi-qrcode-scan',
+            'require' => ['admin_dashboard'] // cukup link modul
         ],
     ];
+
 
     // Filter berdasarkan hak akses
     $allowed_actions = [];

@@ -117,12 +117,12 @@ class Admin_scan extends Admin_Controller {
 
     // ===== RULE BARU: tanggal harus sama & belum lewat jam jadwal + toleransi =====
 // Pastikan server timezone Asia/Makassar (sudah kamu set di __construct)
-$todayLocal   = date('Y-m-d');
-$nowTs        = time(); // epoch saat ini (Makassar)
-$scheduledStr = trim($row['tanggal']).' '.trim($row['jam']); // "YYYY-mm-dd HH:ii[:ss]"
-$scheduledTs  = strtotime($scheduledStr);
+        $todayLocal   = date('Y-m-d');
+        $nowTs        = time(); // epoch saat ini (Makassar)
+        $scheduledStr = trim($row['tanggal']).' '.trim($row['jam']); // "YYYY-mm-dd HH:ii[:ss]"
+        $scheduledTs  = strtotime($scheduledStr);
 
-        // === TEMP BYPASS VALIDASI JADWAL (untuk uji coba) ===
+                // === TEMP BYPASS VALIDASI JADWAL (untuk uji coba) ===
 
         // 1) Harus tepat di tanggal yang sama
         if ($row['tanggal'] !== $todayLocal) {

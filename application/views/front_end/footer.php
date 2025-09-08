@@ -288,11 +288,14 @@
     margin: 0;
   }
   .navbar-bottom .nav-item a:hover {
-    color: #008000 !important;
+    color: #F54927 !important;
   }
   .navbar-bottom .nav-item a:hover i,
   .navbar-bottom .nav-item a:hover span {
-    color: #008000 !important;
+    color: #F54927 !important;
+  }
+  .text-active {
+    color: #F54927 !important
   }
 
 </style>
@@ -300,7 +303,7 @@
 <nav class="navbar fixed-bottom navbar-light bg-white shadow-sm d-lg-none navbar-bottom px-0">
   <div class="w-100 d-flex justify-content-between text-center position-relative mx-0 px-0">
     <div class="nav-item">
-      <a href="<?= base_url() ?>" class="<?= ($uri == '' || $uri == 'home') ? 'text-primary' : 'text-dark' ?>">
+      <a href="<?= base_url() ?>" class="<?= ($uri == '' || $uri == 'home') ? 'text-active' : 'text-dark' ?>">
         <i class="fas fa-home d-block mb-1"></i>
         <span class="small">Beranda</span>
       </a>
@@ -308,7 +311,7 @@
 
 
     <div class="nav-item">
-      <a href="<?= base_url('hal/alur') ?>" class="<?= ($uri == 'hal/alur') ? 'text-primary' : 'text-dark' ?>">
+      <a href="<?= base_url('hal/alur') ?>" class="<?= ($uri == 'hal/alur') ? 'text-active' : 'text-dark' ?>">
         <i class="fas fa-project-diagram d-block mb-1"></i>
         <span class="small">Alur</span>
       </a>
@@ -326,14 +329,14 @@
     <div class="space-right"></div>
 
     <div class="nav-item">
-      <a href="<?= base_url('hal/struktur') ?>" class="<?= ($uri == 'hal/struktur') ? 'text-primary' : 'text-dark' ?>">
+      <a href="<?= base_url('hal/struktur') ?>" class="<?= ($uri == 'hal/struktur') ? 'text-active' : 'text-dark' ?>">
         <i class="fas fa-sitemap d-block mb-1"></i>
         <span class="small">Struktur</span>
       </a>
     </div>
 
     <div class="nav-item">
-      <a href="<?= base_url('hal/kontak') ?>" class="<?= ($uri == 'hal/kontak') ? 'text-primary' : 'text-dark' ?>">
+      <a href="<?= base_url('hal/kontak') ?>" class="<?= ($uri == 'hal/kontak') ? 'text-active' : 'text-dark' ?>">
         <i class="fas fa-address-book d-block mb-1"></i>
         <span class="small">Kontak</span>
       </a>
@@ -377,7 +380,7 @@
       return false;
     };
   })();
-  
+
 </script>
 
 

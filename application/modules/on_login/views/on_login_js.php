@@ -19,7 +19,7 @@
 
 		const isLoggedIn = <?= json_encode($this->session->userdata("admin_login") == true) ?>;
 		if (isLoggedIn) {
-			window.location.href = "<?= base_url('admin_dashboard') ?>?r=" + Date.now();
+			window.location.href = "<?= base_url('admin_profil/detail_profil') ?>?r=" + Date.now();
 		}
 		$("#btn-loader").hide();
 		$("#btn-loader-reset").hide();

@@ -169,8 +169,7 @@ class Ram_model extends CI_model{
             u.blokir,
             u.permission_publish,
             u.tanggal_reg,
-            u.pimpinan,
-            u.nip_pimpinan
+          
             ');
 
     // Tambahan lokasi untuk level user (LEFT JOIN -> tetap dapat data walau belum terisi)

@@ -127,7 +127,7 @@
       if (f) f.reset();
       save_method = 'add';
       $("#add_member").show();
-      $('.mymodal-title').text('Tambah Pengguna Unit');
+      $('.mymodal-title').text('Tambah Pengguna');
       $('#password_baru, #password_baru_lagi').prop('disabled', false).val('');
       $('#full-width-modal').modal('show');
     }

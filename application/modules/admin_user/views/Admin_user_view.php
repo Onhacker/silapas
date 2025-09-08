@@ -40,17 +40,17 @@
                             <div class="checkbox checkbox-primary checkbox-single">
                               <input id="check-all" type="checkbox">
                               <label></label>
-                          </div>
-                      </th>
-                      <th width="5%"><strong>No.</strong></th>
-                      <th>Foto</th>
-                      <th>Username</th>
-                      <th>Nama Lengkap</th>
-                      <th>Unit</th>
-                      <th>No. Whatsapp</th>
-                  </tr>
-              </thead>
-          </table>
+                            </div>
+                          </th>
+                          <th width="5%"><strong>No.</strong></th>
+                          <th>Foto</th>
+                          <th>Username</th>
+                          <th>Nama Lengkap</th>
+                          <th>Unit</th>
+                          <th>No. Whatsapp</th>
+                        </tr>
+                      </thead>
+                    </table>
                 </div> <!-- end card body-->
             </div> <!-- end card -->
         </div><!-- end col-->
@@ -72,7 +72,7 @@
                          
                         <div class="form-group mb-3">
                           <label class="text-primary">Unit</label>
-                          <?= form_dropdown("id_unit", $arr_unit, $id_unit, 'id="id_unit" class="form-control select2"'); ?>
+                          <?= form_dropdown("id_unit", $arr_unit, $id_unit, 'id="id_unit" class="form-control"'); ?>
                         </div>
 
                         <div class="form-group mb-3">

@@ -16,7 +16,7 @@ class Admin_dashboard extends Admin_Controller
             // Jangan cek session/login, jangan redirect, langsung lolos
             return;
         }
-        // cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
+        
     }
 
     /* =========================================================
@@ -64,7 +64,8 @@ class Admin_dashboard extends Admin_Controller
      *                     ROUTE UTAMA
      * ========================================================= */
     public function index()
-    {
+    {   
+        cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
         // Langsung arahkan ke dashboard (default bulanan)
         return $this->dashboard();
     }
@@ -206,7 +207,8 @@ class Admin_dashboard extends Admin_Controller
      *                    MONITOR (LAYAR UTAMA)
      * ========================================================= */
     public function monitor()
-    {
+    {   
+        cek_session_akses(get_class($this)."/monitor", $this->session->userdata('admin_session'));
         $data["record"]    = $this->om->profil("users")->row();
         $data["controller"]= get_class($this);
         $data["title"]     = "Layar Utama";

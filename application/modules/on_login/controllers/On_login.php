@@ -29,12 +29,9 @@ class On_login extends MX_Controller {
 	}
 
 	function reload(){
+
+			$url = site_url("admin_profil/detail_profil") . '?t=' . time();
 		
-		if ($this->session->userdata("admin_level") == "faskes") {
-			$url = site_url("admin_permohonan/detail_paket/paket_u");
-		} else {
-			$url = site_url("admin_dashboard") . '?t=' . time();
-		}
 		
 		redirect($url);
 	}
@@ -207,21 +204,35 @@ class On_login extends MX_Controller {
 	    			"admin_level"     => $rows->level,
 	    			"admin_attack"    => $rows->attack,
 	    			"admin_permisson" => $rows->permission_publish,
+	    			"id_unit" => $rows->id_unit,
 	    			"admin_session"   => $rows->id_session,
 					  "admin_nama"      => $rows->nama_lengkap,         // <— tambahan
 					  "admin_foto"      => $rows->foto ?? null          // <— tambahan (jika ada)
 					];
 
-
-	        	if ($rows->level == "user") {
-	        		$data_session["id_desa"] = $rows->id_desa;
-	        	} elseif ($rows->level == "faskes") {
-	        		$data_session["id_desa"] = $rows->id_faskes;
-	        	}
-
 	        	$this->session->set_userdata($data_session);
-
+	        	$token    = bin2hex(random_bytes(32));
+	        	$selector = bin2hex(random_bytes(9));
+	        	$hash     = password_hash($token, PASSWORD_DEFAULT);
+				$expiry   = time() + 60*60*24*365; // 1 tahun
 	            
+				$this->db->insert('auth_tokens', [
+					'selector'       => $selector,
+					'validator_hash' => $hash,
+					'username'       => $rows->username,
+					'expires'        => date('Y-m-d H:i:s', $expiry),
+				]);
+				// set cookie: selector:token
+				$this->load->helper('cookie');
+				set_cookie([
+					'name'   => 'remember',
+					'value'  => $selector.':'.$token,
+					  'expire' => $expiry - time(),   // detik
+					  'secure' => !empty($_SERVER['HTTPS']),
+					  'httponly' => true,
+					  'samesite' => 'Lax',
+					]);
+
 	            $this->session->unset_userdata('captcha_verified');
 	            $this->session->unset_userdata('login_attempt');
 	            $ret = [
@@ -394,16 +405,54 @@ class On_login extends MX_Controller {
 		return $browser;
 	}
 
-	function logout(){
-		$this->session->unset_userdata("admin_login");
-		$this->session->unset_userdata("admin_username");
-		$this->session->unset_userdata("admin_permisson");
-		$this->session->unset_userdata("admin_level");
-		$this->session->unset_userdata("admin_session");
-		$this->session->unset_userdata("admin_attack");
-		$this->session->unset_userdata("admin_dusun");
-		$this->session->unset_userdata("id_desa");
-		redirect(site_url("on_login") . '?t=' . time());
-	}
+	public function logout()
+{
+    // ambil username dulu sebelum session dihancurkan
+    $username = $this->session->userdata('admin_username');
+
+    // 1) Hapus token remember & cookie
+    $this->load->helper('cookie');
+    $raw = get_cookie('remember', true); // format: selector:token
+    if ($raw && strpos($raw, ':') !== false) {
+        list($selector,) = explode(':', $raw, 2);
+        if (!empty($selector)) {
+            // hapus hanya token yang sedang dipakai
+            $this->db->delete('auth_tokens', ['selector' => $selector]);
+        }
+    }
+    // (opsional tapi disarankan): hapus SEMUA token user ini
+    if (!empty($username)) {
+        $this->db->delete('auth_tokens', ['username' => $username]);
+    }
+    // hapus cookie remember
+    delete_cookie('remember');
+
+    // 2) Bersihkan semua data session
+    $this->session->unset_userdata([
+        'admin_login',
+        'admin_username',
+        'admin_permisson',
+        'admin_level',
+        'admin_session',
+        'admin_attack',
+        'id_unit',
+        'admin_nama',
+        'admin_foto',
+    ]);
+
+    // 3) Destroy session + hapus cookie sesi (anti sisa-sisa cookie)
+    $this->session->sess_regenerate(TRUE);
+    $this->session->sess_destroy();
+
+    // pastikan cookie CI dihapus (kadang perlu di beberapa env)
+    $sess_cookie = $this->config->item('sess_cookie_name');
+    if ($sess_cookie && isset($_COOKIE[$sess_cookie])) {
+        setcookie($sess_cookie, '', time() - 3600, '/', '', !empty($_SERVER['HTTPS']), true);
+    }
+
+    // 4) Redirect ke halaman login
+    redirect(site_url('on_login') . '?t=' . time());
+}
+
 	
 }

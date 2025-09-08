@@ -1,14 +1,10 @@
 <?php 
 function cek_session_on_login(){
     $ci = & get_instance();
-    if( $ci->session->userdata('admin_login') == false 
-        and !$ci->session->userdata("admin_username")  
-        and !$ci->session->userdata("admin_level")
-        and !$ci->session->userdata("admin_attack")
-        and !$ci->session->userdata("id_desa")
-        and !$ci->session->userdata("admin_permisson")
-        and !$ci->session->userdata("admin_session") ) {
+    // cukup cek flag inti
+    if (!$ci->session->userdata('admin_login') || !$ci->session->userdata('admin_username')) {
         redirect('on_login/logout');
+        exit;
     }
 }
 
