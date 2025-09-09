@@ -174,7 +174,7 @@
                   <div style="font-weight:700; margin-bottom:6px;">Daftar Pendamping</div>
 
                   <?php if ($ada_list): ?>
-                    <table class="tbl pendamping">
+                    <table class="tbl pendamping" border="1" cellspacing="0" cellpadding="4">
                       <tr>
                         <th style="width:42px;">No</th>
                         <th style="width:170px;">NIK</th>
