@@ -1044,22 +1044,29 @@ private function normalize_date_mysql(?string $s): ?string {
         $path = FCPATH.'uploads/contact-silaturahmi.vcf';
         if (!is_file($path)) { show_404(); return; }
 
-    // Header ketat + kompatibel
         $filename = 'SilaturahmiMakassar.vcf';
-        $this->output
-        ->set_header('Content-Type: text/vcard; charset=utf-8') // atau text/x-vcard
-        ->set_header('X-Content-Type-Options: nosniff')
-        ->set_header('Content-Disposition: attachment; filename="'.$filename.'"')
-        ->set_header('Content-Length: '.filesize($path))
-        ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
-        ->set_header('Pragma: no-cache')
-        ->set_header('Expires: 0');
+        clearstatcache();
+        $size = filesize($path);
 
-    // KIRIM file langsung
-        @ob_clean(); @flush();
-        readfile($path);
+        // Matikan kompresi & bersihkan buffer supaya header tidak bocor
+        if (ini_get('zlib.output_compression')) { @ini_set('zlib.output_compression', 'Off'); }
+        while (ob_get_level() > 0) { @ob_end_clean(); }
+
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream'); // paksa unduh
+        header('Content-Disposition: attachment; filename="'.$filename.'"');
+        header('Content-Transfer-Encoding: binary');
+        header('Content-Length: '.$size);
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        $fp = fopen($path, 'rb');
+        fpassthru($fp);
         exit;
     }
+
 
 
 
@@ -1078,7 +1085,7 @@ private function normalize_date_mysql(?string $s): ?string {
         $tanggal_disp  = !empty($d['tanggal']) ? date("d-m-Y", strtotime($d['tanggal'])) : '-';
         $jam_disp      = isset($d['jam']) ? $d['jam'] : '-';
         $qr_url        = isset($d['qr_url']) ? $d['qr_url'] : '';
-        $pdf = site_url("print_pdf/").$kode;
+        $pdf = site_url("booking/print_pdf/").$kode;
         $web       = $this->fm->web_me();
 
         $vcfUrl = site_url('booking/contact_vcf');
@@ -1225,6 +1232,7 @@ private function normalize_date_mysql(?string $s): ?string {
 
         $kode        = trim((string)($d['kode'] ?? '-'));
         $nama        = trim((string)($d['nama'] ?? '-'));
+        $no_hp        = trim((string)($d['no_hp'] ?? '-'));
         $instansi    = trim((string)($d['instansi_asal'] ?? '-'));
         $child_unit  = trim((string)($d['child_unit_nama'] ?? ($d['unit_nama'] ?? '-')));
         $unit_nama   = trim((string)($d['unit_nama'] ?? '-'));
@@ -1251,6 +1259,7 @@ private function normalize_date_mysql(?string $s): ?string {
         $lines[] = '━━━━━━━━━━━━━━━━━━━━';
         $lines[] = '🆔 Kode Booking : *'.$kode.'*';
         $lines[] = '👤 Tamu         : '.$nama;
+        $lines[] = '👤 No. Hp         : '.$no_hp;
         $lines[] = '🏢 Instansi     : '.$instansi;
         if ($is_cc) $lines[] = '🔎 Tembusan utk : *'.$child_unit.'*';
         else        $lines[] = '🎯 Unit Tujuan  : '.$child_unit;
