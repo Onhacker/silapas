@@ -27,8 +27,9 @@
           "logo": "<?php echo base_url('assets/images/logo.png'); ?>"
       }
   </script>
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#000000">
+ <meta name="theme-color" media="(prefers-color-scheme: light)" content="#0F172A">
+<meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#000000">
+
 
 
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -47,14 +48,44 @@
    body {
     padding-bottom: 0px;
 }
+/* default 0 untuk browser lama */
 :root {
-  /* contoh global */
-  --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-top: 0px;
+  --safe-bottom: 0px;
 }
 
-.header-fixed { padding-top: calc(16px + var(--safe-top)); }
-.footer-fixed { padding-bottom: calc(16px + var(--safe-bottom)); }
+/* override dengan nilai real di device yang support */
+@supports (padding: max(0px)) {
+  :root {
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* HEADER/FIXED BAR ATAS */
+.header-fixed, .app-header, header.sticky {
+  /* beri ruang di atas supaya tidak ketimpa status bar */
+  padding-top: calc(12px + var(--safe-top));
+}
+
+/* NAV BAWAH / TAB BAR */
+.bottom-nav, .navbar-bottom, footer.sticky {
+  /* beri ruang ekstra di bawah agar tidak nempel gesture bar */
+  padding-bottom: calc(8px + var(--safe-bottom));
+}
+
+/* TOMBOL/MENU BULAT MENGAMBANG DI TENGAH BAWAH */
+.fab, .floating-logo, .btn-fab {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  /* naikkan setinggi safe-area */
+  bottom: calc(20px + var(--safe-bottom));
+  /* z-index kalau perlu di atas nav */
+  z-index: 1000;
+}
+
+/* (opsional) kalau ada body yang dipakai scroll container  */
 body { padding-bottom: var(--safe-bottom); }
 
 </style>
