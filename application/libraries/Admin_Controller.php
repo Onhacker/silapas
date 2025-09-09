@@ -24,6 +24,14 @@ class Admin_Controller extends MX_Controller {
         if (mt_rand(1, 20) === 1) { // ~5% request
             $this->cleanup_expired_tokens();
         }
+        if ($this->session->userdata('admin_login')) {
+        	$this->output
+        	->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private')
+        	->set_header('Pragma: no-cache')
+        	->set_header('Expires: 0')
+      ->set_header('X-Auth-Logged-In: 1'); // hint untuk SW/diagnostik
+  }
+
 
         // Matikan notice di produksi (sesuai style Anda)
         error_reporting(0);

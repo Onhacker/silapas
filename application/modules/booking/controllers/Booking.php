@@ -1135,8 +1135,12 @@ private function normalize_date_mysql(?string $s): ?string {
         $pdf = '';
         if ($kode !== '') {
             $pdf = site_url('booking/print_pdf/'.rawurlencode($kode));
-            if ($token) $pdf .= '?t='.urlencode($token);   // <= ini yang sebelumnya hilang
+            if ($token) {
+                $pdf .= '?'.http_build_query(['t'=>$token], '', '&', PHP_QUERY_RFC3986);
+            }
         }
+
+        
 
         // (F) web_me
         $web = $this->fm->web_me();
