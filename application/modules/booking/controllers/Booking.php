@@ -742,48 +742,95 @@ private function normalize_date_mysql(?string $s): ?string {
     }
 
     private function _validate_jadwal($tanggal, $jam_raw){
-        $errors = [];
-        $tanggal = trim((string)$tanggal);
-        $jam_raw = trim((string)$jam_raw);
-        $jam = null;
+        $errors   = [];
+        $tanggal  = trim((string)$tanggal);
+        $jam_raw  = trim((string)$jam_raw);
+        $jam      = null;
 
-        $dt = DateTime::createFromFormat('Y-m-d', $tanggal);
-        if (!$dt || $dt->format('Y-m-d') !== $tanggal) {
-            $errors[] = '* Tanggal tidak valid (format harus YYYY-MM-DD).';
+    // --- Ambil lead time dari pengaturan website ---
+    // Prioritas: $this->fm->web_me(), fallback ke $this->om->web_me()
+        $web = null;
+        if (isset($this->fm) && method_exists($this->fm, 'web_me')) {
+            $web = $this->fm->web_me();
+        } elseif (isset($this->om) && method_exists($this->om, 'web_me')) {
+            $web = $this->om->web_me();
+        }
+        $min_lead_minutes = 0;
+        if ($web && isset($web->min_lead_minutes)) {
+            $min_lead_minutes = (int)$web->min_lead_minutes;
+        // jaga-jaga agar tidak nilai aneh
+            if ($min_lead_minutes < 0) $min_lead_minutes = 0;
+        if ($min_lead_minutes > 240) $min_lead_minutes = 240; // batas 4 jam (opsional)
+    }
+
+    // --- Validasi tanggal ---
+    $dt = DateTime::createFromFormat('Y-m-d', $tanggal);
+    if (!$dt || $dt->format('Y-m-d') !== $tanggal) {
+        $errors[] = '* Tanggal tidak valid (format harus YYYY-MM-DD).';
+    } else {
+        $today = date('Y-m-d');
+        if (strtotime($tanggal) < strtotime($today)) {
+            $errors[] = '* Tanggal tidak boleh mundur (minimal hari ini).';
+        }
+
+        $hari = (int) date('w', strtotime($tanggal)); // 0=Min, 1=Sen, ...
+        if ($hari === 0) {
+            $errors[] = '* Hari Minggu libur, tidak bisa booking.';
+        }
+
+        // --- Validasi jam ---
+        if ($jam_raw === '') {
+            $errors[] = '* Jam harus diisi.';
         } else {
-            $today = date('Y-m-d');
-            if (strtotime($tanggal) < strtotime($today)) {
-                $errors[] = '* Tanggal tidak boleh mundur (minimal hari ini).';
-            }
-            $hari = (int) date('w', strtotime($tanggal)); // 0=Min
-            if ($hari === 0) $errors[] = '* Hari Minggu libur, tidak bisa booking.';
+            // normalisasi "16.30" -> "16:30"
+            $jam_norm = str_replace('.', ':', $jam_raw);
+            $jam_norm = preg_replace('/\s+/', '', $jam_norm);
 
-            if ($jam_raw === '') {
-                $errors[] = '* Jam Harus diisi ';
+            if (!preg_match('/^(?:[01]?\d|2[0-3]):[0-5]\d$/', $jam_norm)) {
+                $errors[] = '* Format jam tidak valid (pakai HH:MM, contoh 16:55).';
             } else {
-                $jam_norm = str_replace('.', ':', $jam_raw);
-                $jam_norm = preg_replace('/\s+/', '', $jam_norm);
-                if (!preg_match('/^(?:[01]?\d|2[0-3]):[0-5]\d$/', $jam_norm)) {
-                    $errors[] = '* Format jam tidak valid (pakai HH:MM, contoh 16:55).';
-                } else {
-                    list($hh, $mm) = explode(':', $jam_norm);
-                    $hh = (int)$hh; $mm=(int)$mm;
-                    $jam = sprintf('%02d:%02d', $hh, $mm);
-                    $menit = $hh*60+$mm;
-                    if   ($hari >= 1 && $hari <= 4) { $min=480; $max=900; }   // Sen–Kam 08:00–15:00
-                    elseif ($hari === 5)            { $min=480; $max=840; }   // Jum    08:00–14:00
-                    else                            { $min=480; $max=690; }   // Sab    08:00–11:30
+                list($hh, $mm) = explode(':', $jam_norm);
+                $hh = (int)$hh; $mm = (int)$mm;
+                $jam = sprintf('%02d:%02d', $hh, $mm);
+                $menit = $hh * 60 + $mm;
 
+                // Jam operasional
+                if     ($hari >= 1 && $hari <= 4) { $min=480; $max=900; }   // Sen–Kam 08:00–15:00
+                elseif ($hari === 5)              { $min=480; $max=840; }   // Jum      08:00–14:00
+                else                               { $min=480; $max=690; }   // Sab      08:00–11:30
+
+                if ($tanggal === $today) {
+                    // Minimal menit untuk HARI INI = max(jam buka, sekarang + lead)
+                    $nowMin    = ((int)date('H')) * 60 + ((int)date('i')) + $min_lead_minutes;
+                    $min_today = max($min, $nowMin);
+
+                    if ($min_today > $max) {
+                        $errors[] = '* Jadwal operasional hari ini sudah berakhir.';
+                    } else {
+                        if ($menit < $min_today) {
+                            $minLabel = sprintf('%02d:%02d', intdiv($min_today,60), $min_today%60);
+                            $errors[] = '* Untuk hari ini, jam minimal adalah '.$minLabel
+                            . ($min_lead_minutes ? ' (lead '.$min_lead_minutes.' menit).' : '.');
+                        }
+                        if ($menit > $max) {
+                            $maxLabel = sprintf('%02d:%02d', intdiv($max,60), $max%60);
+                            $errors[] = '* Jam melewati jam operasional (maksimal '.$maxLabel.').';
+                        }
+                    }
+                } else {
+                    // Bukan hari ini → hanya cek dalam range operasional
                     if ($menit < $min || $menit > $max) {
                         $errors[] = '* Jam kunjungan tidak sesuai dengan jadwal operasional.';
                     }
                 }
             }
         }
-
-        if ($errors) return [false, null, null, '<br> '.implode('<br> ', $errors)];
-        return [true, $tanggal, $jam, ''];
     }
+
+    if ($errors) return [false, null, null, '<br> '.implode('<br> ', $errors)];
+    return [true, $tanggal, $jam, ''];
+}
+
 
     private function _validate_pendamping($unit_id, $diminta){
         $row = $this->db->select('nama_unit, jumlah_pendamping')
