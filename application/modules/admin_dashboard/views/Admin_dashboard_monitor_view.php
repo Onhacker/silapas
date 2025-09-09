@@ -98,7 +98,7 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Daftar Booking & Sedang Berkunjung'
       </div>
     </div>
   </div>
-
+<?php $web = $this->om->web_me(); ?>
   <!-- Info Bar -->
   <div class="row">
     <div class="col-12">
@@ -109,7 +109,7 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Daftar Booking & Sedang Berkunjung'
   <div class="text-dark small mb-1">Ruang Lingkup</div>
   <div class="scope-wrap">
     <span class="scope-icon"><i class="mdi mdi-office-building-marker-outline"></i></span>
-    <span id="infoScope" class="scope-text">Lapas Kelas I Makassar</span>
+    <span id="infoScope" class="scope-text"><?php echo $web->type ?></span>
   </div>
 </div>
 

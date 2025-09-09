@@ -93,15 +93,17 @@ body { padding-bottom: var(--safe-bottom); }
 </style>
 <style>
   :root{
-    --c1:#22c55e; /* green */
-    --c2:#06b6d4; /* cyan  */
-    --c3:#8b5cf6; /* violet*/
+    --a1:#dd7634; /* green */
+    --a2:#ffffff; /* cyan  */
+    --a3:#CDDC39; /* violet*/
   }
   .hero-title{
     padding:24px 0 10px;
     text-align:center;
+
   }
   .hero-title .text{
+    color: white;
   display:inline-block;
   margin:0;
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
@@ -126,7 +128,7 @@ body { padding-bottom: var(--safe-bottom); }
     width:0;
     margin:10px auto 0;
     border-radius:999px;
-    background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3));
+    background:linear-gradient(90deg,var(--a1),var(--a2),var(--a3));
     box-shadow:0 0 18px rgba(34,197,94,.35), 0 0 24px rgba(6,182,212,.25);
     animation:grow .9s .70s ease-out forwards;
   }
@@ -142,7 +144,7 @@ body { padding-bottom: var(--safe-bottom); }
     .hero-title .text,.hero-title .accent{animation:none}
     .hero-title .accent{width:min(520px,80%)}
   }
-  
+
 </style>
 </head>
 
@@ -235,6 +237,56 @@ body { padding-bottom: var(--safe-bottom); }
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
         }
 
+
+        :root{
+          --c1:#4e77be; /* cyan */
+          --c2:#1e3c72; /* violet */
+}
+
+/* Kartu dasar */
+.wrapper{
+  position: relative;
+  isolation: isolate;           /* penting: batasi pseudo-element di dalam wrapper */
+  /*padding: clamp(16px,3vw,28px);*/
+  border-radius: 20px;
+  /*background: #fff;             /* isi kartu */*/
+  box-shadow: 0 16px 36px rgba(0,0,0,.08);
+  overflow: hidden;             /* biar lengkung gak meluber */
+}
+
+/* ===== Lengkungan di DALAM wrapper =====
+   Atur tinggi dengan --curve-h  */
+.wrapper.curved{
+  --curve-h: 220px;             /* << ganti sesukamu: 140px, 260px, 320px, dst */
+}
+
+/* latar gradasi melengkung nempel di atas wrapper (bukan full halaman) */
+.wrapper.curved::before{
+  content:"";
+  position:absolute;
+  left:0; right:0; top:0;
+  height: var(--curve-h);
+  background: linear-gradient(360deg, var(--c1), var(--c2));
+  border-bottom-left-radius: 50% 16%;
+  border-bottom-right-radius: 50% 16%;
+  z-index: -1;                   /* di belakang isi wrapper */
+  pointer-events: none;
+  filter: drop-shadow(0 18px 36px rgba(16,24,40,.18));
+}
+
+/* teks/isi tetap terbaca di atas */
+.wrapper > *{ position: relative; z-index: 1; }
+
+/* util kelas untuk cepat ubah tinggi */
+.wrapper.curved.curve-sm{ --curve-h: 140px; }
+.wrapper.curved.curve-md{ --curve-h: 220px; }  /* default */
+.wrapper.curved.curve-lg{ --curve-h: 320px; }
+.wrapper.curved.curve-xl{ --curve-h: 420px; }
+
+/* (opsional) jarak bawah supaya tidak “nempel” footer */
+.wrapper{ margin-bottom: clamp(16px, 3vw, 32px); }
+
+
     </style>
     <div class="logo-boxx d-block d-md-none">
         <div class="logox">
@@ -258,4 +310,4 @@ body { padding-bottom: var(--safe-bottom); }
 </div>
 </header>
 
-<div class="wrapper">
+<div class="wrapper curved" style="--curve-h: 320px">
