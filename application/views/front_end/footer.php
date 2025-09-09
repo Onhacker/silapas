@@ -382,21 +382,38 @@
   })();
 
 
-  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-  Swal.fire({
-    title: 'Update Tersedia',
-    text: 'Versi baru tersedia. Ingin muat ulang aplikasi?',
-    icon: 'info',
-    showCancelButton: true,
-    confirmButtonText: 'Muat Ulang',
-    cancelButtonText: 'Nanti Saja'
-  }).then((result) => {
-    if (result.isConfirmed) {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
+    .then(registration => {
+      console.log("✅ Service Worker registered.");
+      registration.onupdatefound = () => {
+        const newWorker = registration.installing;
+        console.log("🔄 Update ditemukan.");
+        newWorker.onstatechange = () => {
+         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          Swal.fire({
+            title: 'Update Tersedia',
+            text: 'Versi baru tersedia. Ingin muat ulang aplikasi?',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Muat Ulang',
+            cancelButtonText: 'Nanti Saja'
+          }).then((result) => {
+            if (result.isConfirmed) {
       // Minta worker baru segera aktif
       newWorker.postMessage({ type: 'SKIP_WAITING' });
     }
   });
-}
+        }
+      };
+    };
+  })
+    .catch(err => console.warn("❌ Gagal daftar Service Worker:", err));
+  }
+
+
+
+
 // Reload otomatis ketika controller SW berubah (worker baru mengambil alih)
 navigator.serviceWorker.addEventListener('controllerchange', () => {
   location.reload();
