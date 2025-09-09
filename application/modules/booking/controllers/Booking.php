@@ -41,6 +41,13 @@ class Booking extends MX_Controller {
             $wkt = date('d-m-Y H:i', strtotime($booking->checkout_at));
             return $this->_booked_error("Link tidak berlaku. Anda telah checkout pada {$wkt}.");
         }
+        // Jika status sudah expired → link tidak berlaku
+        if (isset($booking->status) && $booking->status === 'expired') {
+            $wkt = !empty($booking->expired_at)
+            ? date('d-m-Y H:i', strtotime($booking->expired_at))
+            : ($booking->tanggal.' '.$booking->jam);
+            return $this->_booked_error("Link tidak berlaku. Status: Tidak Hadir (Expired) pada {$wkt}.");
+        }
 
         $data = [
             "controller" => get_class($this),
