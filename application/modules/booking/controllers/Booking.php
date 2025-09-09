@@ -1111,44 +1111,54 @@ private function normalize_date_mysql(?string $s): ?string {
 
     private function _send_wa_konfirmasi($no_hp, array $d)
     {
+        // (A) ambil token lebih dulu
+        $token = !empty($d['access_token']) ? $d['access_token'] : null;
+
+        // (B) bangun redirect_url aman
         $redirect_url = !empty($d['redirect_url'])
-                        ? $d['redirect_url']
-                        : (!empty($d['access_token']) ? site_url('booking/booked?t='.urlencode($d['access_token'])) : site_url('booking'));
-                
-        $nama          = isset($d['nama']) ? $d['nama'] : '-';
-        $keperluan     = isset($d['keperluan']) ? $d['keperluan'] : '-';
-        $kode          = isset($d['kode']) ? $d['kode'] : '-';
-        $instansi_asal = isset($d['instansi_asal']) ? $d['instansi_asal'] : '-';
-        $nama_petugas_instansi = isset($d['nama_petugas_instansi']) ? $d['nama_petugas_instansi'] : '-';
-        $unit_tujuan   = isset($d['unit_tujuan']) ? $d['unit_tujuan'] : '-';
-        $tanggal_disp  = !empty($d['tanggal']) ? date("d-m-Y", strtotime($d['tanggal'])) : '-';
+            ? $d['redirect_url']
+            : ($token ? site_url('booking/booked').'?t='.urlencode($token) : site_url('booking'));
+
+        // (C) data utama
+        $nama          = $d['nama']             ?? '-';
+        $keperluan     = $d['keperluan']        ?? '-';
+        $kode          = trim((string)($d['kode'] ?? ''));   // kosong = tidak buat link PDF
+        $instansi_asal = $d['instansi_asal']    ?? '-';
+        $nama_petugas_instansi = $d['nama_petugas_instansi'] ?? '-';
+        $unit_tujuan   = $d['unit_tujuan']      ?? '-';
+        $tanggal_disp  = !empty($d['tanggal']) ? date('d-m-Y', strtotime($d['tanggal'])) : '-';
+
+        // (D) rapikan jam (boleh pakai parser longgar seperti di atas jika perlu)
         $jam_disp      = isset($d['jam']) ? $d['jam'] : '-';
-        $qr_url        = isset($d['qr_url']) ? $d['qr_url'] : '';
+
+        // (E) link PDF (hanya jika ada $kode) + sertakan token
         $pdf = '';
         if ($kode !== '') {
             $pdf = site_url('booking/print_pdf/'.rawurlencode($kode));
-            if ($token) $pdf .= '?t='.urlencode($token);
+            if ($token) $pdf .= '?t='.urlencode($token);   // <= ini yang sebelumnya hilang
         }
-        $web       = $this->fm->web_me();
 
+        // (F) web_me
+        $web = $this->fm->web_me();
 
+        // (G) susun & kirim pesan (tampilkan PDF hanya jika ada)
         $pesan  = "*[Konfirmasi Booking Kunjungan]*\n\n";
         $pesan .= "Halo *{$nama}*,\n\n";
         $pesan .= "Pengajuan kunjungan Anda telah *BERHASIL* didaftarkan dengan detail berikut:\n\n";
-        $pesan .= "🆔 Kode Booking   : *{$kode}*\n";
-        $pesan .= "👤 Nama Tamu      : {$nama}\n";
-        $pesan .= "🏢 Instansi Asal  : {$instansi_asal}\n";
-        $pesan .= "🏛️ Unit Tujuan    : {$unit_tujuan}\n";
-        $pesan .= "👔 Pejabat Unit   : {$nama_petugas_instansi}\n";
-        $pesan .= "📅 Tanggal        : {$tanggal_disp}\n";
-        $pesan .= "🕒 Jam            : {$jam_disp}\n";
-        $pesan .= "📝 Keperluan      : {$keperluan}\n\n";
-        $pesan .= "🔳 Download kode booking (PDF):\n{$pdf}\n\n";
+        $pesan .= "🆔 Kode Booking : *{$kode}*\n";
+        $pesan .= "👤 Nama Tamu : {$nama}\n";
+        $pesan .= "🏢 Instansi Asal : {$instansi_asal}\n";
+        $pesan .= "🏛️ Unit Tujuan : {$unit_tujuan}\n";
+        $pesan .= "👔 Pejabat Unit : {$nama_petugas_instansi}\n";
+        $pesan .= "📅 Tanggal : {$tanggal_disp}\n";
+        $pesan .= "🕒 Jam : {$jam_disp}\n";
+        $pesan .= "📝 Keperluan : {$keperluan}\n\n";
+        if ($pdf !== '') {
+            $pesan .= "🔳 Download kode booking (PDF):\n{$pdf}\n\n";
+        }
         $pesan .= "🔗 Detail booking:\n{$redirect_url}\n\n";
         $pesan .= "📇 Simpan kontak kami agar link bisa diklik langsung\n\n";
         $pesan .= "_Pesan ini dikirim otomatis oleh Aplikasi {$web->nama_website}._";
-
-
 
         if (function_exists('send_wa_single')) {
             try {
@@ -1163,6 +1173,7 @@ private function normalize_date_mysql(?string $s): ?string {
             return false;
         }
     }
+
 
     public function get_limit_pendamping(){
         $id = (int)$this->input->get('id');
@@ -1316,11 +1327,7 @@ private function normalize_date_mysql(?string $s): ?string {
             }
         }
         // Jam sederhana
-        $jam_disp = '-';
-        if (!empty($d['jam'])) {
-            $jam_norm = str_replace('.', ':', preg_replace('/\s+/', '', (string)$d['jam']));
-            if (preg_match('/^(?:[01]?\d|2[0-3]):[0-5]\d$/', $jam_norm)) $jam_disp = $jam_norm;
-        }
+        $jam_disp      = isset($d['jam']) ? $d['jam'] : '-';
 
         // Link WA tamu (hanya jika valid)
         $wa_link = '';
@@ -1347,14 +1354,14 @@ private function normalize_date_mysql(?string $s): ?string {
         $lines[] = $kepada;
         $lines[] = '━━━━━━━━━━━━━━━━━━━━';
         $lines[] = '🆔 Kode Booking : *'.($kode !== '' ? $wa_plain($kode) : '-').'*';
-        $lines[] = '👤 Tamu         : '.$nama;
-        if ($wa_link) $lines[] = '🟢 WhatsApp     : '.$wa_link;
-        $lines[] = '🏢 Instansi     : '.$instansi;
-        $lines[] = ($is_cc ? '🔎 Tembusan utk : *'.$child_unit.'*' : '🎯 Unit Tujuan  : '.$child_unit);
-        $lines[] = '📅 Tanggal      : '.$tanggal_disp;
-        $lines[] = '⏰ Jam          : '.$jam_disp;
-        $lines[] = '👥 Pendamping   : '.$pendamping.' orang';
-        $lines[] = '📝 Keperluan    : '.$keperluan;
+        $lines[] = '👤 Tamu : '.$nama;
+        if ($wa_link) $lines[] = '🟢 WhatsApp : '.$wa_link;
+        $lines[] = '🏢 Instansi : '.$instansi;
+        $lines[] = ($is_cc ? '🔎 Tembusan utk : *'.$child_unit.'*' : '🎯 Unit Tujuan : '.$child_unit);
+        $lines[] = '📅 Tanggal : '.$tanggal_disp;
+        $lines[] = '⏰ Jam : '.$jam_disp;
+        $lines[] = '👥 Pendamping : '.$pendamping.' orang';
+        $lines[] = '📝 Keperluan : '.$keperluan;
         // if ($qr_url !== '') { $lines[] = '🧾 QR           : '.$qr_url; }
         if ($redir  !== '') {
             $lines[] = '';

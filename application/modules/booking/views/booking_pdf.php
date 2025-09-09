@@ -69,10 +69,6 @@
   // helper aman
   $e = function($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); };
 
-  // instansi (ambil dari config jika ada; fallback default)
-  $org_name = config_item('org_name') ?: 'LAPAS KELAS I MAKASSAR';
-  $org_addr = config_item('org_address') ?: 'Alamat';
-
   // status badge class
   $st = strtolower((string)($booking->status ?? ''));
   $badgeClass = 'b-default';
@@ -122,8 +118,8 @@
       <?php endif; ?>
     </td>
     <td align="center">
-     <strong>LAPAS KLAS I MAKASSAR</strong>
-     <div style="font-size: 9px">Alamat : Jl. Sultan Alauddin, Gn. Sari, Kec. Rappocini, Kota Makassar, Sulawesi Selatan 90221</div>
+     <strong><?php echo $rec->type ?></strong>
+     <div style="font-size: 9px">Alamat : <?php echo $rec->alamat ?></div>
    </td>
  </tr>
 </table>
