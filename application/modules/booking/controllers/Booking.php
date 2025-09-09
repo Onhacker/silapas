@@ -1039,31 +1039,16 @@ private function normalize_date_mysql(?string $s): ?string {
     }
 
 
-    public function contact_vcf()
+   public function contact_vcf()
     {
         $path = FCPATH.'uploads/contact-silaturahmi.vcf';
-        if (!is_file($path)) { show_404(); return; }
+        if ( ! is_file($path)) { show_404(); return; }
 
+        $this->load->helper('download');
         $filename = 'SilaturahmiMakassar.vcf';
-        clearstatcache();
-        $size = filesize($path);
 
-        // Matikan kompresi & bersihkan buffer supaya header tidak bocor
-        if (ini_get('zlib.output_compression')) { @ini_set('zlib.output_compression', 'Off'); }
-        while (ob_get_level() > 0) { @ob_end_clean(); }
-
-        header('Content-Description: File Transfer');
-        header('Content-Type: application/octet-stream'); // paksa unduh
-        header('Content-Disposition: attachment; filename="'.$filename.'"');
-        header('Content-Transfer-Encoding: binary');
-        header('Content-Length: '.$size);
-        header('X-Content-Type-Options: nosniff');
-        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-        header('Pragma: no-cache');
-        header('Expires: 0');
-
-        $fp = fopen($path, 'rb');
-        fpassthru($fp);
+        // Paksa unduh
+        force_download($filename, file_get_contents($path));
         exit;
     }
 
