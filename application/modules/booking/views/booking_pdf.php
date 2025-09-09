@@ -54,6 +54,22 @@
     .tbl.pendamping th, .tbl.pendamping td { padding:6px 8px; border-bottom:1px solid #eef0f3; }
     .tbl.pendamping tr:last-child td { border-bottom:none; }
     .tbl.pendamping th { text-align:left; font-weight:700; background:#f8fafc; }
+    /* Garis tabel pendamping tegas & kompatibel PDF */
+    .tbl.pendamping {
+      width: 100%;
+      border-collapse: collapse;        /* penting utk PDF engine */
+      border: 1px solid #333;           /* bingkai luar */
+    }
+    .tbl.pendamping th,
+    .tbl.pendamping td {
+      padding: 6px 8px;
+      border: 1px solid #333;           /* garis antar sel */
+      font-size: 12px;
+    }
+    .tbl.pendamping th {
+      background: #f2f2f2;
+      font-weight: 700;
+    }
 
   </style>
 </head>
