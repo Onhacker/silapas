@@ -181,7 +181,7 @@
                         <th>Nama</th>
                       </tr>
                       <?php foreach ($pendamping_rows as $i => $p): ?>
-                        <tr>
+                        <tr class="tbl pendamping" border="1" cellspacing="0" cellpadding="4">
                           <td><?= $i+1 ?></td>
                           <td><code><?= $e($p->nik) ?></code></td>
                           <td><?= $e($p->nama) ?></td>
