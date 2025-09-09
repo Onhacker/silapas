@@ -142,21 +142,7 @@ body { padding-bottom: var(--safe-bottom); }
     .hero-title .text,.hero-title .accent{animation:none}
     .hero-title .accent{width:min(520px,80%)}
   }
-  /* gradasi halus di atas */
-.header-fixed::before{
-  content:"";
-  position:fixed; left:0; top:0; right:0; height:24px;
-  pointer-events:none;
-  background:linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,0));
-}
-/* dan di bawah (untuk gesture bar) */
-.bottom-nav::after{
-  content:"";
-  position:fixed; left:0; right:0; bottom:0; height:24px;
-  pointer-events:none;
-  background:linear-gradient(to top, rgba(0,0,0,.18), rgba(0,0,0,0));
-}
-
+  
 </style>
 </head>
 
