@@ -17,7 +17,7 @@ class Admin_setting_web extends Admin_Controller {
 		$this->render($data);
 	}
 
-	public function update()
+public function update()
 {
     $post = $this->input->post(NULL, TRUE);
     $this->load->library('form_validation');
@@ -26,11 +26,8 @@ class Admin_setting_web extends Admin_Controller {
     $this->form_validation->set_rules('nama_website','Nama Website','trim|required');
     $this->form_validation->set_rules('email','Email','trim|required|valid_email');
     $this->form_validation->set_rules('url','URL Aplikasi','trim|required|valid_url');
-    // no_telp: 10–15 digit, boleh diawali +
     $this->form_validation->set_rules('no_telp','No. HP/WhatsApp','trim|required|regex_match[/^\+?\d{10,15}$/]');
-    // waktu: batasi ke tiga zona waktu Indonesia
     $this->form_validation->set_rules('waktu','Zona Waktu','trim|required|in_list[Asia/Jakarta,Asia/Makassar,Asia/Jayapura]');
-    // min_lead_minutes: 0–1440
     $this->form_validation->set_rules('min_lead_minutes','Minimal Jeda Booking (menit)','trim|integer|greater_than_equal_to[0]|less_than_equal_to[1440]');
 
     $this->form_validation->set_message('required', '* %s Harus diisi');
@@ -50,11 +47,9 @@ class Admin_setting_web extends Admin_Controller {
 
     // ===== NORMALISASI NILAI =====
     $url = trim($post['url'] ?? '');
-    // pastikan punya skema, valid_url sudah menjamin ini, tapi jaga-jaga
     if ($url !== '' && !preg_match('~^https?://~i',$url)) {
         $url = 'http://'.$url;
     }
-    // opsional: pastikan trailing slash
     if ($url !== '' && substr($url, -1) !== '/') {
         $url .= '/';
     }
@@ -66,39 +61,48 @@ class Admin_setting_web extends Admin_Controller {
         if ($minLead > 1440)$minLead = 1440;
     }
 
-    // ===== SIAPKAN DATA UPDATE (HANYA KOLOM YANG ADA DI TABEL) =====
+    // ===== SIAPKAN DATA UPDATE (tanpa token/secret dulu) =====
     $row = [
-        'nama_website'    => $post['nama_website'] ?? '',
-        'email'           => $post['email'] ?? '',
-        'url'             => $url,
-        'provinsi'        => $post['provinsi'] ?? '',
-        'kabupaten'       => $post['kabupaten'] ?? '',
-        'alamat'          => $post['alamat'] ?? '',
-        'no_telp'         => $no_telp,
-        'telp'            => $post['telp'] ?? '',
-        'meta_deskripsi'  => $post['meta_deskripsi'] ?? '',
-        'meta_keyword'    => $post['meta_keyword'] ?? '',
-        'maps'            => $post['maps'] ?? '',
-        'waktu'           => $post['waktu'] ?? 'Asia/Makassar',
-        'type'            => $post['type'] ?? '',
-        'credits'         => $post['credits'] ?? '',
-        'min_lead_minutes'=> $minLead,
+        'nama_website'     => $post['nama_website'] ?? '',
+        'email'            => $post['email'] ?? '',
+        'url'              => $url,
+        'provinsi'         => $post['provinsi'] ?? '',
+        'kabupaten'        => $post['kabupaten'] ?? '',
+        'alamat'           => $post['alamat'] ?? '',
+        'no_telp'          => $no_telp,
+        'telp'             => $post['telp'] ?? '',
+        'meta_deskripsi'   => $post['meta_deskripsi'] ?? '',
+        'meta_keyword'     => $post['meta_keyword'] ?? '',
+        'maps'             => $post['maps'] ?? '',
+        'waktu'            => $post['waktu'] ?? 'Asia/Makassar',
+        'type'             => $post['type'] ?? '',
+        'credits'          => $post['credits'] ?? '',
+        'min_lead_minutes' => $minLead,
+        'instagram'        => $post['instagram'] ?? '',
+        'facebook'         => $post['facebook'] ?? '',
     ];
 
-    // ===== UPLOAD FAVICON (OPSIONAL) =====
-    $hasFile = !empty($_FILES['favicon']['name']);
-    if ($hasFile) {
+    // ===== Token/Secret WA → hanya set kalau DIISI (tidak kosong) =====
+    if (isset($post['wa_api_token']) && trim($post['wa_api_token']) !== '') {
+        $row['wa_api_token'] = $post['wa_api_token'];
+    }
+    if (isset($post['wa_api_secret']) && trim($post['wa_api_secret']) !== '') {
+        $row['wa_api_secret'] = $post['wa_api_secret'];
+    }
+
+    // ===== UPLOAD FAVICON (opsional) =====
+    if (!empty($_FILES['favicon']['name'])) {
         $config = [
             'upload_path'   => FCPATH.'assets/images/',
             'allowed_types' => 'gif|jpg|jpeg|png|ico|GIF|JPG|JPEG|PNG|ICO',
-            'max_size'      => 1024,         // KB (naikkan dari 500 agar tidak terlalu ketat)
+            'max_size'      => 1024,
             'overwrite'     => TRUE,
-            'file_ext_tolower' => TRUE,
-            'file_name'     => 'favicon',    // akan otomatis diberi ekstensi asli oleh CI
+            'file_name'     => 'favicon', // CI otomatis tambahkan ekstensi
         ];
-        $this->load->library('upload', $config);
+        $this->load->library('upload');
+        $this->upload->initialize($config);
 
-        if ( ! $this->upload->do_upload('favicon')) {
+        if (!$this->upload->do_upload('favicon')) {
             $rules = "Tipe file: ".str_replace("|", ", ", $config['allowed_types'])
                    ."<br>Maksimal ukuran: ".$config['max_size']." KB";
             echo json_encode([
@@ -107,29 +111,19 @@ class Admin_setting_web extends Admin_Controller {
                 "pesan"=>$this->upload->display_errors('<br> ',' ').$rules
             ]);
             return;
-        } else {
-            $fdata = $this->upload->data();
-            $row['favicon'] = $fdata['file_name']; // contoh: favicon.png
         }
+        $fdata = $this->upload->data();
+        $row['favicon'] = $fdata['file_name']; // contoh: favicon.png
     }
 
-    // ===== SIMPAN KE DB =====
+    // ===== SIMPAN =====
     $this->db->where('id_identitas', 1);
     $ok = $this->db->update('identitas', $row);
 
-    if ($ok) {
-        echo json_encode([
-            "success"=>true,
-            "title"=>"Berhasil",
-            "pesan"=>"Data berhasil diupdate"
-        ]);
-    } else {
-        echo json_encode([
-            "success"=>false,
-            "title"=>"Gagal",
-            "pesan"=>"Data gagal diupdate"
-        ]);
-    }
+    echo json_encode($ok
+        ? ["success"=>true, "title"=>"Berhasil", "pesan"=>"Data berhasil diupdate"]
+        : ["success"=>false,"title"=>"Gagal", "pesan"=>"Data gagal diupdate"]
+    );
 }
 
 

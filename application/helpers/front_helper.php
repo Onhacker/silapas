@@ -60,28 +60,13 @@ function hitungLamaProses($create_date, $create_time, $update_time) {
         return trim($lama);
     }
 
-function send_wa_single ($wa,$pesan){
-	$curl = curl_init();
-	$token = "e1L2SpNjYE6R7oaXb8eyqFNkepj4Yqq1sMuFANwy02o6XXvpcjtcI2i";
-	$secret_key = "G4g42vHO";
-	$data = [
-		'phone' => preg_replace('/^0/', '62', $wa),
-		'message' => $pesan,
-	];
-	curl_setopt($curl, CURLOPT_HTTPHEADER,
-		array(
-			"Authorization: $token.$secret_key",
-		)
-	);
-	curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
-	curl_setopt($curl, CURLOPT_URL,  "https://deu.wablas.com/api/send-message");
-	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-	$result = curl_exec($curl);
-	curl_close($curl);
-}
+    if (!function_exists('send_wa_single')) {
+    	function send_wa_single($wa, $pesan) {
+    		$CI =& get_instance();
+    		$CI->load->library('Wa_client');
+    		return $CI->wa_client->send_single($wa, $pesan);
+    	}
+    }
 
 function hari($tanggal = null)
     {
