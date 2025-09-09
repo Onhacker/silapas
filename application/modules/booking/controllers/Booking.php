@@ -1073,7 +1073,6 @@ private function normalize_date_mysql(?string $s): ?string {
         $pdf = site_url("booking/print_pdf/").$kode;
         $web       = $this->fm->web_me();
 
-        $vcfUrl = site_url('booking/contact_vcf');
 
         $pesan  = "*[Konfirmasi Booking Kunjungan]*\n\n";
         $pesan .= "Halo *{$nama}*,\n\n";
@@ -1088,7 +1087,7 @@ private function normalize_date_mysql(?string $s): ?string {
         $pesan .= "📝 Keperluan      : {$keperluan}\n\n";
         $pesan .= "🔳 Download kode booking (PDF):\n{$pdf}\n\n";
         $pesan .= "🔗 Detail booking:\n{$redirect_url}\n\n";
-        $pesan .= "📇 Simpan kontak kami agar link bisa diklik langsung:\n{$vcfUrl}\n\n";
+        $pesan .= "📇 Simpan kontak kami agar link bisa diklik langsung\n\n";
         $pesan .= "_Pesan ini dikirim otomatis oleh Aplikasi {$web->nama_website}._";
 
 
@@ -1230,7 +1229,7 @@ private function normalize_date_mysql(?string $s): ?string {
 
         $tanggal_disp = !empty($d['tanggal']) ? date('d-m-Y', strtotime($d['tanggal'])) : '-';
         $jam_disp     = !empty($d['jam']) ? $d['jam'] : '-';
-
+        $wa = preg_replace('/\D+/', '', $no_hp); //
         $header = $is_cc ? '🔁 *TEMBUSAN PEMBERITAHUAN KUNJUNGAN*' : '📣 *PEMBERITAHUAN KUNJUNGAN*';
 
         $kepada = "Kepada Yth.\n";
@@ -1244,7 +1243,8 @@ private function normalize_date_mysql(?string $s): ?string {
         $lines[] = '━━━━━━━━━━━━━━━━━━━━';
         $lines[] = '🆔 Kode Booking : *'.$kode.'*';
         $lines[] = '👤 Tamu         : '.$nama;
-        $lines[] = '👤 No. Hp         : '.$no_hp;
+        // $lines[] = '👤 No. Hp         : '.$no_hp;
+        $lines[] = '🟢 WhatsApp      : https://wa.me/'.$wa;
         $lines[] = '🏢 Instansi     : '.$instansi;
         if ($is_cc) $lines[] = '🔎 Tembusan utk : *'.$child_unit.'*';
         else        $lines[] = '🎯 Unit Tujuan  : '.$child_unit;

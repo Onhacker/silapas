@@ -286,7 +286,7 @@ if (!function_exists('hari_id')) {
                   </a>
                 </div> -->
               <?php else: ?>
-                <span class="soft" id="foto_empty">Belum ada foto.</span>
+                <span class="soft" id="foto_empty">Belum ada dokumentasi.</span>
               <?php endif; ?>
               <div class="mt-2">
               	 <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
