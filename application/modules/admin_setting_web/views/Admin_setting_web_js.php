@@ -1,10 +1,5 @@
 <script type="text/javascript">
-    $(document).ready(function(){
-                // Basic
-        $('.dropify').dropify();
-
-    });
-
+   
     function modal(){
         $("#md").modal("show");
     }

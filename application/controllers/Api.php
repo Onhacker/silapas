@@ -39,7 +39,10 @@ class Api extends MX_Controller {
     $MENU_DEF[] = [
         'label'=>'Master', 'icon'=>'fe-git-commit',
         'children'=>[
-            [ 'label'=>'Manajemen User','url'=>site_url('admin_user'),
+            
+            [ 'label'=>'Setting System','url'=>site_url('admin_setting_web'),
+              'require'=>['Setting System','admin_setting_web','admin'] ],
+              [ 'label'=>'Manajemen User','url'=>site_url('admin_user'),
               'require'=>['Manajemen User','admin_user','user'] ],
         ]
     ];

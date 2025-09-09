@@ -133,7 +133,7 @@ if ($this->session->userdata("admin_level") == "admin") {
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-6">
-                Coder by <a href="#">PT. MVIN</a> 
+                Coder by <a href="#"><?php echo $web->credits ?></a> 
             </div>
             <div class="col-md-6">
                 <div class="text-md-right footer-links d-none d-sm-block">
