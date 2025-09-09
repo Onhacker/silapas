@@ -49,27 +49,18 @@
     .note{font-size:11px; color:#444; margin-top:10px}
     .note ul{margin:6px 0 0 18px; padding:0}
     .foot{margin-top:12px; padding-top:8px; border-top:1px dashed #cbd5e1; text-align:center; color:#64748b; font-size:11px}
-    /* tabel pendamping yang ringkas & rapi */
-    .tbl.pendamping { border:1px solid #e5e7eb; border-radius:6px; border-collapse:collapse; width:100%; }
-    .tbl.pendamping th, .tbl.pendamping td { padding:6px 8px; border-bottom:1px solid #eef0f3; }
-    .tbl.pendamping tr:last-child td { border-bottom:none; }
-    .tbl.pendamping th { text-align:left; font-weight:700; background:#f8fafc; }
-    /* Garis tabel pendamping tegas & kompatibel PDF */
-    .tbl.pendamping {
-      width: 100%;
-      border-collapse: collapse;        /* penting utk PDF engine */
-      border: 1px solid #333;           /* bingkai luar */
+        /* Paksa semua garis di tabel pendamping terlihat */
+    table.tbl.pendamping {
+      border-collapse: collapse !important;
+      border: 1px solid #333 !important;
     }
-    .tbl.pendamping th,
-    .tbl.pendamping td {
-      padding: 6px 8px;
-      border: 1px solid #333;           /* garis antar sel */
+    table.tbl.pendamping th,
+    table.tbl.pendamping td {
+      border: 1px solid #333 !important;
+      padding: 6px 8px !important;
       font-size: 12px;
     }
-    .tbl.pendamping th {
-      background: #f2f2f2;
-      font-weight: 700;
-    }
+    table.tbl.pendamping th { background: #f2f2f2; font-weight: 700; }
 
   </style>
 </head>
@@ -181,7 +172,7 @@
                         <th>Nama</th>
                       </tr>
                       <?php foreach ($pendamping_rows as $i => $p): ?>
-                        <tr class="tbl pendamping" border="1" cellspacing="0" cellpadding="4">
+                        <tr>
                           <td><?= $i+1 ?></td>
                           <td><code><?= $e($p->nik) ?></code></td>
                           <td><?= $e($p->nama) ?></td>
