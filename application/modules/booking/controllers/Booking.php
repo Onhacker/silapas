@@ -1107,7 +1107,7 @@ private function normalize_date_mysql(?string $s): ?string {
         $redirect_url = !empty($d['redirect_url'])
                         ? $d['redirect_url']
                         : (!empty($d['access_token']) ? site_url('booking/booked?t='.urlencode($d['access_token'])) : site_url('booking'));
-
+                
         $nama          = isset($d['nama']) ? $d['nama'] : '-';
         $keperluan     = isset($d['keperluan']) ? $d['keperluan'] : '-';
         $kode          = isset($d['kode']) ? $d['kode'] : '-';
@@ -1117,7 +1117,7 @@ private function normalize_date_mysql(?string $s): ?string {
         $tanggal_disp  = !empty($d['tanggal']) ? date("d-m-Y", strtotime($d['tanggal'])) : '-';
         $jam_disp      = isset($d['jam']) ? $d['jam'] : '-';
         $qr_url        = isset($d['qr_url']) ? $d['qr_url'] : '';
-        $pdf = site_url("booking/print_pdf/").$kode;
+        $pdf = site_url("booking/print_pdf/").$kode."?t=".urlencode($d['access_token']);
         $web       = $this->fm->web_me();
 
 

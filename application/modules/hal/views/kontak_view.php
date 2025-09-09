@@ -18,6 +18,34 @@ $email_raw  = trim((string)($rec->email ?? ''));
 $email_disp = htmlspecialchars($email_raw !== '' ? $email_raw : '-', ENT_QUOTES, 'UTF-8');
 
 $wa_raw     = trim((string)($rec->no_wa ?? ($rec->wa ?? $telp_raw)));
+$ig_raw = trim((string)($rec->instagram ?? ''));
+$fb_raw = trim((string)($rec->facebook  ?? ''));
+
+/** Normalisasi handle/URL sosmed → [url lengkap, label tampil] */
+function social_url_and_label($raw, $type){
+  $s = trim((string)$raw);
+  if ($s === '') return [null, null];
+
+  $isUrl = preg_match('~^https?://~i', $s);
+  $handle = ltrim($s, '@/'); // buang @ atau / awal
+
+  if ($isUrl) {
+    // Ambil path terakhir sebagai label
+    $p = parse_url($s, PHP_URL_PATH);
+    $seg = array_values(array_filter(explode('/', (string)$p)));
+    $label = $seg ? '@'.$seg[0] : ($type === 'ig' ? '@instagram' : '@facebook');
+    return [$s, $label];
+  }
+
+  if ($type === 'ig') {
+    return ['https://instagram.com/'.$handle, '@'.$handle];
+  } else {
+    return ['https://facebook.com/'.$handle, '@'.$handle];
+  }
+}
+
+[$ig_url, $ig_label] = social_url_and_label($ig_raw, 'ig');
+[$fb_url, $fb_label] = social_url_and_label($fb_raw, 'fb');
 
 // Jam kerja: izinkan <br> saja
 
@@ -122,6 +150,11 @@ $deskripsi = isset($deskripsi) ? htmlspecialchars($deskripsi, ENT_QUOTES, 'UTF-8
 
   /* Aksi cepat di hero (stack di mobile) */
   @media (max-width: 575.98px){ .contact-hero .btn{width:100%;margin-bottom:.5rem} }
+  .btn-ig{background:#E1306C;color:#fff;border:none}
+.btn-ig:hover{filter:brightness(.96);color:#fff}
+.btn-fb{background:#1877F2;color:#fff;border:none}
+.btn-fb:hover{filter:brightness(.96);color:#fff}
+
 </style>
 
 <div class="container-fluid">
@@ -209,6 +242,23 @@ $jam_lines = array_values(array_filter(array_map('trim', $jam_lines), 'strlen'))
                 <i class="mdi mdi-whatsapp"></i> WhatsApp
               </a>
             <?php endif; ?>
+            <?php if ($ig_url): ?>
+  <a class="btn btn-ig"
+     target="_blank" rel="noopener"
+     aria-label="Instagram"
+     href="<?= htmlspecialchars($ig_url, ENT_QUOTES, 'UTF-8') ?>">
+    <i class="mdi mdi-instagram"></i> Instagram
+  </a>
+<?php endif; ?>
+
+<?php if ($fb_url): ?>
+  <a class="btn btn-fb"
+     target="_blank" rel="noopener"
+     aria-label="Facebook"
+     href="<?= htmlspecialchars($fb_url, ENT_QUOTES, 'UTF-8') ?>">
+    <i class="mdi mdi-facebook"></i> Facebook
+  </a>
+<?php endif; ?>
 
             <a class="btn btn-maps" target="_blank" rel="noopener"
                aria-label="Buka di Google Maps"
@@ -272,6 +322,35 @@ $jam_lines = array_values(array_filter(array_map('trim', $jam_lines), 'strlen'))
             </div>
           </div>
           <?php endif; ?>
+          <?php if ($ig_url): ?>
+  <div class="info-item d-flex align-items-start">
+    <span class="icon-pill"><i class="mdi mdi-instagram"></i></span>
+    <div>
+      <div class="font-weight-bold">Instagram</div>
+      <div class="text-muted">
+        <a target="_blank" rel="noopener"
+           href="<?= htmlspecialchars($ig_url, ENT_QUOTES, 'UTF-8') ?>">
+          <?= htmlspecialchars($ig_label ?? 'Instagram', ENT_QUOTES, 'UTF-8') ?>
+        </a>
+      </div>
+    </div>
+  </div>
+<?php endif; ?>
+
+<?php if ($fb_url): ?>
+  <div class="info-item d-flex align-items-start">
+    <span class="icon-pill"><i class="mdi mdi-facebook"></i></span>
+    <div>
+      <div class="font-weight-bold">Facebook</div>
+      <div class="text-muted">
+        <a target="_blank" rel="noopener"
+           href="<?= htmlspecialchars($fb_url, ENT_QUOTES, 'UTF-8') ?>">
+          <?= htmlspecialchars($fb_label ?? 'Facebook', ENT_QUOTES, 'UTF-8') ?>
+        </a>
+      </div>
+    </div>
+  </div>
+<?php endif; ?>
 
           <hr class="my-4">
 
