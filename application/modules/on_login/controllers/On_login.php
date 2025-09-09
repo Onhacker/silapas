@@ -12,7 +12,8 @@ class On_login extends MX_Controller {
 
 	function index(){
 		if ($this->session->userdata("admin_login") == true) {
-			redirect(site_url("admin_dashboard"));
+			// redirect(site_url("admin_dashboard"));
+			redirect('admin_profil/detail_profil?r='.time());
 		} else {
 			$data["rec"] = $this->fm->web_me();
 			$data["kode"] = $this->reload_captcha(true)["kode"];

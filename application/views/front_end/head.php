@@ -27,9 +27,9 @@
           "logo": "<?php echo base_url('assets/images/logo.png'); ?>"
       }
   </script>
- <meta name="theme-color" media="(prefers-color-scheme: light)" content="#0F172A">
-<meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#000000">
-
+ <!-- pilih salah satu pendekatan -->
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="transparent">
+<meta name="theme-color" media="(prefers-color-scheme: dark)"  content="transparent">
 
 
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
