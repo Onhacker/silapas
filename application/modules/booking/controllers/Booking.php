@@ -1124,7 +1124,11 @@ private function normalize_date_mysql(?string $s): ?string {
         $tanggal_disp  = !empty($d['tanggal']) ? date("d-m-Y", strtotime($d['tanggal'])) : '-';
         $jam_disp      = isset($d['jam']) ? $d['jam'] : '-';
         $qr_url        = isset($d['qr_url']) ? $d['qr_url'] : '';
-        $pdf = site_url("booking/print_pdf/").$kode."?t=".urlencode($d['access_token']);
+        $pdf = '';
+        if ($kode !== '') {
+            $pdf = site_url('booking/print_pdf/'.rawurlencode($kode));
+            if ($token) $pdf .= '?t='.urlencode($token);
+        }
         $web       = $this->fm->web_me();
 
 
@@ -1263,50 +1267,95 @@ private function normalize_date_mysql(?string $s): ?string {
             log_message('error', 'send_wa_single tidak tersedia.');
             return false;
         }
-        if (method_exists($this, '_normalize_msisdn_id')) {
-            $hp_unit = $this->_normalize_msisdn_id($hp_unit);
-        }
-        $web       = $this->fm->web_me();
 
-        $kode        = trim((string)($d['kode'] ?? '-'));
-        $nama        = trim((string)($d['nama'] ?? '-'));
-        $no_hp        = trim((string)($d['no_hp'] ?? '-'));
-        $instansi    = trim((string)($d['instansi_asal'] ?? '-'));
-        $child_unit  = trim((string)($d['child_unit_nama'] ?? ($d['unit_nama'] ?? '-')));
-        $unit_nama   = trim((string)($d['unit_nama'] ?? '-'));
-        $unit_pej    = trim((string)($d['unit_pejabat'] ?? ''));
+        // --- Normalisasi nomor tujuan (unit) ---
+        if (method_exists($this, '_normalize_msisdn_id')) {
+            $hp_unit = $this->_normalize_msisdn_id($hp_unit); // pastikan 62xxxxxxxxx
+        } else {
+            $hp_unit = preg_replace('/\D+/', '', $hp_unit ?? '');
+            if ($hp_unit !== '' && $hp_unit[0] === '0') $hp_unit = '62'.substr($hp_unit,1);
+        }
+        if ($hp_unit === '') {
+            log_message('error', 'WA unit kosong setelah normalisasi.');
+            return false;
+        }
+
+        // --- web_me dengan fallback & default aman ---
+        $web = null;
+        if (isset($this->fm) && method_exists($this->fm, 'web_me'))       $web = $this->fm->web_me();
+        elseif (isset($this->om) && method_exists($this->om, 'web_me'))   $web = $this->om->web_me();
+        $app_name = $web->nama_website ?? 'Aplikasi';
+
+        // --- Helper kecil untuk aman di WA ---
+        $wa_plain = function($s){
+            $s = (string)$s;
+            // escape karakter markdown dasar: * _ ~ `
+            return str_replace(['*','_','~','`'], ['\*','\_','\~','\`'], $s);
+        };
+
+        // --- Ambil & rapikan data ---
+        $kode        = trim((string)($d['kode'] ?? ''));
+        $nama        = $wa_plain(trim((string)($d['nama'] ?? '-')));
+        $no_hp_tamu  = trim((string)($d['no_hp'] ?? ''));
+        $instansi    = $wa_plain(trim((string)($d['instansi_asal'] ?? '-')));
+        $child_unit  = $wa_plain(trim((string)($d['child_unit_nama'] ?? ($d['unit_nama'] ?? '-'))));
+        $unit_nama   = $wa_plain(trim((string)($d['unit_nama'] ?? '-')));
+        $unit_pej    = $wa_plain(trim((string)($d['unit_pejabat'] ?? '')));
         $pendamping  = (int)($d['pendamping'] ?? 0);
-        $keperluan   = trim((string)(($d['keperluan'] ?? '-') ?: '-'));
+        $keperluan   = $wa_plain(trim((string)(($d['keperluan'] ?? '-') ?: '-')));
         $redir       = trim((string)($d['redirect_url'] ?? ''));
-        $qr_url      = trim((string)($d['qr_url'] ?? ''));
+        // $qr_url      = trim((string)($d['qr_url'] ?? ''));
         $is_cc       = !empty($d['is_cc']);
 
-        $tanggal_disp = !empty($d['tanggal']) ? date('d-m-Y', strtotime($d['tanggal'])) : '-';
-        $jam_disp     = !empty($d['jam']) ? $d['jam'] : '-';
-        $wa = preg_replace('/\D+/', '', $no_hp); //
+        // Tanggal (validasi format Y-m-d agar tidak jadi 1970)
+        $tanggal_disp = '-';
+        if (!empty($d['tanggal'])) {
+            $dt = DateTime::createFromFormat('Y-m-d', (string)$d['tanggal']);
+            if ($dt && $dt->format('Y-m-d') === (string)$d['tanggal']) {
+                $tanggal_disp = $dt->format('d-m-Y');
+            }
+        }
+        // Jam sederhana
+        $jam_disp = '-';
+        if (!empty($d['jam'])) {
+            $jam_norm = str_replace('.', ':', preg_replace('/\s+/', '', (string)$d['jam']));
+            if (preg_match('/^(?:[01]?\d|2[0-3]):[0-5]\d$/', $jam_norm)) $jam_disp = $jam_norm;
+        }
+
+        // Link WA tamu (hanya jika valid)
+        $wa_link = '';
+        if ($no_hp_tamu !== '') {
+            $wa_digits = preg_replace('/\D+/', '', $no_hp_tamu);
+            if ($wa_digits !== '') {
+                if ($wa_digits[0] === '0') $wa_digits = '62'.substr($wa_digits,1);
+                // minimal 8-10 digit setelah 62, biar tidak https://wa.me/ kosong
+                if (strlen($wa_digits) >= 10) $wa_link = 'https://wa.me/'.$wa_digits;
+            }
+        }
+
+        // Header
         $header = $is_cc ? '🔁 *TEMBUSAN PEMBERITAHUAN KUNJUNGAN*' : '📣 *PEMBERITAHUAN KUNJUNGAN*';
 
+        // Kepada
         $kepada = "Kepada Yth.\n";
-        if ($unit_pej !== '') $kepada .= '*'.$unit_pej.'* — *'.$unit_nama.'*';
-        else                  $kepada .= '*'.$unit_nama.'*';
+        $kepada .= ($unit_pej !== '') ? ('*'.$unit_pej.'* — *'.$unit_nama.'*') : ('*'.$unit_nama.'*');
 
+        // Susun pesan
         $lines = [];
         $lines[] = $header;
         $lines[] = '';
         $lines[] = $kepada;
         $lines[] = '━━━━━━━━━━━━━━━━━━━━';
-        $lines[] = '🆔 Kode Booking : *'.$kode.'*';
+        $lines[] = '🆔 Kode Booking : *'.($kode !== '' ? $wa_plain($kode) : '-').'*';
         $lines[] = '👤 Tamu         : '.$nama;
-        // $lines[] = '👤 No. Hp         : '.$no_hp;
-        $lines[] = '🟢 WhatsApp      : https://wa.me/'.$wa;
+        if ($wa_link) $lines[] = '🟢 WhatsApp     : '.$wa_link;
         $lines[] = '🏢 Instansi     : '.$instansi;
-        if ($is_cc) $lines[] = '🔎 Tembusan utk : *'.$child_unit.'*';
-        else        $lines[] = '🎯 Unit Tujuan  : '.$child_unit;
+        $lines[] = ($is_cc ? '🔎 Tembusan utk : *'.$child_unit.'*' : '🎯 Unit Tujuan  : '.$child_unit);
         $lines[] = '📅 Tanggal      : '.$tanggal_disp;
         $lines[] = '⏰ Jam          : '.$jam_disp;
         $lines[] = '👥 Pendamping   : '.$pendamping.' orang';
         $lines[] = '📝 Keperluan    : '.$keperluan;
-        if ($qr_url !== '') { $lines[] = '🧾 QR: '.$qr_url; }
+        // if ($qr_url !== '') { $lines[] = '🧾 QR           : '.$qr_url; }
         if ($redir  !== '') {
             $lines[] = '';
             $lines[] = '🔗 Detail kunjungan:';
@@ -1314,7 +1363,7 @@ private function normalize_date_mysql(?string $s): ?string {
         }
         $lines[] = '';
         $lines[] = 'Simpan nomor ini agar link dapat diklik';
-        $lines[] = '_Pesan otomatis Aplikasi '.$web->nama_website.'._';
+        $lines[] = '_Pesan otomatis '.$app_name.'._';
 
         try {
             send_wa_single($hp_unit, implode("\n", $lines));
@@ -1324,6 +1373,7 @@ private function normalize_date_mysql(?string $s): ?string {
             return false;
         }
     }
+
 
     // ==== DOKUMENTASI: list & upload (opsional) ====
 
