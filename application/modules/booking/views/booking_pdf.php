@@ -173,10 +173,11 @@
                       </tr>
                       <?php foreach ($pendamping_rows as $i => $p): ?>
                         <tr>
-                          <td><?= $i+1 ?></td>
-                          <td><code><?= $e($p->nik) ?></code></td>
-                          <td><?= $e($p->nama) ?></td>
+                          <td style="border:1px solid #333; padding:6px 8px;"><?= $i+1 ?></td>
+                          <td style="border:1px solid #333; padding:6px 8px;"><code><?= $e($p->nik) ?></code></td>
+                          <td style="border:1px solid #333; padding:6px 8px;"><?= $e($p->nama) ?></td>
                         </tr>
+
                       <?php endforeach; ?>
                     </table>
                     <?php else: ?>
