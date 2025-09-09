@@ -5,7 +5,7 @@
 */
 
 /* === versi cache (ganti setiap rilis) === */
-const CACHE_NAME  = 'sila-30';                 // ⬅️ bump saat deploy
+const CACHE_NAME  = 'sila-31';                 // ⬅️ bump saat deploy
 const OFFLINE_URL = '/assets/offline.html';
 
 /* Halaman HTML publik yang boleh dicache (pakai path tanpa query) */
