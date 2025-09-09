@@ -8,14 +8,7 @@ class Admin_dashboard extends Admin_Controller
         parent::__construct();
         $this->load->model("M_admin_dashboard","ma");
         date_default_timezone_set('Asia/Makassar');
-        // === BYPASS untuk CLI & method cron ===
-        $method = isset($this->router) ? $this->router->method : null;
-        $whitelist = ['paths', 'cron_test', 'expire_bookings']; // tambahkan jika ada cron lain
-
-        if ($this->input->is_cli_request() || in_array($method, $whitelist, true)) {
-            // Jangan cek session/login, jangan redirect, langsung lolos
-            return;
-        }
+        
         
     }
 
