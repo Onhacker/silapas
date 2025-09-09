@@ -27,10 +27,9 @@
           "logo": "<?php echo base_url('assets/images/logo.png'); ?>"
       }
   </script>
-  <!-- Light -->
-  <meta name="theme-color" content="#FF8C00" media="(prefers-color-scheme: light)">
-  <!-- Dark -->
-  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#000000">
+
 
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <link rel="manifest" href="<?= site_url('developer/manifest') ?>?v=7">
@@ -48,6 +47,15 @@
    body {
     padding-bottom: 0px;
 }
+:root {
+  /* contoh global */
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+.header-fixed { padding-top: calc(16px + var(--safe-top)); }
+.footer-fixed { padding-bottom: calc(16px + var(--safe-bottom)); }
+body { padding-bottom: var(--safe-bottom); }
 
 </style>
 <style>

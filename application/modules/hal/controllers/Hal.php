@@ -99,17 +99,17 @@ $this->sort_tree_custom($tree); // <-- ganti dari sort_tree_by_name()
         'tree'       => $tree,
     ];
 
-    // Header respons sesuai mode
-    if ($nocache) {
-        $this->output
-            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
-            ->set_header('Pragma: no-cache')
-            ->set_header('Expires: 0');
-    } else {
-        $this->output
-            ->set_header('ETag: '.$etag)
-            ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=120');
-    }
+    // // Header respons sesuai mode
+    // if ($nocache) {
+    //     $this->output
+    //         ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+    //         ->set_header('Pragma: no-cache')
+    //         ->set_header('Expires: 0');
+    // } else {
+    //     $this->output
+    //         ->set_header('ETag: '.$etag)
+    //         ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=120');
+    // }
 
     $this->load->view('organisasi_view', $data);
 }
