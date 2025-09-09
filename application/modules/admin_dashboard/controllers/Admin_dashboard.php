@@ -10,7 +10,12 @@ class Admin_dashboard extends Admin_Controller
         date_default_timezone_set('Asia/Makassar');
         cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
         
-        
+        if ($this->session->userdata('admin_login')) {
+            $this->output
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private')
+            ->set_header('Pragma: no-cache')
+            ->set_header('Expires: 0')
+      ->set_header('X-Auth-Logged-In: 1'); // hint untuk SW/diagnostik
         
     }
 
