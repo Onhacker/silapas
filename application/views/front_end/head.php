@@ -28,8 +28,10 @@
       }
   </script>
  <!-- pilih salah satu pendekatan -->
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="transparent">
-<meta name="theme-color" media="(prefers-color-scheme: dark)"  content="transparent">
+<!-- pilih warna gelap headermu -->
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#0F172A">
+<meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#000000">
+
 
 
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
