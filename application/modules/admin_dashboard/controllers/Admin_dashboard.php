@@ -8,6 +8,8 @@ class Admin_dashboard extends Admin_Controller
         parent::__construct();
         $this->load->model("M_admin_dashboard","ma");
         date_default_timezone_set('Asia/Makassar');
+        cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
+        
         
         
     }
