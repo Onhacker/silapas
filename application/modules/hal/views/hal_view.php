@@ -1,7 +1,10 @@
 <?php $this->load->view("front_end/head.php") ?>
 <div class="container-fluid">
-   
-  <div class="row mt-3">
+  <div class="hero-title" role="banner" aria-label="Judul situs">
+    <h1 class="text">Alur Pembooking(an) Kunjungan Tamu</h1>
+    <span class="accent" aria-hidden="true"></span>
+  </div>
+  <div class="row">
     <div class="col-lg-12">
       <div class="search-result-box card-box">
 
@@ -10,35 +13,36 @@
           /*.timeline-sm-item:before{
             content:''; position:absolute; left:-20px; top:2px; width:18px; height:18px; border-radius:50%;
             background-color:#00008B; border:2px solid #fff; box-shadow:0 0 5px rgba(0,0,0,.15)
-          }*/
-          .timeline-sm-date{font-weight:bold}
-          .timeline-sm-item h4{font-weight:600;color:#333}
-          .timeline-sm-item p{font-size:1rem;line-height:1.6;text-align:justify}
-          .text-muted{color:#6c757d!important}
-          .timeline-sm-item:hover h4{color:#00008B}
-          .timeline-sm-item:hover .timeline-sm-date{color:#007bff}
-          .gal-box img{border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
-          .badge-step{display:inline-block;min-width:28px;height:28px;line-height:24px;border-radius:50%;
-            text-align:center;border:2px solid #00008B;color:#00008B;font-weight:700;margin-right:.35rem}
-          .tip{background:#f8fbff;border:1px solid #e6f0ff;border-radius:8px;padding:.6rem .75rem}
-        </style>
+            }*/
+            .timeline-sm-date{font-weight:bold}
+            .timeline-sm-item h4{font-weight:600;color:#333}
+            .timeline-sm-item p{font-size:1rem;line-height:1.6;text-align:justify}
+            .text-muted{color:#6c757d!important}
+            .timeline-sm-item:hover h4{color:#00008B}
+            .timeline-sm-item:hover .timeline-sm-date{color:#007bff}
+            .gal-box img{border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+            .badge-step{display:inline-block;min-width:28px;height:28px;line-height:24px;border-radius:50%;
+              text-align:center;border:2px solid #00008B;color:#00008B;font-weight:700;margin-right:.35rem}
+              .tip{background:#f8fbff;border:1px solid #e6f0ff;border-radius:8px;padding:.6rem .75rem}
+            </style>
 
-        <div class="container">
-          <link href="<?= base_url('assets/admin/libs/magnific-popup/magnific-popup.css'); ?>" rel="stylesheet" type="text/css" />
+            <div class="container">
+              <link href="<?= base_url('assets/admin/libs/magnific-popup/magnific-popup.css'); ?>" rel="stylesheet" type="text/css" />
 
-          <h3 class="text-center mb-3">
+
+         <!--  <h3 class="text-center mb-3">
             <i class="mdi mdi-qrcode-scan mr-1"></i> Alur Pembooking(an) Kunjungan Tamu
-          </h3>
+          </h3> -->
 
           <!-- Flowchart (opsional) -->
           <!-- <div class="text-center text-muted">Form → Approved & Ticket (QR) → Check-in (Scan) → Layanan → Checkout → Statistik</div> -->
-           <a href="<?php echo base_url("assets/images/flowcart.webp") ?>" class="image-popup" title="Alur">
-              <img src="<?php echo base_url("assets/images/flowcart.webp") ?>" class="img-fluid" alt="work-thumbnail">
-            </a>
+          <a href="<?php echo base_url("assets/images/flowcart.webp") ?>" class="image-popup" title="Alur">
+            <img src="<?php echo base_url("assets/images/flowcart.webp") ?>" class="img-fluid" alt="work-thumbnail">
+          </a>
           <ul class="list-unstyled timeline-sm mt-4">
             <!-- Step 1 -->
             <li class="timeline-sm-item">
-              
+
               <h4 class="mt-0">Buat Booking</h4>
               <p>
                 Pengunjung membuka halaman <a href="<?= site_url('booking') ?>">Form Booking</a>,
@@ -51,7 +55,7 @@
 
             <!-- Step 2 -->
             <li class="timeline-sm-item">
-              
+
               <h4 class="mt-0">Verifikasi Admin</h4>
               <p>
                 Sistem memeriksa ketersediaan slot dan kelengkapan data. Jika sesuai, status menjadi <strong>Approved</strong>.
@@ -66,7 +70,7 @@
 
             <!-- Step 3 -->
             <li class="timeline-sm-item">
-              
+
               <h4 class="mt-0">Persiapan Pengunjung</h4>
               <p>
                 Pengunjung menyimpan/ mencetak <strong>ticket (PDF)</strong> yang memuat QR.
@@ -77,7 +81,7 @@
 
             <!-- Step 4 -->
             <li class="timeline-sm-item">
-              
+
               <h4 class="mt-0">Check-in (Hari H)</h4>
               <p>
                 Di pos petugas, QR pada ticket di-<strong>scan</strong> melalui halaman <strong>Scan</strong> (<a href="<?= site_url('admin_scan') ?>">admin_scan</a>).
@@ -88,7 +92,7 @@
 
             <!-- Step 5 -->
             <li class="timeline-sm-item">
-              
+
               <h4 class="mt-0">Proses Kunjungan & Dokumentasi</h4>
               <p>
                 Tamu dilayani oleh <strong>Unit Tujuan</strong> sesuai keperluan. Dari halaman <strong>Detail Booking</strong>,
@@ -99,7 +103,7 @@
 
             <!-- Step 6 -->
             <li class="timeline-sm-item">
-              
+
               <h4 class="mt-0">Checkout</h4>
               <p>
                 Saat tamu selesai, lakukan pemindaian ulang pada mode <strong>Checkout</strong>.
@@ -110,7 +114,7 @@
 
             <!-- Step 7 -->
             <li class="timeline-sm-item">
-              
+
               <h4 class="mt-0">Selesai &amp; Arsip</h4>
               <p>
                 Semua data (identitas, unit tujuan, waktu check-in/out, petugas, foto, dokumen) tersimpan sebagai arsip.
@@ -120,7 +124,7 @@
 
             <!-- Step 8 -->
             <li class="timeline-sm-item">
-              
+
               <h4 class="mt-0">Statistik &amp; Evaluasi</h4>
               <p>
                 Dashboard menampilkan <strong>Tren Kunjungan</strong> (harian/mingguan/bulanan), <strong>Asal Instansi Top 5</strong>,

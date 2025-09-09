@@ -29,14 +29,20 @@
 </style>
 
 <div class="container-fluid">
-  <div class="row mt-3">
+  <div class="hero-title" role="banner" aria-label="Judul situs">
+    <h1 class="text"><?= $title ?></h1>
+            <div class="text-muted">Isi data dengan benar untuk mempercepat proses konfirmasi</div>
+
+    <span class="accent" aria-hidden="true"></span>
+  </div>
+  <div class="row">
     <div class="col-lg-12">
       <div class="card card-elev">
         <div class="card-body">
-          <div class="text-center mb-2">
+         <!--  <div class="text-center mb-2">
             <h3 class="mb-1"><?php echo $title ?></h3>
             <div class="small-muted">Isi data dengan benar untuk mempercepat proses konfirmasi.</div>
-          </div>
+          </div> -->
 
           <form id="form_app" method="post" enctype="multipart/form-data">
             <!-- ====== Data Tamu ====== -->

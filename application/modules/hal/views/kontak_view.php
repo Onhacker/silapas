@@ -159,18 +159,9 @@ $deskripsi = isset($deskripsi) ? htmlspecialchars($deskripsi, ENT_QUOTES, 'UTF-8
 
 <div class="container-fluid">
   <!-- Page title -->
-  <div class="row">
-    <div class="col-12">
-      <div class="page-title-box">
-        <div class="page-title-right">
-          <ol class="breadcrumb m-0">
-            <li class="breadcrumb-item"><?= htmlspecialchars($title_page, ENT_QUOTES, 'UTF-8') ?></li>
-            <li class="breadcrumb-item active">Hubungi Kami</li>
-          </ol>
-        </div>
-        <h4 class="page-title">Kontak</h4>
-      </div>
-    </div>
+  <div class="hero-title" role="banner" aria-label="Judul situs">
+    <h1 class="text">Kontak</h1>
+    <span class="accent" aria-hidden="true"></span>
   </div>
 
   <!-- Hero -->
@@ -179,7 +170,7 @@ $deskripsi = isset($deskripsi) ? htmlspecialchars($deskripsi, ENT_QUOTES, 'UTF-8
       <div class="contact-hero p-3 p-md-4 mb-3">
         <div class="d-lg-flex align-items-center justify-content-between">
           <div class="mr-lg-3">
-            <h3 class="mb-1 headline">Kontak <?= $nama ?></h3>
+            <!-- <h3 class="mb-1 headline">Kontak <?= $nama ?></h3> -->
             <?php if ($deskripsi): ?>
               <p class="text-dark mb-2"><?= $deskripsi ?></p>
             <?php endif; ?>

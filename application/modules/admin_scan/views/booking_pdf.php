@@ -81,6 +81,8 @@ if (!empty($booking->checkin_at) && !empty($booking->checkout_at)) {
 /* Waktu cetak (dengan hari) */
 $printed_at = fmt_hari_tanggal(time(), true);
 ?>
+<?php $web = $this->om->web_me(); ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -116,19 +118,21 @@ $printed_at = fmt_hari_tanggal(time(), true);
 <body>
 
   <!-- ===== HEADER: logo kiri + teks kanan ===== -->
-  <table style="width:100%;border-collapse:collapse;">
+  
+   <table>
     <tr>
       <td align="center" width="25%">
-        <?php if ($logo_exists): ?>
-          <img style="width:35px" src="<?= $logo_file ?>" alt="Logo">
-        <?php endif; ?>
-      </td>
-      <td align="center">
-        <div style="font-size:12pt;font-weight:800;">LAPAS KLAS I MAKASSAR</div>
-        <div style="font-size:9pt;color:#555;">Alamat : Jl. Sultan Alauddin, Gn. Sari, Kec. Rappocini, Kota Makassar, Sulawesi Selatan 90221</div>
-      </td>
-    </tr>
-  </table>
+       <?php if ($logo_exists): ?>
+        <img style="width: 30px" src="<?= $logo_file ?>" alt="Logo">
+      <?php endif; ?>
+    </td>
+    <td align="center">
+     <strong><?php echo strtoupper($web->type) ?></strong>
+     <div style="font-size: 9px">Alamat : <?php echo $web->alamat ?></div>
+   </td>
+ </tr>
+</table>
+
   <hr style="border:0;border-top:1px solid #e5e7eb;margin:2mm 0 3mm;">
 
   <!-- Kode booking -->
@@ -176,7 +180,6 @@ $printed_at = fmt_hari_tanggal(time(), true);
     <span class="badge" style="background:<?= $badgeBg ?>;margin-right:4px;"><?= e($badgeText) ?></span>
     <span class="print-at">Dicetak: <?= e($printed_at) ?></span>
   </div>
-<?php $web = $this->om->web_me(); ?>
   <!-- Catatan -->
   <div class="note">
     <ul>

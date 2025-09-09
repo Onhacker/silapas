@@ -1,14 +1,20 @@
 <?php $this->load->view("front_end/head.php") ?>
 
 <div class="container-fluid">
-  <div class="row mt-3">
+  <div class="hero-title" role="banner" aria-label="Judul situs">
+    <h1 class="text"><?= $title ?></h1>
+            <div class="text-muted"><?php echo $rec->type ?></div>
+
+    <span class="accent" aria-hidden="true"></span>
+  </div>
+  <div class="row">
     <div class="col-lg-12">
       <div class="card shadow-sm border-0">
         <div class="card-body">
-          <div class="text-center mb-4">
+         <!--  <div class="text-center mb-4">
             <h3 class="mb-1 fw-bold">🏢 <?= $title ?></h3>
             <div class="text-muted">Lapas Kelas I Makassar</div>
-          </div>
+          </div> -->
 
           <style>
             ul.tree, ul.tree ul {

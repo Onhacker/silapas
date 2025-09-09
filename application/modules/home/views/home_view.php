@@ -88,8 +88,16 @@ $slides = [
 </style>
 
 <div class="container-fluid">
- 
-  <div class="row mt-1">
+ <!-- ===== Pretty Title: LAPAS KELAS I MAKASSAR ===== -->
+
+
+<div class="hero-title" role="banner" aria-label="Judul situs">
+  <h1 class="text"><?php echo $rec->type ?></h1>
+  <span class="accent" aria-hidden="true"></span>
+</div>
+<!-- ===== /Pretty Title ===== -->
+
+  <div class="row">
     <!-- LEFT: HERO -->
     <div class="col-xl-4">
       <section class="pwa-hero" role="region" aria-label="Slideshow sorotan">

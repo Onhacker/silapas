@@ -118,7 +118,7 @@
       <?php endif; ?>
     </td>
     <td align="center">
-     <strong><?php echo $rec->type ?></strong>
+     <strong><?php echo strtoupper($rec->type) ?></strong>
      <div style="font-size: 9px">Alamat : <?php echo $rec->alamat ?></div>
    </td>
  </tr>

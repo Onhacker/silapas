@@ -48,8 +48,60 @@
    body {
     padding-bottom: 0px;
 }
-</style>
 
+</style>
+<style>
+  :root{
+    --c1:#22c55e; /* green */
+    --c2:#06b6d4; /* cyan  */
+    --c3:#8b5cf6; /* violet*/
+  }
+  .hero-title{
+    padding:24px 0 10px;
+    text-align:center;
+  }
+  .hero-title .text{
+  display:inline-block;
+  margin:0;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-weight:900;
+  letter-spacing:.025em;
+  text-transform:uppercase;
+  line-height:1.1;
+  font-size:clamp(18px,4.2vw,32px);
+  /* (opsional) kalau mau efek gradien teks, aktifkan 4 baris ini:
+  background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3));
+  -webkit-background-clip:text;
+          background-clip:text;
+  color:transparent;
+  */
+  filter:drop-shadow(0 2px 10px rgba(139,92,246,.15));
+  animation:popIn .7s ease-out both;
+}
+
+  .hero-title .accent{
+    display:block;
+    height:4px;
+    width:0;
+    margin:10px auto 0;
+    border-radius:999px;
+    background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3));
+    box-shadow:0 0 18px rgba(34,197,94,.35), 0 0 24px rgba(6,182,212,.25);
+    animation:grow .9s .70s ease-out forwards;
+  }
+  @keyframes popIn{
+    from{opacity:0; transform:translateY(6px) scale(.98)}
+    to  {opacity:1; transform:translateY(0)   scale(1)}
+  }
+  @keyframes grow{
+    from{width:0}
+    to  {width:min(520px,80%)}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .hero-title .text,.hero-title .accent{animation:none}
+    .hero-title .accent{width:min(520px,80%)}
+  }
+</style>
 </head>
 
 <?php $this->load->view("global") ?>

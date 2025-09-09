@@ -92,7 +92,7 @@ $this->sort_tree_custom($tree); // <-- ganti dari sort_tree_by_name()
 
     $data = [
         'controller' => get_class($this),
-        'deskripsi'  => 'Struktur Organisasi Lapas Kelas I Makassar.',
+        'deskripsi'  => 'Struktur Organisasi '.$this->fm->web_me()->type,
         'prev'       => base_url('assets/images/struktur_organisasi.webp'),
         'title'      => 'Struktur Organisasi',
         'rec'        => $this->fm->web_me(),
