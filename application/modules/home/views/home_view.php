@@ -315,7 +315,7 @@ $slides = [
 <script src="<?= base_url('assets/admin/js/sw.min.js') ?>"></script>
 <?php $basePath = parse_url(site_url(), PHP_URL_PATH); if (!$basePath) $basePath = '/'; ?>
 
-<script>
+<!-- <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
     .then(registration => {
@@ -360,7 +360,7 @@ function forceClearCacheAndUnregisterSW() {
     });
   });
 }
-</script>
+</script> -->
 
 <?php $this->load->view("front_end/footer.php") ?>
 

@@ -381,6 +381,28 @@
     };
   })();
 
+
+  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+  Swal.fire({
+    title: 'Update Tersedia',
+    text: 'Versi baru tersedia. Ingin muat ulang aplikasi?',
+    icon: 'info',
+    showCancelButton: true,
+    confirmButtonText: 'Muat Ulang',
+    cancelButtonText: 'Nanti Saja'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Minta worker baru segera aktif
+      newWorker.postMessage({ type: 'SKIP_WAITING' });
+    }
+  });
+}
+// Reload otomatis ketika controller SW berubah (worker baru mengambil alih)
+navigator.serviceWorker.addEventListener('controllerchange', () => {
+  location.reload();
+});
+
+
 </script>
 
 
