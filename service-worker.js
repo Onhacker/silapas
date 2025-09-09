@@ -1,6 +1,6 @@
 /* ===== Service Worker ===== */
 
-const CACHE_NAME  = 'sila-33';                 // ⬅️ bump saat deploy
+const CACHE_NAME  = 'sila-34';                 // ⬅️ bump saat deploy
 const OFFLINE_URL = '/assets/offline.html';
 
 /* HTML publik yang boleh dicache (path tanpa query) */
@@ -55,8 +55,8 @@ const API_DENYLIST = [
   /^\/home\/chart(?:_?data)?(?:\/.*)?$/i,  // /home/chartdata atau /home/chart_data
   /^\/api\/?/i,                            // API umum
   /^\/admin(?:\/.*)?$/i,                   // semua admin (dashboard, dll.)
-  /^\/login(?:\/.*)?$/i,                   // login
-  /^\/booking\/(booked|print_pdf)(?:\/.*)?$/i // halaman sensitif token
+  /^\/login(?:\/.*)?$/i                 // login
+  // /^\/booking\/(booked|print_pdf)(?:\/.*)?$/i // halaman sensitif token
 ];
 
 /* Hanya cache aset statik (bukan XHR). Tambah ekstensi bila perlu */
