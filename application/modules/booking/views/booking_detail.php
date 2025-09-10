@@ -52,6 +52,11 @@ if (!function_exists('hari_id')) {
 </style>
 
 <div class="container-fluid">
+  <div class="hero-title" role="banner" aria-label="Judul situs">
+    <h1 class="text"><?php echo $booking->nama_tamu; ?></h1>
+    <span class="accent" aria-hidden="true"></span>
+  </div>
+
   <div class="row mt-3">
     <div class="col-lg-12">
 
@@ -794,3 +799,64 @@ function updateFotoSection(url) {
   });
 </script>
 
+<script>
+(function () {
+  // Target semua link unduh PDF (dl=1)
+  const pdfLinks = document.querySelectorAll('a[href*="booking/print_pdf"][href*="dl=1"]');
+  if (!pdfLinks.length) return;
+
+  // 1) helper loader
+  function showLoader(msg) {
+    Swal.fire({
+      title: 'Menyiapkan PDF…',
+      html: msg || 'Mohon tunggu sebentar',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+  }
+  function hideLoader() {
+    try { Swal.close(); } catch(e) {}
+  }
+
+  // 2) siapkan hidden iframe untuk trigger download tanpa pindah halaman
+  let iframe = document.getElementById('pdfDLFrame');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'pdfDLFrame';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+  }
+
+  let fallbackTimer = null;
+  iframe.addEventListener('load', function () {
+    // banyak browser akan mem-fire load saat file siap (termasuk attachment)
+    clearTimeout(fallbackTimer);
+    hideLoader();
+  });
+
+  // 3) intercept klik dan jalankan download via iframe
+  pdfLinks.forEach(a => {
+    a.classList.add('js-download-pdf');
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      const href = this.getAttribute('href');
+      if (!href) return;
+
+      showLoader('File sedang dibuat…');
+
+      // cache-busting supaya tidak nyangkut cache
+      const url = href + (href.indexOf('?') >= 0 ? '&' : '?') + 'ts=' + Date.now();
+
+      // Mulai download
+      iframe.src = url;
+
+      // Fallback: tutup loader jika event load tidak terpanggil (edge cases)
+      clearTimeout(fallbackTimer);
+      fallbackTimer = setTimeout(hideLoader, 15000); // 15 detik
+    }, { passive: false });
+  });
+
+  // Opsional: kalau user menutup modal PDF, pastikan loader tertutup juga
+  document.addEventListener('hidden.bs.modal', function () { hideLoader(); });
+})();
+</script>
