@@ -170,10 +170,12 @@ if ($this->session->userdata("admin_level") == "admin") {
 <?php } ?>
 
 
-<?php if (strtolower($controller) == "admin_dusun" or strtolower($controller) == "master_permohonan"  or strtolower($controller) == "master_syarat" or strtolower($controller) == "master_inputan") {?>
+<?php if (strtolower($controller) == "admin_dusun" or strtolower($controller) == "master_permohonan"  or strtolower($controller) == "master_syarat" or strtolower($controller) == "admin_unit_tujuan") {?>
    <script src="<?php echo base_url(); ?>assets/admin/datatables/js/jquery.dataTables.min.js"></script>
    <script src="<?php echo base_url(); ?>assets/admin/datatables/js/dataTables.bootstrap4.min.js"></script>
    <script src="<?php echo base_url("assets/admin") ?>/libs/jquery-toast/jquery.toast.min.js"></script>
+   <script src="<?php echo base_url("assets/admin/") ?>libs/select2/select2.min.js"></script>
+   
 <?php } ?>
 
 <?php if (strtolower($controller) == "admin_dashboard" or strtolower($controller) == "admin_permohonan") {?>

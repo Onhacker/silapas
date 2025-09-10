@@ -7,11 +7,29 @@ if (!function_exists('hari_id')) {
     if (empty($dateString)) return '-';
     $ts = strtotime($dateString);
     if ($ts === false) return '-';
-    $map = ['Sun'=>'Minggu','Mon'=>'Senin','Tue'=>'Rabu','Thu'=>'Kamis','Fri'=>'Jumat','Sat'=>'Sabtu'];
+    $map = [
+      'Sun'=>'Minggu',
+      'Mon'=>'Senin',
+      'Tue'=>'Selasa',
+      'Wed'=>'Rabu',
+      'Thu'=>'Kamis',
+      'Fri'=>'Jumat',
+      'Sat'=>'Sabtu'
+    ];
     return $map[date('D',$ts)] ?? date('D',$ts);
   }
 }
 ?>
+<style>
+  /* pastikan modal selalu di atas elemen template seperti footer/header */
+  .modal { z-index: 2050 !important; }
+  .modal-backdrop { z-index: 2040 !important; }
+
+  /* kalau footer Anda fixed dan punya z-index besar, turunkan */
+  .footer, .page-footer, footer {
+    z-index: 1 !important; /* atau hapus z-index di CSS footer Anda */
+  }
+</style>
 
 <style>
   .kv-card{border:1px solid #e5e7eb;border-radius:14px}
@@ -767,3 +785,12 @@ function updateFotoSection(url) {
   if (mDown) { mDown.href = bust; mDown.style.display = ''; }
 }
 </script>
+<script>
+  $(function () {
+    $('#modalPDF_<?= $kode_safe ?>').appendTo('body');
+    <?php if ($surat_url): ?>
+      $('#modalSuratTugas_<?= $kode_safe ?>').appendTo('body');
+    <?php endif; ?>
+  });
+</script>
+
