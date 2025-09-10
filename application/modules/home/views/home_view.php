@@ -27,7 +27,47 @@ $slides = [
 ?>
 
 <style>
-/* ===== HERO SLIDESHOW ===== */
+/* ================== VARIABEL GLOBAL ================== */
+:root{
+  /* Section & card */
+  --sec-bg:#ffffff;
+  --card-bg:#ffffff;
+  --card-shadow:0 12px 28px rgba(2,6,23,.08);
+  --title:#0b1323;
+  --muted:#64748b;
+
+  /* Accent */
+  --active:#0ea5e9;
+
+  /* Slider fitur */
+  --fs-gap:16px;
+  --fs-card-w: clamp(260px, 78vw, 340px);
+
+  /* Ukuran font fitur */
+  --fs-title-min:16px;
+  --fs-title-vw:3.4vw;
+  --fs-title-max:20px;
+  --fs-body:13.5px;
+
+  /* Judul section */
+  --sec-title:22px;
+  --sec-link:13px;
+}
+
+/* ================== HERO TITLE ================== */
+.hero-title{ padding:14px 0 6px; text-align:center; }
+.hero-title .text{
+  display:inline-block; margin:0;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-weight:900; letter-spacing:.04em; text-transform:uppercase;
+  line-height:1.1; font-size:clamp(18px,5vw,28px);
+}
+.hero-title .accent{
+  display:block; height:3px; margin:8px auto 0; width:min(420px,80%);
+  border-radius:999px; background:linear-gradient(90deg,#dd7634,#ffffff);
+}
+
+/* ================== HERO SLIDESHOW ================== */
 .pwa-hero{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 14px 34px rgba(0,0,0,.12);background:#000;margin:8px 0 14px}
 .pwa-hero__track{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .pwa-hero__track::-webkit-scrollbar{display:none}
@@ -45,7 +85,7 @@ $slides = [
 .pwa-hero__dots button[aria-current="true"]{background:#fff;transform:scale(1.15)}
 @media (prefers-reduced-motion:reduce){.pwa-hero__track{scroll-behavior:auto}}
 
-/* ===== QUICK MENU SLIDER ===== */
+/* ================== QUICK MENU ================== */
 .menu-circle{width:100px;height:100px;font-size:28px}
 .menu-label{font-size:14px}
 @media(max-width:576px){.menu-circle{width:60px;height:60px;font-size:18px}.menu-label{font-size:9px}}
@@ -68,34 +108,97 @@ $slides = [
 .quickmenu-fade{pointer-events:none;position:absolute;top:0;bottom:0;width:32px;z-index:2}
 .quickmenu-fade.left{left:0;background:linear-gradient(90deg,#fff,rgba(255,255,255,0))}
 .quickmenu-fade.right{right:0;background:linear-gradient(270deg,#fff,rgba(255,255,255,0))}
-@media(max-width:480px){.quickmenu-wrap{--btn:42px}.menu-circle{width:66px;height:66px}}
-/* ===== CHART ===== */
-#visit-line-chart{min-height:300px;width:100%}
-/* ===== Quickmenu: sembunyikan panah & fade di desktop (>=992px) ===== */
-@media (min-width: 992px){
-  .quickmenu-btn,
-  .quickmenu-fade{
-    display: none !important; /* hilang di layar besar */
-  }
-}
+@media (min-width: 992px){ .quickmenu-btn,.quickmenu-fade{ display:none !important; } }
+@media (max-width: 576px){ .quickmenu-wrap{ --btn:25px; } .quickmenu-btn{ font-size:14px; } }
 
-/* ===== Quickmenu: kecilkan panah di mobile (<=576px) ===== */
-@media (max-width: 576px){
-  .quickmenu-wrap{ --btn: 25px; }  /* semula 48px / 42px */
-  .quickmenu-btn{ font-size: 14px; } /* ikon panah lebih kecil */
+/* ================== FITUR (SLIDER KARTU) ================== */
+.features-sec{ /* latar/spacing bila perlu, dibiarkan minimal */ }
+.features-head h3{
+  margin:0; color:var(--title); font-weight:800; letter-spacing:.02em;
+  font-size:clamp(18px,3.8vw,var(--sec-title));
 }
+.features-all{ font-weight:700; text-decoration:none; font-size:var(--sec-link); color:var(--active); }
 
+.feature-slider{ position:relative; z-index:0; /* padding bisa ditambah jika mau ruang untuk tombol */ }
+.feature-slider .fs-nav{ z-index:5; pointer-events:auto; }
+
+.fs-track{
+  display:grid;
+  grid-auto-flow:column; grid-auto-columns: var(--fs-card-w);
+  gap: var(--fs-gap);
+  overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  padding:4px; margin:0; list-style:none;
+  -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,.08), #000 12%, #000 88%, rgba(0,0,0,.08));
+          mask-image: linear-gradient(90deg, rgba(0,0,0,.08), #000 12%, #000 88%, rgba(0,0,0,.08));
+}
+.fs-track::-webkit-scrollbar{ display:none; }
+
+.fs-track > li.media{
+  scroll-snap-align:center;
+  background:var(--card-bg);
+  border-radius:28px;
+  box-shadow:var(--card-shadow);
+  padding:20px 18px;
+  margin:0;
+  display:flex; flex-direction:column;
+  min-height:170px;
+}
+.fs-track > li.media .mr-3{ margin-right:0 !important; margin-bottom:20px; }
+.fs-track > li.media .avatar-sm{
+  width:56px; height:56px; min-width:56px;
+  border-radius:16px; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 14px rgba(2,6,23,.10); font-size:22px;
+}
+.fs-track > li.media h4{
+  margin:4px 0 6px;
+  text-align: center;
+  font-size: 20px;
+  font-weight:800; color:var(--title);
+}
+.fs-track > li.media p{ margin:0; line-height:1.5; color:black; /*font-size:var(--fs-body*/ text-align: center;); }
+
+.avatar-sm{
+  width:56px; height:56px;
+  display:grid;                 /* atau flex juga boleh */
+  place-items:center;           /* center hor+ver */
+  line-height:0;                /* hilangkan offset line-height */
+}
+.avatar-sm i{ line-height:1; display:block; }
+.avatar-sm.rounded-circle{ border-radius:50% !important; }
+
+/* Nav & Dots fitur */
+.fs-nav{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:36px; height:36px; border:0; border-radius:999px; cursor:pointer;
+  display:grid; place-items:center; background:#fff;
+  box-shadow:0 10px 24px rgba(2,6,23,.16); font-size:22px; line-height:1; z-index:2;
+}
+.fs-nav.prev{ left:6px; } .fs-nav.next{ right:6px; }
+/*.fs-dots{ display:flex; justify-content:center; gap:8px; margin-top:10px; }
+.fs-dot{ width:8px; height:8px; border-radius:999px; background:#cbd5e1; transition:width .25s, background .25s; }
+.fs-dot.is-active{ width:22px; background:var(--active); }*/
+
+/* ================== CHART ================== */
+#visit-line-chart{ min-height:300px; width:100%; }
+
+/* ================== DARK MODE ================== */
+/*@media (prefers-color-scheme:dark){
+  :root{ --card-bg:#0f172a; --title:#e5e7eb; --muted:#9aa4b2; }
+  .pwa-hero__nav{ background:rgba(15,23,42,.92); color:#fff; }
+  .qcard{ background:#0f172a; color:#e5e7eb; border-color:#182032; }
+  .quickmenu-btn{ background:rgba(15,23,42,.9); color:#fff; }
+}*/
 </style>
 
 <div class="container-fluid">
- <!-- ===== Pretty Title: LAPAS KELAS I MAKASSAR ===== -->
 
-
-<div class="hero-title" role="banner" aria-label="Judul situs">
-  <h1 class="text"><?php echo $rec->type ?></h1>
-  <span class="accent" aria-hidden="true"></span>
-</div>
-<!-- ===== /Pretty Title ===== -->
+  <!-- ===== Pretty Title ===== -->
+  <div class="hero-title" role="banner" aria-label="Judul situs">
+    <h1 class="text"><?= htmlspecialchars($rec->type ?? '', ENT_QUOTES) ?></h1>
+    <span class="accent" aria-hidden="true"></span>
+  </div>
+  <!-- ===== /Pretty Title ===== -->
 
   <div class="row">
     <!-- LEFT: HERO -->
@@ -108,13 +211,11 @@ $slides = [
           <?php foreach ($slides as $i => $s): ?>
             <article class="pwa-hero__slide" aria-roledescription="slide" aria-label="<?= ($i+1).' dari '.count($slides) ?>">
               <?php if (!empty($s['href'])): ?><a href="<?= htmlspecialchars($s['href'], ENT_QUOTES) ?>" class="pwa-hero__link"><?php endif; ?>
-                <img
-                  class="pwa-hero__img"
-                  src="<?= htmlspecialchars($s['src'], ENT_QUOTES) ?>"
-                  alt="<?= htmlspecialchars($s['alt'], ENT_QUOTES) ?>"
-                  loading="<?= $i === 0 ? 'eager' : 'lazy' ?>"
-                  decoding="async"
-                />
+                <img class="pwa-hero__img"
+                     src="<?= htmlspecialchars($s['src'], ENT_QUOTES) ?>"
+                     alt="<?= htmlspecialchars($s['alt'], ENT_QUOTES) ?>"
+                     loading="<?= $i === 0 ? 'eager' : 'lazy' ?>"
+                     decoding="async" />
                 <div class="pwa-hero__cap">
                   <h3 class="pwa-hero__title"><?= htmlspecialchars($s['title']) ?></h3>
                   <p class="pwa-hero__text"><?= htmlspecialchars($s['text']) ?></p>
@@ -131,9 +232,9 @@ $slides = [
     <!-- RIGHT: RIBBON + QUICK MENU -->
     <div class="col-xl-8 mt-2">
       <div class="card-box ribbon-box d-none d-md-block">
-        <div class="ribbon ribbon-blue float-left"><span><?php echo $rec->nama_website." ".strtoupper($rec->kabupaten) ?></span></div>
-        <p class="mb-2 ribbon-content" style="margin-left:22px;margin-top:12px">
-           <?php echo $rec->meta_deskripsi ?> yang memudahkan proses pendaftaran, pengelolaan jadwal, serta pemantauan kunjungan secara transparan dan real-time di Lapas Kelas I Makassar.
+        <div class="ribbon ribbon-blue float-left"><span><?= $rec->nama_website." ".strtoupper($rec->kabupaten) ?></span></div>
+        <p class=" ribbon-content" style="margin-left:22px;margin-top:12px">
+           <?= $rec->meta_deskripsi ?> yang memudahkan proses pendaftaran, pengelolaan jadwal, serta pemantauan kunjungan secara transparan dan real-time di Lapas Kelas I Makassar.
         </p>
       </div>
 
@@ -172,14 +273,133 @@ $slides = [
       </div>
     </div>
   </div><!-- /row -->
- <!-- RIBBON MOBILE -->
+
+  <!-- RIBBON MOBILE -->
   <div class="card-box ribbon-box d-block d-md-none mt-2">
-    <div class="ribbon ribbon-blue float-left"><span><?php echo $rec->nama_website." ".strtoupper($rec->kabupaten) ?></span></div>
+    <div class="ribbon ribbon-blue float-left"><span><?= $rec->nama_website." ".strtoupper($rec->kabupaten) ?></span></div>
     <p class=" ribbon-content" style="margin-left:12px;margin-top:8px">
-       <?php echo $rec->meta_deskripsi ?>
+       <?= $rec->meta_deskripsi ?>
     </p>
   </div>
-  <!-- STATISTIK -->
+
+  <!-- ===== SECTION: FITUR (SLIDER KARTU) ===== -->
+  <section class="features-sec">
+    <!-- <div class="features-head d-flex align-items-center justify-content-between mb-2">
+      <h3>Quality Features</h3>
+      <a class="features-all" href="<?= site_url('hal/fitur') ?>">View All</a>
+    </div> -->
+
+    <div class="feature-slider" id="featureSlider">
+      <button class="fs-nav prev" type="button" aria-label="Sebelumnya">‹</button>
+
+      <ul class="sortable-list taskList list-unstyled ui-sortable fs-track" id="upcoming" tabindex="0" aria-live="polite">
+        <li class="media mb-2 align-items-center">
+          <div class="avatar-sm rounded-circle bg-soft-primary text-primary mr-3 d-flex align-items-center justify-content-center">
+            <i class="fas fa-bolt font-20"></i>
+          </div>
+          <div class="media-body">
+            <h4 class="mt-0 mb-1"><strong>Daftar Cepat Tanpa Ribet</strong></h4>
+            <p>Pemesanan kunjungan bisa dilakukan dari ponsel atau laptop, kapan pun—tanpa harus datang ke lokasi terlebih dahulu.</p>
+          </div>
+        </li>
+
+        <li class="media mb-2 align-items-center">
+          <div class="avatar-sm rounded-circle bg-soft-success text-success mr-3 d-flex align-items-center justify-content-center">
+            <i class="fas fa-calendar-check font-20"></i>
+          </div>
+          <div class="media-body">
+            <h4 class="mt-0 mb-1"><strong>Pilih Jadwal Sendiri</strong></h4>
+            <p>Pengunjung leluasa memilih tanggal dan jam kunjungan yang paling pas. Penjadwalan ulang juga mudah bila ada perubahan.</p>
+          </div>
+        </li>
+
+        <li class="media mb-2 align-items-center">
+          <div class="avatar-sm rounded-circle bg-soft-info text-info mr-3 d-flex align-items-center justify-content-center">
+            <i class="fas fa-qrcode font-20"></i>
+          </div>
+          <div class="media-body">
+            <h4 class="mt-0 mb-1"><strong>Tiket Digital & QR Praktis</strong></h4>
+            <p>Setelah booking, tiket (PDF) dan QR Code langsung tersedia. Cukup tunjukkan dari layar ponsel saat check-in/checkout.</p>
+          </div>
+        </li>
+
+        <li class="media mb-2 align-items-center">
+          <div class="avatar-sm rounded-circle bg-soft-warning text-warning mr-3 d-flex align-items-center justify-content-center">
+            <i class="fas fa-bell font-20"></i>
+          </div>
+          <div class="media-body">
+            <h4 class="mt-0 mb-1"><strong>Notifikasi & Pengingat Otomatis</strong></h4>
+            <p>Pemberitahuan dikirim otomatis (mis. WhatsApp/SMS/email) berisi status booking, jadwal, dan pengingat sebelum waktu kunjungan.</p>
+          </div>
+        </li>
+
+        <li class="media mb-2 align-items-center">
+          <div class="avatar-sm rounded-circle bg-soft-secondary text-secondary mr-3 d-flex align-items-center justify-content-center">
+            <i class="fas fa-eye font-20"></i>
+          </div>
+          <div class="media-body">
+            <h4 class="mt-0 mb-1"><strong>Status Transparan, Real-time</strong></h4>
+            <p>Pengunjung dapat melacak status booking secara langsung—mulai dari diajukan, disetujui, hingga selesai dikunjungi.</p>
+          </div>
+        </li>
+
+        <li class="media mb-2 align-items-center">
+          <div class="avatar-sm rounded-circle bg-soft-danger text-danger mr-3 d-flex align-items-center justify-content-center">
+            <i class="fas fa-stopwatch font-20"></i>
+          </div>
+          <div class="media-body">
+            <h4 class="mt-0 mb-1"><strong>Antrian Lebih Tertib, Waktu Tunggu Lebih Singkat</strong></h4>
+            <p>Dengan jadwal terencana dan QR, proses kedatangan jadi lebih cepat dan terarah—mengurangi waktu menunggu.</p>
+          </div>
+        </li>
+
+        <li class="media mb-2 align-items-center">
+          <div class="avatar-sm rounded-circle bg-soft-dark text-dark mr-3 d-flex align-items-center justify-content-center">
+            <i class="fas fa-mobile-alt font-20"></i>
+          </div>
+          <div class="media-body">
+            <h4 class="mt-0 mb-1"><strong>Instal Aplikasi/ Pakai Browser</strong></h4>
+            <p><strong>Unduh aplikasi di Google Play (Android), instal ke iOS sebagai PWA</strong> untuk pengalaman lebih praktis, atau <strong>gunakan browser favorit</strong></p>
+          </div>
+        </li>
+
+        <li class="media mb-2 align-items-center">
+          <div class="avatar-sm rounded-circle bg-soft-info text-info mr-3 d-flex align-items-center justify-content-center">
+            <i class="fas fa-universal-access font-20"></i>
+          </div>
+          <div class="media-body">
+            <h4 class="mt-0 mb-1"><strong>Ramah Akses</strong></h4>
+            <p>Antarmuka ringan, dapat diakses dari jaringan terbatas, dan mendukung fitur aksesibilitas untuk kebutuhan khusus.</p>
+          </div>
+        </li>
+
+        <li class="media mb-2 align-items-center">
+          <div class="avatar-sm rounded-circle bg-soft-secondary text-secondary mr-3 d-flex align-items-center justify-content-center">
+            <i class="fas fa-shield-alt font-20"></i>
+          </div>
+          <div class="media-body">
+            <h4 class="mt-0 mb-1"><strong>Data Aman & Terlindungi</strong></h4>
+            <p>Informasi pribadi dikelola dengan izin dan standar keamanan yang baik. QR unik mencegah penyalahgunaan.</p>
+          </div>
+        </li>
+
+        <li class="media mb-2 align-items-center">
+          <div class="avatar-sm rounded-circle bg-soft-primary text-primary mr-3 d-flex align-items-center justify-content-center">
+            <i class="fas fa-headset font-20"></i>
+          </div>
+          <div class="media-body">
+            <h4 class="mt-0 mb-1"><strong>Bantuan Mudah Dijangkau</strong></h4>
+            <p>Tersedia kontak bantuan jika diperlukan—mulai dari pertanyaan booking hingga kendala saat hari kunjungan.</p>
+          </div>
+        </li>
+      </ul>
+
+      <button class="fs-nav next" type="button" aria-label="Berikutnya">›</button>
+      <!-- <div class="fs-dots" id="featureDots" aria-hidden="false"></div> -->
+    </div>
+  </section>
+
+  <!-- ===== STATISTIK ===== -->
   <div class="card mt-2">
     <div class="card-body">
       <h4 class="header-title">Statistik Kunjungan</h4>
@@ -200,167 +420,109 @@ $slides = [
       <div id="visit-line-chart"></div>
     </div>
   </div>
+<style type="text/css">
+  /* ===== Testimonial Card ===== */
+.t-card{
+  --grad-1:#2563eb;  /* biru */
+  --grad-2:#0ea5e9;  /* cyan */
+  --grad-3:#22d3ee;  /* light cyan */
+  position:relative;
+  border-radius:26px;
+  padding:36px 22px 28px;
+  color:#fff;
+  text-align:center;
+  min-height:420px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  /* gradasi + highlight lembut */
+  background:
+    radial-gradient(120% 100% at 100% 0, rgba(255,255,255,.16), transparent 50%),
+    linear-gradient(160deg, var(--grad-1) 0%, var(--grad-2) 60%, var(--grad-3) 100%);
+  box-shadow:
+    0 20px 50px rgba(2,6,23,.15),
+    inset 0 1px 0 rgba(255,255,255,.15);
+  overflow:hidden;
+}
 
-  
+/* overlay foto halus (opsional): set via style="--bg:url(...)" */
+.t-card::before{
+  content:"";
+  position:absolute; inset:0;
+  background:var(--bg, none) center/cover no-repeat;
+  opacity:.18;                      /* lembut */
+  mix-blend-mode:soft-light;
+  pointer-events:none;
+}
 
-  <!-- KEUNGGULAN -->
-  <ul class="sortable-list taskList list-unstyled ui-sortable" id="upcoming">
-    <li class="media mb-2 align-items-start">
-      <div class="avatar-sm rounded-circle bg-soft-primary text-primary mr-3 d-flex align-items-center justify-content-center">
-        <i class="fas fa-bolt font-20"></i>
-      </div>
-      <div class="media-body">
-        <h4 class="mt-0 mb-1"><strong>Daftar Cepat Tanpa Ribet</strong></h4>
-        <p>Pemesanan kunjungan bisa dilakukan dari ponsel atau laptop, kapan pun—tanpa harus datang ke lokasi terlebih dahulu.</p>
-      </div>
-    </li>
+/* teks utama */
+.t-quote{
+  margin:0;
+  font-weight:800;
+  letter-spacing:.015em;
+  line-height:1.6;
+  font-size:clamp(18px,2.6vw,28px);
+}
 
-    <li class="media mb-2 align-items-start">
-      <div class="avatar-sm rounded-circle bg-soft-success text-success mr-3 d-flex align-items-center justify-content-center">
-        <i class="fas fa-calendar-check font-20"></i>
-      </div>
-      <div class="media-body">
-        <h4 class="mt-0 mb-1"><strong>Pilih Jadwal Sendiri</strong></h4>
-        <p>Pengunjung leluasa memilih tanggal dan jam kunjungan yang paling pas. Penjadwalan ulang juga mudah bila ada perubahan.</p>
-      </div>
-    </li>
+/* sumber/author */
+.t-author{
+  opacity:.85;
+  font-weight:600;
+  letter-spacing:.02em;
+  color:rgba(255,255,255,.88);
+  margin-bottom:8px;
+}
 
-    <li class="media mb-2 align-items-start">
-      <div class="avatar-sm rounded-circle bg-soft-info text-info mr-3 d-flex align-items-center justify-content-center">
-        <i class="fas fa-qrcode font-20"></i>
-      </div>
-      <div class="media-body">
-        <h4 class="mt-0 mb-1"><strong>Tiket Digital & QR Praktis</strong></h4>
-        <p>Setelah booking, tiket (PDF) dan QR Code langsung tersedia. Cukup tunjukkan dari layar ponsel saat check-in/checkout.</p>
-      </div>
-    </li>
+/* tombol */
+.t-btn{
+  display:inline-flex;
+  align-items:center; justify-content:center;
+  padding:12px 22px;
+  border-radius:14px;
+  border:2px solid rgba(255,255,255,.9);
+  color:#fff; text-decoration:none;
+  font-weight:800; letter-spacing:.06em;
+  background:rgba(255,255,255,.09);
+  backdrop-filter:saturate(120%) blur(6px);
+  box-shadow:0 8px 22px rgba(2,6,23,.25);
+  transition:transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.t-btn:hover{
+  transform:translateY(-2px);
+  background:rgba(255,255,255,.18);
+  box-shadow:0 14px 36px rgba(2,6,23,.35);
+}
 
-    <li class="media mb-2 align-items-start">
-      <div class="avatar-sm rounded-circle bg-soft-warning text-warning mr-3 d-flex align-items-center justify-content-center">
-        <i class="fas fa-bell font-20"></i>
-      </div>
-      <div class="media-body">
-        <h4 class="mt-0 mb-1"><strong>Notifikasi & Pengingat Otomatis</strong></h4>
-        <p>Pemberitahuan dikirim otomatis (mis. WhatsApp/SMS/email) berisi status booking, jadwal, dan pengingat sebelum waktu kunjungan.</p>
-      </div>
-    </li>
+/* sudut lembut pada container terang */
+@media (prefers-color-scheme:light){
+  .t-card{ outline:1px solid rgba(255,255,255,.35); }
+}
 
-    <li class="media mb-2 align-items-start">
-      <div class="avatar-sm rounded-circle bg-soft-secondary text-secondary mr-3 d-flex align-items-center justify-content-center">
-        <i class="fas fa-eye font-20"></i>
-      </div>
-      <div class="media-body">
-        <h4 class="mt-0 mb-1"><strong>Status Transparan, Real-time</strong></h4>
-        <p>Pengunjung dapat melacak status booking secara langsung—mulai dari diajukan, disetujui, hingga selesai dikunjungi.</p>
-      </div>
-    </li>
+/* responsif kecil */
+@media (max-width:480px){
+  .t-card{ min-height:360px; padding:28px 18px; }
+}
 
-    <li class="media mb-2 align-items-start">
-      <div class="avatar-sm rounded-circle bg-soft-danger text-danger mr-3 d-flex align-items-center justify-content-center">
-        <i class="fas fa-stopwatch font-20"></i>
-      </div>
-      <div class="media-body">
-        <h4 class="mt-0 mb-1"><strong>Antrian Lebih Tertib, Waktu Tunggu Lebih Singkat</strong></h4>
-        <p>Dengan jadwal terencana dan QR, proses kedatangan jadi lebih cepat dan terarah—mengurangi waktu menunggu.</p>
-      </div>
-    </li>
+</style>
+<div class="t-card mb-3" style="--bg:url('<?= base_url('assets/images/slide/laptop.webp') ?>')">
+  <blockquote class="t-quote">
+    Booking kunjungan kini lebih cepat, praktis, dan transparan. Cukup beberapa langkah dari ponsel, semua kebutuhan kunjungan Anda siap dalam satu tempat.
+  </blockquote>
+  <div class="t-author"><?php echo $rec->type ?></div>
+  <a class="t-btn" href="<?= site_url('booking') ?>">BOOKING</a>
+</div>
 
-    <li class="media mb-2 align-items-start">
-      <div class="avatar-sm rounded-circle bg-soft-dark text-dark mr-3 d-flex align-items-center justify-content-center">
-        <i class="fas fa-mobile-alt font-20"></i>
-      </div>
-      <div class="media-body">
-        <h4 class="mt-0 mb-1"><strong>Instal Aplikasi atau Pakai Browser</strong></h4>
-        <p>Pilih cara yang paling nyaman: <strong>unduh aplikasi di Google Play (Android), instal ke iOS sebagai PWA</strong> untuk pengalaman lebih praktis, atau <strong>gunakan peramban (browser) favorit</strong>—tautan tiket dan detail kunjungan tetap bisa dibuka langsung dari pesan yang Anda terima.</p>
-      </div>
-    </li>
 
-    <li class="media mb-2 align-items-start">
-      <div class="avatar-sm rounded-circle bg-soft-info text-info mr-3 d-flex align-items-center justify-content-center">
-        <i class="fas fa-universal-access font-20"></i>
-      </div>
-      <div class="media-body">
-        <h4 class="mt-0 mb-1"><strong>Ramah Akses</strong></h4>
-        <p>Antarmuka ringan, dapat diakses dari jaringan terbatas, dan mendukung fitur aksesibilitas untuk kebutuhan khusus.</p>
-      </div>
-    </li>
-
-    <li class="media mb-2 align-items-start">
-      <div class="avatar-sm rounded-circle bg-soft-secondary text-secondary mr-3 d-flex align-items-center justify-content-center">
-        <i class="fas fa-shield-alt font-20"></i>
-      </div>
-      <div class="media-body">
-        <h4 class="mt-0 mb-1"><strong>Data Aman & Terlindungi</strong></h4>
-        <p>Informasi pribadi dikelola dengan izin dan standar keamanan yang baik. QR unik mencegah penyalahgunaan.</p>
-      </div>
-    </li>
-
-    <li class="media mb-2 align-items-start">
-      <div class="avatar-sm rounded-circle bg-soft-primary text-primary mr-3 d-flex align-items-center justify-content-center">
-        <i class="fas fa-headset font-20"></i>
-      </div>
-      <div class="media-body">
-        <h4 class="mt-0 mb-1"><strong>Bantuan Mudah Dijangkau</strong></h4>
-        <p>Tersedia kontak bantuan jika diperlukan—mulai dari pertanyaan booking hingga kendala saat hari kunjungan.</p>
-      </div>
-    </li>
-  </ul>
-
-  <div class="text-center mt-3 mb-4">
+ <!--  <div class="text-center mt-3 mb-4">
     <p class="lead">Booking kunjungan kini lebih cepat, praktis, dan transparan. Cukup beberapa langkah dari ponsel, semua kebutuhan kunjungan Anda siap dalam satu tempat.</p>
   </div>
-
+ -->
 </div><!-- /container -->
 
 <script src="<?= base_url('assets/admin/js/sw.min.js') ?>"></script>
 <?php $basePath = parse_url(site_url(), PHP_URL_PATH); if (!$basePath) $basePath = '/'; ?>
-
-<!-- <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
-    .then(registration => {
-      console.log("✅ Service Worker registered.");
-      registration.onupdatefound = () => {
-        const newWorker = registration.installing;
-        console.log("🔄 Update ditemukan.");
-        newWorker.onstatechange = () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            Swal.fire({
-              title: 'Update Tersedia',
-              text: 'Versi baru tersedia. Ingin muat ulang aplikasi?',
-              icon: 'info',
-              showCancelButton: true,
-              confirmButtonText: 'Muat Ulang',
-              cancelButtonText: 'Nanti Saja'
-            }).then((result) => {
-              if (result.isConfirmed) {
-                forceClearCacheAndUnregisterSW().then(() => location.reload());
-              }
-            });
-          }
-        };
-      };
-    })
-    .catch(err => console.warn("❌ Gagal daftar Service Worker:", err));
-}
-</script>
-
-<script>
-function forceClearCacheAndUnregisterSW() {
-  return new Promise(resolve => {
-    if (!('serviceWorker' in navigator)) return resolve();
-    navigator.serviceWorker.getRegistrations().then(regs => {
-      const unregs = regs.map(reg => reg.unregister());
-      Promise.all(unregs).then(() => {
-        caches.keys().then(keys => {
-          const dels = keys.map(key => caches.delete(key));
-          Promise.all(dels).then(() => resolve());
-        });
-      });
-    });
-  });
-}
-</script> -->
 
 <?php $this->load->view("front_end/footer.php") ?>
 
@@ -370,6 +532,7 @@ function forceClearCacheAndUnregisterSW() {
 <script src="<?= base_url('assets/admin/chart/accessibility.js') ?>"></script>
 
 <script>
+/* ===== Chart loader (tetap) ===== */
 (function($){
   "use strict";
   const $container = $('#visit-line-chart');
@@ -417,6 +580,7 @@ function forceClearCacheAndUnregisterSW() {
 </script>
 
 <script>
+/* ===== Hero slider (tetap) ===== */
 (function(){
   const track = document.getElementById('heroTrack');
   if(!track) return;
@@ -500,7 +664,9 @@ function forceClearCacheAndUnregisterSW() {
   startAuto();
 })();
 </script>
+
 <script>
+/* ===== Quickmenu slider (tetap) ===== */
 (function(){
   const scroller = document.getElementById('quickmenu');
   const btnL = document.querySelector('.quickmenu-btn.left');
@@ -508,28 +674,18 @@ function forceClearCacheAndUnregisterSW() {
   if (!scroller || !btnL || !btnR || scroller.dataset.inited) return;
   scroller.dataset.inited = "1";
 
-  // Langkah scroll = 90% lebar viewport kontainer (minimal 160px)
   const STEP = () => Math.max(scroller.clientWidth * 0.9, 160);
-
   const atStart = () => scroller.scrollLeft <= 2;
   const atEnd   = () => scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 2;
 
-  function update() {
-    btnL.disabled = atStart();
-    btnR.disabled = atEnd();
-  }
-
+  function update() { btnL.disabled = atStart(); btnR.disabled = atEnd(); }
   function scrollByDir(dir) {
-    scroller.scrollTo({
-      left: scroller.scrollLeft + dir * STEP(),
-      behavior: 'smooth'
-    });
+    scroller.scrollTo({ left: scroller.scrollLeft + dir * STEP(), behavior: 'smooth' });
   }
 
   btnL.addEventListener('click', () => scrollByDir(-1));
   btnR.addEventListener('click', () => scrollByDir(1));
 
-  // Update state saat discroll/resize
   let ticking = false;
   scroller.addEventListener('scroll', () => {
     if (ticking) return;
@@ -538,13 +694,79 @@ function forceClearCacheAndUnregisterSW() {
   }, { passive: true });
   window.addEventListener('resize', update);
 
-  // Akses keyboard saat fokus di list
   scroller.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') { e.preventDefault(); scrollByDir(1); }
     if (e.key === 'ArrowLeft')  { e.preventDefault(); scrollByDir(-1); }
   });
 
-  // Inisialisasi
   update();
+})();
+</script>
+
+<script>
+/* ===== Feature list slider (baru; tidak mengubah fungsi lain) ===== */
+(() => {
+  const slider   = document.getElementById('featureSlider');
+  if (!slider) return;
+
+  const track    = slider.querySelector('.fs-track');
+  const prevBtn  = slider.querySelector('.fs-nav.prev');
+  const nextBtn  = slider.querySelector('.fs-nav.next');
+  const dotsWrap = slider.querySelector('#featureDots');
+
+  if (!track) return;
+
+  const pageW    = () => track.clientWidth;
+  const pages    = () => Math.max(1, Math.round(track.scrollWidth / pageW()));
+  const curIndex = () => Math.round(track.scrollLeft / pageW());
+  const clamp    = (n, a, b) => Math.max(a, Math.min(b, n));
+
+  function goTo(i){
+    const idx = clamp(i, 0, pages()-1);
+    track.scrollTo({ left: idx * pageW(), behavior: 'smooth' });
+    // setDot(idx);
+  }
+
+  // dots
+  // let dots = [];
+  // function buildDots(){
+  //   dotsWrap.innerHTML = '';
+  //   dots = [];
+  //   const n = pages();
+  //   for (let i=0;i<n;i++){
+  //     const b = document.createElement('button');
+  //     b.type='button'; b.className='fs-dot'+(i===curIndex()?' is-active':'');
+  //     b.setAttribute('aria-label', 'Halaman '+(i+1));
+  //     b.addEventListener('click', () => goTo(i));
+  //     dotsWrap.appendChild(b);
+  //     dots.push(b);
+  //   }
+  // }
+  // function setDot(i){ dots.forEach((d,k)=> d.classList.toggle('is-active', k===i)); }
+
+  prevBtn?.addEventListener('click', () => goTo(curIndex()-1));
+  nextBtn?.addEventListener('click', () => goTo(curIndex()+1));
+
+  // drag desktop
+  let down=false, startX=0, startLeft=0;
+  track.addEventListener('pointerdown', e => {
+    down=true; startX=e.clientX; startLeft=track.scrollLeft;
+    track.setPointerCapture(e.pointerId);
+  });
+  track.addEventListener('pointermove', e => {
+    if (!down) return;
+    track.scrollLeft = startLeft - (e.clientX - startX);
+  });
+  ['pointerup','pointercancel','mouseleave'].forEach(ev => track.addEventListener(ev, ()=> down=false));
+
+  // sync
+  let raf=0;
+  track.addEventListener('scroll', () => {
+    cancelAnimationFrame(raf);
+    // raf = requestAnimationFrame(() => setDot(curIndex()));
+  }, {passive:true});
+  // new ResizeObserver(() => { buildDots(); setDot(curIndex()); }).observe(track);
+
+  // buildDots(); setDot(curIndex());
 })();
 </script>

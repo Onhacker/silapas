@@ -459,6 +459,7 @@ private function normalize_date_mysql(?string $s): ?string {
 
         $qr_url   = base_url('uploads/qr/qr_'.$b->kode_booking.'.png');
         $redir    = site_url('booking/booked?t='.urlencode($b->access_token));
+        $pdfurl    = site_url('booking/booked/'.$b->kode_booking.'?t='.urlencode($b->access_token));
         $instansi = $b->target_instansi_nama ?: ($b->instansi ?: '-');
 
         // ===== 1) Kirim ke TAMU (sekali saja, kecuali force) =====
@@ -475,6 +476,7 @@ private function normalize_date_mysql(?string $s): ?string {
                 'jam'                    => $b->jam,
                 'qr_url'                 => $qr_url,
                 'redirect_url'           => $redir,
+                'pdf_url'                => $pdf_url,
                 'keperluan'              => $b->keperluan ?: '-',
             ]);
             $log[] = ['send_user'=>['ok'=>$ok_user]];
@@ -497,6 +499,7 @@ private function normalize_date_mysql(?string $s): ?string {
                     'kode'            => $b->kode_booking,
                     'nama'            => $b->nama_tamu,
                     'instansi_asal'   => $instansi,
+                    'hp_tamu'         => $b->no_hp,  
                     'unit_nama'       => $unit_nama_db,      // Kepada Yth.
                     'unit_pejabat'    => $unit_pejabat_db,   // Kepada Yth.
                     'child_unit_nama' => $unit_nama_db,      // tampil di detail
@@ -551,6 +554,7 @@ private function normalize_date_mysql(?string $s): ?string {
                     $ok_cc = $this->_send_wa_info_unit($hp_parent, [
                         'kode'            => $b->kode_booking,
                         'nama'            => $b->nama_tamu,
+                        'hp_tamu'         => $b->no_hp,  
                         'instansi_asal'   => $instansi,
                         'unit_nama'       => $parent_row->nama_unit ?? '-',     // Kepada Yth. (parent)
                         'unit_pejabat'    => $parent_row->nama_pejabat ?? '',
@@ -1132,15 +1136,11 @@ private function normalize_date_mysql(?string $s): ?string {
         $jam_disp      = isset($d['jam']) ? $d['jam'] : '-';
 
         // (E) link PDF (hanya jika ada $kode) + sertakan token
-        $pdf = '';
-        if ($kode !== '') {
-            $pdf = site_url('booking/print_pdf/'.rawurlencode($kode));
-            if ($token) {
-                $pdf .= '?'.http_build_query(['t'=>$token], '', '&', PHP_QUERY_RFC3986);
-            }
-        }
+        $pdf_url = !empty($d['pdf_url'])
+            ? $d['pdf_url']
+            : ($token ? site_url('booking/booked/').$kode.'?t='.urlencode($token) : site_url('booking'));
 
-        
+
 
         // (F) web_me
         $web = $this->fm->web_me();
@@ -1157,8 +1157,8 @@ private function normalize_date_mysql(?string $s): ?string {
         $pesan .= "📅 Tanggal : {$tanggal_disp}\n";
         $pesan .= "🕒 Jam : {$jam_disp}\n";
         $pesan .= "📝 Keperluan : {$keperluan}\n\n";
-        if ($pdf !== '') {
-            $pesan .= "🔳 Download kode booking (PDF):\n{$pdf}\n\n";
+        if ($pdf_url !== '') {
+            $pesan .= "🔳 Download kode booking (PDF):\n{$pdf_url}\n\n";
         }
         $pesan .= "🔗 Detail booking:\n{$redirect_url}\n\n";
         $pesan .= "📇 Simpan kontak kami agar link bisa diklik langsung\n\n";
@@ -1311,7 +1311,7 @@ private function normalize_date_mysql(?string $s): ?string {
         // --- Ambil & rapikan data ---
         $kode        = trim((string)($d['kode'] ?? ''));
         $nama        = $wa_plain(trim((string)($d['nama'] ?? '-')));
-        $no_hp_tamu  = trim((string)($d['no_hp'] ?? ''));
+        $no_hp_tamu  = trim((string)($d['hp_tamu'] ?? ''));
         $instansi    = $wa_plain(trim((string)($d['instansi_asal'] ?? '-')));
         $child_unit  = $wa_plain(trim((string)($d['child_unit_nama'] ?? ($d['unit_nama'] ?? '-'))));
         $unit_nama   = $wa_plain(trim((string)($d['unit_nama'] ?? '-')));

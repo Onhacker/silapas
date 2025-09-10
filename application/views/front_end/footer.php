@@ -104,6 +104,9 @@
         <p class="boxed-text-l text-center mb-1">
           <?php echo $rec->meta_deskripsi ?>
         </p>
+        <p class="boxed-text-l text-center mb-1">
+          <?php echo strtoupper($rec->type) ?>
+        </p>
         <div class="text-center">
           Bagikan:
           <div class="share-buttons">
@@ -288,14 +291,14 @@
     margin: 0;
   }
   .navbar-bottom .nav-item a:hover {
-    color: #F54927 !important;
+    color: #4a81d4 !important;
   }
   .navbar-bottom .nav-item a:hover i,
   .navbar-bottom .nav-item a:hover span {
-    color: #F54927 !important;
+    color: #4a81d4 !important;
   }
   .text-active {
-    color: #F54927 !important
+    color: #4a81d4 !important
   }
 
 </style>

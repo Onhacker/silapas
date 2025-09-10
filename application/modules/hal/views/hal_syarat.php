@@ -1,17 +1,17 @@
 <?php $this->load->view("front_end/head.php") ?>
 <div class="container-fluid">
 
- 
+ <div class="hero-title" role="banner" aria-label="Judul situs">
+    <h1 class="text">Syarat &amp; Ketentuan  <?php echo $rec->nama_website." ".$rec->kabupaten ?></h1>
+
+    <span class="accent" aria-hidden="true"></span>
+  </div>
     <div class="row justify-content-center py-3">
       <div class="col-12">
         <div class="card-box">
 
           <!-- Header -->
-          <header class="mb-3 text-center">
-            <h1 class="h2 mb-2">📜 Syarat &amp; Ketentuan  <?php echo $rec->nama_website." ".$rec->kabupaten ?></h1>
-            <p class="text-muted fw-semibold mb-2">
-              <?php echo $rec->nama_website." ".$rec->kabupaten." (".$rec->meta_deskripsi.")" ?>
-            </p>
+          <header class="mb-3 mt-2 text-center">
             <div class="d-flex justify-content-center gap-2">
               <span class="badge bg-light text-dark border">Versi 1.0</span>
               <span class="badge bg-light text-dark border">Terakhir diperbarui: 29 Agustus 2025</span>

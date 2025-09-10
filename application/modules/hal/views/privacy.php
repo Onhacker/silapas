@@ -1,13 +1,17 @@
 <?php $this->load->view("front_end/head.php") ?>
 <div class="container-fluid">
+<div class="hero-title" role="banner" aria-label="Judul situs">
+    <h1 class="text">Kebijakan Privasi <?php echo $rec->nama_website." ".$rec->kabupaten ?></h1>
 
+    <span class="accent" aria-hidden="true"></span>
+  </div>
     <div class="row mt-3">
         <div class="col-lg-12">
            <div class="card-box">
                 <section style="margin: auto; padding: 2rem; font-family: sans-serif; line-height: 1.7;">
-
+<!-- 
                     <h3 class="text-center mb-3"><strong>🛡️ Kebijakan Privasi <?php echo $rec->nama_website." ".$rec->kabupaten ?></strong></h3>
-
+ -->
                     <p><em>Terakhir diperbarui: 29 Agustus 2025</em></p>
 
                     <p>Selamat datang di <strong><?php echo $rec->nama_website." ".$rec->kabupaten." (".$rec->meta_deskripsi.")" ?></strong>. Kami menghargai privasi Anda dan berkomitmen untuk melindungi informasi pribadi yang Anda berikan saat menggunakan layanan kunjungan. Kebijakan Privasi ini menjelaskan bagaimana data Anda dikumpulkan, digunakan, dan dijaga keamanannya.</p>
