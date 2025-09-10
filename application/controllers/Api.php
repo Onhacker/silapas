@@ -41,9 +41,11 @@ class Api extends MX_Controller {
         'children'=>[
             
             [ 'label'=>'Setting System','url'=>site_url('admin_setting_web'),
-              'require'=>['Setting System','admin_setting_web','admin'] ],
-              [ 'label'=>'Manajemen User','url'=>site_url('admin_user'),
+              'require'=>['Setting System','admin_setting_web','user'] ],
+            [ 'label'=>'Manajemen User','url'=>site_url('admin_user'),
               'require'=>['Manajemen User','admin_user','user'] ],
+              [ 'label'=>'Unit Tujuan','url'=>site_url('admin_unit_tujuan'),
+              'require'=>['Unit Tujuan','admin_unit_tujuan','user'] ],
         ]
     ];
 

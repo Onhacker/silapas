@@ -366,7 +366,7 @@
         <input type="file" class="custom-file-input" name="surat_tugas" id="surat_tugas">
         <label class="custom-file-label" for="surat_tugas">Pilih file...</label>
       </div>
-      <small class="help-hint">PDF/JPG/PNG • Maks 2 MB.</small>
+      <small class="help-hint">PDF/JPG/PNG ≤2 MB. Unggah atau tunjukkan saat check-in.</small>
     </div>
   </div>
 </div>

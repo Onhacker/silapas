@@ -8,7 +8,7 @@ class Admin_dashboard extends Admin_Controller
         parent::__construct();
         $this->load->model("M_admin_dashboard","ma");
         date_default_timezone_set('Asia/Makassar');
-        cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
+        // cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
         
     }
 
@@ -63,138 +63,29 @@ class Admin_dashboard extends Admin_Controller
         return $this->dashboard();
     }
 
-    /* =========================================================
-     *                     HAK AKSES (opsional)
-     * ========================================================= */
-    public function hak_akses()
-    {
-        $data["controller"] = get_class($this);
-        $data["title"]      = "Hak Akses";
-        $data["subtitle"]   = "Hak Akses Sistem";
-        $data["record"]     = $this->om->profil("users")->row();
-
-        $this->db->select('*');
-        $this->db->from("modul");
-        $this->db->join('users_modul', 'modul.id_modul = users_modul.id_modul');
-        $this->db->where("users_modul.id_session", $this->session->userdata("admin_session"));
-        $this->db->order_by("nama_modul", "ASC");
-        $data["mod"] = $this->db->get();
-
-        $data["content"] = $this->load->view($data["controller"]."_hak_akses_view",$data,true);
-        $this->render($data);
-    }
-
    
 
-    /* =========================================================
-     *                   NOTIFIKASI (opsional)
-     * ========================================================= */
-    public function cek_total_notif()
+   // di dalam class controller yang sama
+    private function _has_access(string $link): bool
     {
-        if (!$this->session->userdata("admin_login")) {
-            echo json_encode(['total' => 0]);
-            return;
-        }
+        $id    = $this->session->userdata('admin_session');
+        $level = $this->session->userdata('admin_level');
+        if (in_array($level, ['admin','su'], true)) return true;
 
-        $id_session = $this->session->userdata("admin_session");
-
-        $asal_tabels = [];
-        $cekper = $this->db->get_where("view_users_capil", ["id_session" => $id_session]);
-        foreach ($cekper->result() as $t) { $asal_tabels[] = $t->nama_tabel; }
-
-        $this->db->from('view_semua_paket');
-
-        if ($this->session->userdata("admin_level") != "admin") {
-            $this->db->where_in('status', [3, 4]);
-            $this->db->where('YEAR(update_time)', date('Y'));
-            $this->db->where('id_desa', $this->session->userdata("id_desa"));
-            $this->db->where('username', $this->session->userdata("admin_username"));
-            $this->db->where('status_baca', 0);
-        } else {
-            if (!empty($asal_tabels)) {
-                $this->db->where_in("asal_tabel", $asal_tabels);
-            }
-            $this->db->where_in('status', [2]);
-            $this->db->where('YEAR(update_time)', date('Y'));
-            $this->db->where('status_baca', 0);
-        }
-
-        $total = $this->db->count_all_results();
-        echo json_encode(['total' => $total]);
-    }
+    // exact
+        $q = $this->db->select('1', false)
+        ->from('modul')
+        ->join('users_modul', 'modul.id_modul = users_modul.id_modul')
+        ->where('id_session', $id)
+        ->group_start()
+        ->where('link', $link)
+           ->or_where('link', strtok($link,'/')) // fallback: segmen pertama
+           ->group_end()
+           ->limit(1)->get();
+           return $q->num_rows() > 0;
+       }
 
 
-
-    public function cek_notifikasi()
-    {
-        $id_session     = $this->session->userdata("admin_session");
-        $admin_level    = $this->session->userdata("admin_level");
-        $admin_username = $this->session->userdata("admin_username");
-
-        $asal_tabels = [];
-        $cekper = $this->db->get_where("view_users_capil", ["id_session" => $id_session]);
-        foreach ($cekper->result() as $t) { $asal_tabels[] = $t->nama_tabel; }
-
-        $this->db->select('*');
-        $this->db->limit(8);
-        $this->db->from('view_semua_paket');
-
-        if ($admin_level != "admin") {
-            $this->db->where_in('status', [3, 4]);
-            $this->db->where('id_desa', $this->session->userdata("id_desa"));
-            $this->db->where('username', $admin_username);
-            $this->db->where('status_baca', 0);
-        } else {
-            $this->db->where_in('status', [2]);
-            $this->db->where('status_baca', 0);
-            if (!empty($asal_tabels) && $admin_username != 'admin') {
-                $this->db->where_in("asal_tabel", $asal_tabels);
-            }
-        }
-
-        $this->db->order_by('update_time', 'DESC');
-        $query = $this->db->get()->result();
-
-        $data = [];
-        foreach ($query as $q) {
-            if ($admin_level != "admin") {
-                $data[] = [
-                    'icon'    => $q->status == 3 ? "fas fa-check-circle text-success" : "fas fa-times-circle text-danger",
-                    'text'    => waktu_lalu($q->update_time),
-                    'message' => "Permohonan <b>{$q->nama_permohonan}</b> atas nama <b>{$q->nama_pemohon}</b> ".($q->status == 3 ? "Telah Disetujui" : "Ditolak"),
-                    'link'    => site_url("admin_permohonan/detail_pemohon/{$q->asal_tabel}/{$q->id_paket}"),
-                    'tabel'   => $q->asal_tabel,
-                    'id_paket'=> $q->id_paket,
-                    'status'  => $q->status,
-                ];
-            } else {
-                $data[] = [
-                    'icon'    => "fas fa-exclamation-circle text-warning",
-                    'text'    => waktu_lalu($q->update_time),
-                    'message' => "Segera proses permohonan <b>{$q->nama_permohonan}</b> atas nama <b>{$q->nama_pemohon}</b>.",
-                    'link'    => site_url("admin_permohonan/detail_pemohon/{$q->asal_tabel}/{$q->id_paket}"),
-                    'tabel'   => $q->asal_tabel,
-                    'id_paket'=> $q->id_paket,
-                    'status'  => $q->status,
-                ];
-            }
-        }
-
-        echo json_encode($data);
-    }
-
-    public function mark_as_read()
-    {
-        $id_paket = $this->input->post('id_paket');
-        $tabel    = $this->input->post('tabel');
-
-        if ($id_paket && $tabel) {
-            $this->db->update($tabel, ['status_baca' => 1], ['id_paket' => $id_paket]);
-            echo json_encode(['success' => $this->db->affected_rows() > 0]);
-        } else {
-            echo json_encode(['success' => false]);
-        }
-    }
 
     /* =========================================================
      *                    MONITOR (LAYAR UTAMA)
@@ -202,7 +93,7 @@ class Admin_dashboard extends Admin_Controller
     public function monitor()
     {   
         cek_session_akses(get_class($this)."/monitor", $this->session->userdata('admin_session'));
-        $data["record"]    = $this->om->profil("users")->row();
+        // $data["record"]    = $this->om->profil("users")->row();
         $data["controller"]= get_class($this);
         $data["title"]     = "Layar Utama";
         $data["subtitle"]  = "Daftar Booking & Sedang Berkunjung";
@@ -221,8 +112,16 @@ class Admin_dashboard extends Admin_Controller
      *   - in_visit     : daftar yang sudah check-in & belum checkout
      *   - server_time  : waktu server ISO8601 (untuk jam live di UI)
      */
+    private function _require_access_or_json(string $link): void {
+    if (! $this->_has_access($link)) {
+        $this->json_exit(['ok'=>false,'err'=>'forbidden'], 403);
+    }
+}
+
 public function monitor_data()
 {
+    $this->_require_access_or_json(get_class($this)."/monitor");
+
     $q        = trim((string)$this->input->get('q', true));
     $page     = max(1, (int)$this->input->get('page'));
     $per_page = (int)$this->input->get('per_page');
@@ -283,25 +182,47 @@ public function monitor_data()
     $invisit = $this->db->get()->result_array();
 
     // ===== mapper baris ke format UI (pakai nama_petugas_instansi dari booking_tamu)
-    $map = function($r) {
+    $can_permohonan = $this->_has_access('admin_permohonan/detail');
+    $can_scan       = $this->_has_access('admin_scan/detail');
+
+    $map_booked = function($r) use ($can_permohonan) {
         $petugas = trim((string)($r['nama_petugas_instansi'] ?? ''));
         $pend    = isset($r['jumlah_pendamping']) ? (int)$r['jumlah_pendamping'] : 0;
-
         return [
-            'kode'               => (string)$r['kode_booking'],
-            'nama'               => (string)$r['nama_tamu'],
-            'unit'               => (string)($r['nama_unit'] ?: '-'),
-            'instansi'           => (string)($r['target_instansi_nama'] ?: ($r['instansi'] ?: '-')),
-            'jam'                => (string)($r['jam'] ?: ''),
-            'tanggal'            => (string)($r['tanggal'] ?: ''),
-            'status'             => strtolower((string)$r['status']),
-            'checkin_at'         => (string)($r['checkin_at'] ?: ''),
-            'checkout_at'        => (string)($r['checkout_at'] ?: ''),
-            'jumlah_pendamping'  => $pend,
+            'kode'                  => (string)$r['kode_booking'],
+            'nama'                  => (string)$r['nama_tamu'],
+            'unit'                  => (string)($r['nama_unit'] ?: '-'),
+            'instansi'              => (string)($r['target_instansi_nama'] ?: ($r['instansi'] ?: '-')),
+            'jam'                   => (string)($r['jam'] ?: ''),
+            'tanggal'               => (string)($r['tanggal'] ?: ''),
+            'status'                => strtolower((string)$r['status']),
+            'checkin_at'            => (string)($r['checkin_at'] ?: ''),
+            'checkout_at'           => (string)($r['checkout_at'] ?: ''),
+            'jumlah_pendamping'     => $pend,
             'nama_petugas_instansi' => $petugas,
-            'petugas_unit'          => $petugas, // alias untuk UI
-            'petugas'               => $petugas, // alias untuk UI
-            'detail_url'            => site_url('admin_scan/detail/'.rawurlencode($r['kode_booking'])),
+            // === diarahkan ke admin_permohonan/detail & boleh klik jika punya akses
+            'detail_url'            => $can_permohonan ? site_url('admin_permohonan/detail/'.rawurlencode($r['kode_booking'])) : '',
+            'can_open'              => (bool)$can_permohonan,
+        ];
+    };
+    $map_visit = function($r) use ($can_scan) {
+        $petugas = trim((string)($r['nama_petugas_instansi'] ?? ''));
+        $pend    = isset($r['jumlah_pendamping']) ? (int)$r['jumlah_pendamping'] : 0;
+        return [
+            'kode'                  => (string)$r['kode_booking'],
+            'nama'                  => (string)$r['nama_tamu'],
+            'unit'                  => (string)($r['nama_unit'] ?: '-'),
+            'instansi'              => (string)($r['target_instansi_nama'] ?: ($r['instansi'] ?: '-')),
+            'jam'                   => (string)($r['jam'] ?: ''),
+            'tanggal'               => (string)($r['tanggal'] ?: ''),
+            'status'                => strtolower((string)$r['status']),
+            'checkin_at'            => (string)($r['checkin_at'] ?: ''),
+            'checkout_at'           => (string)($r['checkout_at'] ?: ''),
+            'jumlah_pendamping'     => $pend,
+            'nama_petugas_instansi' => $petugas,
+            // === tetap admin_scan/detail, tapi bisa dinonaktifkan kalau tak punya akses
+            'detail_url'            => $can_scan ? site_url('admin_scan/detail/'.rawurlencode($r['kode_booking'])) : '',
+            'can_open'              => (bool)$can_scan,
         ];
     };
 
@@ -315,8 +236,8 @@ public function monitor_data()
         'per_page'      => $per_page,
         'booked_total'  => $booked_total,
         'booked_pages'  => $total_pages,
-        'booked'        => array_map($map, $booked_rows),
-        'in_visit'      => array_map($map, $invisit),
+        'booked'   => array_map($map_booked, $booked_rows),
+        'in_visit' => array_map($map_visit,  $invisit),
         'count_booked'  => $booked_total,
         'count_visit'   => count($invisit),
         'server_time'   => date('c'),
@@ -331,6 +252,7 @@ public function monitor_data()
      * ========================================================= */
     public function dashboard()
     {
+        cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
         $data["controller"]     = get_class($this);
         $data["title"]          = "Dashboard Kunjungan";
         $data["subtitle"]       = "Harian • Mingguan • Bulanan";
@@ -357,6 +279,7 @@ public function monitor_data()
      */
     public function dashboard_data()
     {
+        cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
         $period = strtolower((string)$this->input->get('period', true));
         if (!in_array($period, ['day','week','month'])) {
             $period = 'month'; // default bulanan
@@ -477,127 +400,6 @@ public function monitor_data()
                 'data'   => $data,
             ],
         ]);
-    }
-private function _emit($msg)
-    {
-        // 1) tampilkan (CLI / web)
-        $this->output->set_content_type('text/plain')->set_output($msg);
-
-        // 2) tulis ke file di public_html (biasanya writable di Hostinger)
-        @file_put_contents(FCPATH.'cron_debug.log', $msg, FILE_APPEND);
-
-        // 3) tulis ke application/logs
-        @file_put_contents(APPPATH.'logs/cron_debug.log', $msg, FILE_APPEND);
-
-        // 4) tulis ke CI log
-        log_message('error', trim($msg));
-    }
-   /**
-     * Jalankan via CLI:
-     *   php index.php cron expire_bookings [grace_minutes]
-     * Contoh:
-     *   php index.php cron expire_bookings 30
-     */
-  // --- simpan versi ini, hapus versi cron_test lain ---
-public function cron_test($param='default')
-{
-    $msg = "[CRON TEST] file=".__FILE__." apppath=".APPPATH." at=".date('c')." param={$param}\n";
-    echo $msg; // kalau STDOUT tidak disilent, akan tampil
-    @file_put_contents('/tmp/cron_touch.txt', $msg, FILE_APPEND);
-    exit(0);
-}
-
-
-
-public function expire_bookings($grace_minutes = 30)
-{
-    // sementara: izinkan via browser untuk verifikasi (?web=1)
-    if (!$this->input->is_cli_request() && $this->input->get('web') !== '1') {
-        show_404();
-        return;
-    }
-
-    $grace = (int)$grace_minutes;
-    if ($grace < 0 || $grace > 1440) $grace = 30;
-
-    if (isset($this->ma) && method_exists($this->ma, 'expire_past_bookings')) {
-        $affected = (int) $this->ma->expire_past_bookings($grace, 'Asia/Makassar');
-    } else {
-        $tz = new DateTimeZone('Asia/Makassar');
-        $dt = new DateTime('now', $tz);
-        if ($grace > 0) $dt->modify("-{$grace} minutes");
-        $cutoff = $dt->format('Y-m-d H:i:s');
-
-        $this->db->query("
-            UPDATE booking_tamu
-               SET status = 'expired',
-                   expired_at = NOW()
-             WHERE checkin_at IS NULL
-               AND status IN ('pending','approved')
-               AND schedule_dt IS NOT NULL
-               AND schedule_dt < ?
-        ", [$cutoff]);
-
-        $affected = $this->db->affected_rows();
-    }
-
-    $msg = "[EXPIRE] affected={$affected}, grace={$grace}m, at=".date('Y-m-d H:i:s')."\n";
-
-    // tulis ke dua tempat + echo
-    @file_put_contents(FCPATH.'cron_debug.log', $msg, FILE_APPEND);
-    @file_put_contents(APPPATH.'logs/cron_debug.log', $msg, FILE_APPEND);
-    echo $msg;
-
-    log_message('error', "[CRON] ".trim($msg));
-    exit(0);
-}
-public function paths()
-{
-    $msg = "FILE=".__FILE__."\nAPPPATH=".APPPATH."\nFCPATH=".FCPATH."\nAT=".date('c')."\n\n";
-    $this->output->set_content_type('text/plain')->set_output($msg);
-    @file_put_contents('/tmp/ci_paths.txt', $msg, FILE_APPEND);
-    exit(0);
-}
-
-
-
-    /**
-     * Versi HTTP (opsional) — panggil via cron dengan GET param `token`.
-     * Tambahkan config item 'cron_secret' di application/config/config.php:
-     *   $config['cron_secret'] = 'gantilah_token_rahasia_ini';
-     *
-     * Contoh panggilan:
-     // *   https://domainmu.com/index.php/cron/expire_bookings_http?token=gantilah_token_rahasia_ini&grace=30
-     */
-    public function expire_bookings_http()
-    {
-        $secret_cfg = $this->config->item('cron_secret');
-        $token      = (string)$this->input->get('token', true);
-        if (!$secret_cfg || $token !== $secret_cfg) {
-            return $this->_json(['ok'=>false,'msg'=>'Forbidden'], 403);
-        }
-
-        $grace = (int)$this->input->get('grace', true);
-        if ($grace < 0 || $grace > 1440) $grace = 30;
-
-        $affected = $this->ma->expire_past_bookings($grace, 'Asia/Makassar');
-        return $this->_json([
-            'ok'       => true,
-            'expired'  => $affected,
-            'grace'    => $grace,
-            'server'   => date('c'),
-        ]);
-    }
-
-    /** Helper JSON ringkas */
-    private function _json($payload, int $status = 200)
-    {
-        if (!is_string($payload)) {
-            $payload = json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
-        }
-        $this->output->set_status_header($status)
-                     ->set_content_type('application/json','utf-8')
-                     ->set_output($payload);
     }
 
 

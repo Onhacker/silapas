@@ -91,6 +91,45 @@ class Admin_scan extends Admin_Controller {
     $data["content"] = $this->load->view($data["controller"]."_detail_view", $data, true);
     $this->render($data);
 }
+public function upload_surat_tugas()
+{
+    $kode = $this->input->post('kode', true);
+    if (!$kode) return $this->output->set_content_type('application/json')->set_output(json_encode(['ok'=>false,'msg'=>'Kode kosong']));
+
+    // validasi booking
+    $b = $this->db->get_where('booking_tamu', ['kode_booking'=>$kode])->row();
+    if (!$b) return $this->output->set_content_type('application/json')->set_output(json_encode(['ok'=>false,'msg'=>'Booking tidak ditemukan'], JSON_UNESCAPED_UNICODE));
+
+    // upload (PDF/JPG/PNG, 2MB)
+    $config = [
+        'upload_path'      => FCPATH.'uploads/surat_tugas/',
+        'allowed_types'    => 'pdf|jpg|jpeg|png',
+        'max_size'         => 2048,
+        'file_ext_tolower' => true,
+        'overwrite'        => false,
+        'remove_spaces'    => true,
+        'file_name'        => 'surat_'.$kode.'_'.date('Ymd_His'),
+    ];
+    if (!is_dir($config['upload_path'])) @mkdir($config['upload_path'], 0755, true);
+
+    $this->load->library('upload', $config);
+    if (!$this->upload->do_upload('surat_tugas')) {
+        return $this->output->set_content_type('application/json')->set_output(json_encode(['ok'=>false,'msg'=>$this->upload->display_errors('', '')]));
+    }
+    $data = $this->upload->data();
+    $filename = $data['file_name'];
+    $url = base_url('uploads/surat_tugas/'.$filename);
+
+    // simpan ke booking_tamu.surat_tugas (opsional hapus file lama)
+    $old = $b->surat_tugas;
+    $this->db->where('kode_booking', $kode)->update('booking_tamu', ['surat_tugas'=>$filename]);
+    if ($old && $old !== $filename) {
+        $oldPath = FCPATH.'uploads/surat_tugas/'.$old;
+        if (is_file($oldPath)) @unlink($oldPath);
+    }
+
+    return $this->output->set_content_type('application/json')->set_output(json_encode(['ok'=>true,'url'=>$url,'file'=>$filename]));
+}
 
 
     /**

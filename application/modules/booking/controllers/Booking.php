@@ -115,6 +115,13 @@ class Booking extends MX_Controller {
                 return $this->output->set_content_type('application/json')
                     ->set_output(json_encode(["success"=>false,"title"=>"Melebihi Batas Pendamping","pesan"=>$err]));
             }
+            // 2.b) Cek kuota harian (pre-check cepat)
+            [$okQuota, $sisa, $terpakai, $kuota, $errQ] = $this->_validate_kuota_harian($unit_id, $tanggal, false);
+            if (!$okQuota) {
+                return $this->output->set_content_type('application/json')
+                ->set_output(json_encode(["success"=>false,"title"=>"Kuota Penuh","pesan"=>$errQ]));
+            }
+
 
             // 3) Instansi asal
             $kategori   = strtolower((string)$this->input->post('kategori', true));
@@ -254,6 +261,14 @@ class Booking extends MX_Controller {
                 $insert["kode_booking"] = $kode_booking;
 
                 $this->db->trans_begin();
+                // Re-check kuota di dalam transaksi + lock baris unit (FOR UPDATE)
+                [$okQuota2, $sisa2, $terpakai2, $kuota2, $errQ2] = $this->_validate_kuota_harian($unit_id, $tanggal, true);
+                if (!$okQuota2) {
+                    $this->db->trans_rollback();
+                    return $this->output->set_content_type('application/json')
+                    ->set_output(json_encode(["success"=>false,"title"=>"Kuota Penuh","pesan"=>$errQ2]));
+                }
+
 
                 $okMain = $this->db->insert("booking_tamu", $insert);
                 if (!$okMain) {
@@ -857,6 +872,72 @@ private function normalize_date_mysql(?string $s): ?string {
         }
         return [true, $unit_nama, ''];
     }
+
+    /**
+ * Validasi kuota harian per unit.
+ * Return: [ok(bool), sisa(int|null), terpakai(int), kuota(int|null), err(string)]
+ * - kuota NULL/<=0 dianggap tak dibatasi.
+ * - $lock=true → kunci baris unit untuk mencegah race (dipakai di dalam transaksi).
+ */
+private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $lock = false): array
+{
+    // Ambil kuota & nama unit
+    if ($lock) {
+        $unit = $this->db->query(
+            'SELECT kuota_harian, nama_unit FROM unit_tujuan WHERE id = ? FOR UPDATE',
+            [$unit_id]
+        )->row();
+    } else {
+        $unit = $this->db->select('kuota_harian, nama_unit')
+                         ->get_where('unit_tujuan', ['id'=>$unit_id])->row();
+    }
+
+    if (!$unit) {
+        return [false, null, 0, null, 'Unit tujuan tidak ditemukan.'];
+    }
+
+    $kuota = isset($unit->kuota_harian) ? (int)$unit->kuota_harian : 0;
+    $kuota = $kuota > 0 ? $kuota : null; // null = tak dibatasi
+
+    // Hitung terpakai di tanggal tsb
+    $this->db->select('COUNT(1) AS jml', false)
+             ->from('booking_tamu')
+             ->where('unit_tujuan', $unit_id)
+             ->where('tanggal', $tanggal);
+
+    // Hanya hitung yang aktif/berlaku
+    if ($this->db->field_exists('status', 'booking_tamu')) {
+        $this->db->where_in('status', ['pending','approved','checked_in']);
+    }
+    if ($this->db->field_exists('token_revoked', 'booking_tamu')) {
+        $this->db->where('token_revoked', 0);
+    }
+    if ($this->db->field_exists('checkout_at', 'booking_tamu')) {
+        $this->db->group_start()
+                 ->where('checkout_at IS NULL', NULL, FALSE)
+                 ->or_where('checkout_at', '')
+                 ->group_end();
+    }
+
+    $terpakai = (int)($this->db->get()->row('jml') ?? 0);
+
+    if ($kuota === null) {
+        return [true, null, $terpakai, null, '']; // tak dibatasi
+    }
+
+    if ($terpakai >= $kuota) {
+        $tgl_view = date('d-m-Y', strtotime($tanggal));
+        $err = sprintf(
+            'Kuota harian untuk unit <b>%s</b> pada tanggal <b>%s</b> sudah penuh (kuota %d, terpakai %d).',
+            $unit->nama_unit ?? '-', $tgl_view, $kuota, $terpakai
+        );
+        return [false, 0, $terpakai, $kuota, $err];
+    }
+
+    $sisa = max(0, $kuota - $terpakai);
+    return [true, $sisa, $terpakai, $kuota, ''];
+}
+
 
     private function _resolve_instansi_asal($kategori, $instansiId){
         $map = $this->_kategori_map();

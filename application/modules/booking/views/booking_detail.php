@@ -309,7 +309,7 @@ if (!function_exists('hari_id')) {
                   </a>
                 </div> -->
               <?php else: ?>
-                <span class="soft" id="foto_empty">Belum ada dokumentasi.</span>
+                <span class="soft" id="foto_empty">Belum ada dokumentasi. Foto dapat dilakukan saat checkin</span>
               <?php endif; ?>
               <div class="mt-2">
               	 <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
@@ -809,7 +809,7 @@ function updateFotoSection(url) {
   function showLoader(msg) {
     Swal.fire({
       title: 'Menyiapkan PDF…',
-      html: msg || 'Mohon tunggu sebentar',
+      html: msg || 'Mohon tunggu sekitar 15 Detik',
       allowOutsideClick: false,
       didOpen: () => Swal.showLoading()
     });

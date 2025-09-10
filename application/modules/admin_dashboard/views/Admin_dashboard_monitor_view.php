@@ -76,6 +76,7 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Daftar Booking & Sedang Berkunjung'
 .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:ping 1.6s infinite}
 @keyframes ping{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}80%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
 .brand h1{font-size:1rem;margin:0}
+/*.row-disabled{opacity:.6; cursor:not-allowed;}*/
 </style>
 
 <div class="container-fluid" id="fsContainer">
@@ -341,62 +342,68 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Daftar Booking & Sedang Berkunjung'
   function esc(s){ return safe(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&gt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
 
   function renderBooked(list){
-    if (!list || !list.length){
-      elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Tidak ada data.</td></tr>`;
-      return;
-    }
-    elBooked.innerHTML = list.map(r=>{
-      const petugas = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
-      return `
-        <tr class="row-pill row-link" data-url="${r.detail_url}">
-          <td class="tgljam">
-            <div class="jam">${r.jam ? esc(r.jam) : '-'}</div>
-            <div class="small text-black tgl"><span class="day">${hariID(r.tanggal)}</span>${fmtDateID(r.tanggal)}</div>
-          </td>
-          <td class="nama">${esc(r.nama)}</td>
-          <td class="asal" style="color:black">${esc(r.instansi || '-')}</td>
-          <td class="unit" style="color:black">
-            ${esc(r.unit || '-')}
-            ${petugas ? `<div class="subline"><i class="mdi mdi-account-badge-outline"></i> ${esc(petugas)}</div>` : ''}
-          </td>
-          <td class="pendamping">
-            <span class="pill"><i class="mdi mdi-account-multiple-outline ico"></i>${(r.jumlah_pendamping||0)}</span>
-          </td>
-        </tr>
-      `;
-    }).join('');
+  if (!list || !list.length){
+    elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Tidak ada data.</td></tr>`;
+    return;
   }
+  elBooked.innerHTML = list.map(r=>{
+    const petugas  = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
+    const clickable = !!(r.can_open && r.detail_url);
+    const trClass = 'row-pill' + (clickable ? ' row-link' : ' row-disabled');
+    const trAttr  = clickable ? ` data-url="${esc(r.detail_url)}" title="Buka detail"` : ` title="Akses tidak diizinkan"`;
+    return `
+      <tr class="${trClass}"${trAttr}>
+        <td class="tgljam">
+          <div class="jam">${r.jam ? esc(r.jam) : '-'}</div>
+          <div class="small text-black tgl"><span class="day">${hariID(r.tanggal)}</span>${fmtDateID(r.tanggal)}</div>
+        </td>
+        <td class="nama">${esc(r.nama)}</td>
+        <td class="asal" style="color:black">${esc(r.instansi || '-')}</td>
+        <td class="unit" style="color:black">
+          ${esc(r.unit || '-')}
+          ${petugas ? `<div class="subline"><i class="mdi mdi-account-badge-outline"></i> ${esc(petugas)}</div>` : ''}
+        </td>
+        <td class="pendamping">
+          <span class="pill"><i class="mdi mdi-account-multiple-outline ico"></i>${(r.jumlah_pendamping||0)}</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
 
-  function renderVisit(list){
-    if (!list || !list.length){
-      elVisit.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Belum ada pengunjung aktif.</td></tr>`;
-      return;
-    }
-    elVisit.innerHTML = list.map(r=>{
-      const startIso = r.checkin_at || '';
-      const startMs  = parseDateLoose(startIso);
-      const durInit  = startIso ? fmtDurFromMs(startMs) : '-';
-      const petugas  = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
-
-      return `
-        <tr class="row-pill row-link" data-url="${r.detail_url}">
-          <td class="jam">${r.checkin_at ? fmtTime(startIso) : '-'}</td>
-          <td class="nama">
-            ${esc(r.nama)}
-            <div class="small text-black">${esc(r.instansi || '-')}</div>
-          </td>
-          <td class="unit" style="color:black">
-            ${esc(r.unit || '-')}
-            ${petugas ? `<div class="subline"><i class="mdi mdi-account-badge-outline"></i> ${esc(petugas)}</div>` : ''}
-          </td>
-          <td class="durasi text-primary" data-checkin="${esc(startIso)}" data-startms="${!isNaN(startMs)? startMs : ''}">${durInit}</td>
-          <td class="pendamping">
-            <span class="pill"><i class="mdi mdi-account-multiple-outline ico"></i>${(r.jumlah_pendamping||0)}</span>
-          </td>
-        </tr>
-      `;
-    }).join('');
+function renderVisit(list){
+  if (!list || !list.length){
+    elVisit.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Belum ada pengunjung aktif.</td></tr>`;
+    return;
   }
+  elVisit.innerHTML = list.map(r=>{
+    const startIso  = r.checkin_at || '';
+    const startMs   = parseDateLoose(startIso);
+    const durInit   = startIso ? fmtDurFromMs(startMs) : '-';
+    const petugas   = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
+    const clickable = !!(r.can_open && r.detail_url);
+    const trClass   = 'row-pill' + (clickable ? ' row-link' : ' row-disabled');
+    const trAttr    = clickable ? ` data-url="${esc(r.detail_url)}" title="Buka detail"` : ` title="Akses tidak diizinkan"`;
+    return `
+      <tr class="${trClass}"${trAttr}>
+        <td class="jam">${r.checkin_at ? fmtTime(startIso) : '-'}</td>
+        <td class="nama">
+          ${esc(r.nama)}
+          <div class="small text-black">${esc(r.instansi || '-')}</div>
+        </td>
+        <td class="unit" style="color:black">
+          ${esc(r.unit || '-')}
+          ${petugas ? `<div class="subline"><i class="mdi mdi-account-badge-outline"></i> ${esc(petugas)}</div>` : ''}
+        </td>
+        <td class="durasi text-primary" data-checkin="${esc(startIso)}" data-startms="${!isNaN(startMs)? startMs : ''}">${durInit}</td>
+        <td class="pendamping">
+          <span class="pill"><i class="mdi mdi-account-multiple-outline ico"></i>${(r.jumlah_pendamping||0)}</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
 
   function tickDurations(){
     document.querySelectorAll('#tblVisit .durasi').forEach(el=>{
@@ -516,4 +523,17 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Daftar Booking & Sedang Berkunjung'
   loadData();
   startTimers();
 })();
+document.getElementById('tblBooked').addEventListener('click', (e)=>{
+  const tr  = e.target.closest('tr');
+  const url = tr && tr.getAttribute('data-url');
+  if (!url) return; // tidak punya akses => no-op
+  location.href = url;
+});
+document.getElementById('tblVisit').addEventListener('click', (e)=>{
+  const tr  = e.target.closest('tr');
+  const url = tr && tr.getAttribute('data-url');
+  if (!url) return; // tidak punya akses => no-op
+  location.href = url;
+});
+
 </script>

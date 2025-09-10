@@ -43,6 +43,7 @@ const urlsToCache = [
   '/assets/admin/chart/exporting.js',
   '/assets/admin/chart/export-data.js',
   '/assets/admin/chart/accessibility.js',
+  '/assets/min/home.min.css',
 ];
 
 /* === Helper === */
