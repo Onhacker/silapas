@@ -1218,11 +1218,14 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
 
         // (E) link PDF (hanya jika ada $kode) + sertakan token
         $pdf_url = '';
-        if ($kode !== '') {
-            $pdf_url = !empty($d['pdf_url']) ? $d['pdf_url']
-            : ($token ? site_url('booking/print_pdf/'.rawurlencode($kode)).'?t='.urlencode($token).'&dl=1' : '');
+        if (!empty($kode) && !empty($token)) {
+            $pdf_url = !empty($d['pdf_url'])
+                ? $d['pdf_url'] // kalau sudah disuplai dari luar, pakai apa adanya
+                : site_url('booking/print_pdf/'.rawurlencode($kode)).'?'.http_build_query([
+                    't'  => $token,
+                    'dl' => 1,   // hapus/barui ke 0 kalau mau preview
+                ]);
         }
-
 
 
         // (F) web_me
