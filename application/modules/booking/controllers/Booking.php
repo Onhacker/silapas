@@ -46,7 +46,7 @@ class Booking extends MX_Controller {
     }
 
     $dl = site_url('booking/print_pdf/'.rawurlencode($k)).'?t='.urlencode($t).'&dl=1';
-    // $to = site_url('booking/booked?t='.urlencode($t)); //tidak perlu redirect
+    $to = site_url('booking/booked?t='.urlencode($t)); 
 
     $data = [
         'controller' => get_class($this),
