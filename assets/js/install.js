@@ -42,19 +42,39 @@ function whenSwalReady(run, timeout=3000){
   })();
 }
 
-/* Tampilkan info “sudah terinstal” sekali per sesi */
+/* Tampilkan info “sudah terinstal” sekali saja (persist lintas sesi) */
 function showStandaloneNoticeOnce(){
-  if (!isAppInstalled() || sessionStorage.getItem('shownStandaloneNotice')) return;
+  if (!isAppInstalled()) return;
+
+  const KEY = 'shownStandaloneNotice'; // ganti dari sessionStorage -> localStorage
+
+  // Cek flag persist
+  try {
+    if (localStorage.getItem(KEY)) return;
+  } catch (e) {
+    // Jika storage diblok/galat, pakai in-memory fallback biar tidak looping dalam 1 run
+    if (window.__shownStandaloneNotice) return;
+    window.__shownStandaloneNotice = true;
+  }
+
   whenSwalReady((fallback)=>{
-    if (!fallback) {
-      Swal.fire('Aplikasi Sudah Terinstal','Anda menjalankan aplikasi dalam mode mandiri (standalone).','info')
-          .then(()=> sessionStorage.setItem('shownStandaloneNotice','1'));
+    const markDone = () => {
+      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    };
+
+    if (!fallback && window.Swal?.fire) {
+      Swal.fire(
+        'Aplikasi Sudah Terinstal',
+        'Anda menjalankan aplikasi dalam mode mandiri (standalone).',
+        'info'
+      ).then(markDone, markDone);
     } else {
       alert('Aplikasi berjalan dalam mode mandiri (standalone).');
-      sessionStorage.setItem('shownStandaloneNotice','1');
+      markDone();
     }
   });
 }
+
 
 /* Tangkap PWA prompt — JANGAN auto-show */
 window.addEventListener('beforeinstallprompt', (e) => {
