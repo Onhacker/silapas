@@ -474,7 +474,9 @@ private function normalize_date_mysql(?string $s): ?string {
 
         $qr_url   = base_url('uploads/qr/qr_'.$b->kode_booking.'.png');
         $redir    = site_url('booking/booked?t='.urlencode($b->access_token));
-        $pdf_url  = site_url('booking/print_pdf/'.rawurlencode($b->kode_booking)).'?t='.urlencode($b->access_token);
+        // $pdf_url  = site_url('booking/print_pdf/'.rawurlencode($b->kode_booking)).'?t='.urlencode($b->access_token);
+        $query   = http_build_query(['t' => $b->access_token, 'dl' => 1]);
+        $pdf_url = site_url('booking/print_pdf/'.rawurlencode($b->kode_booking)).'?'.$query;
         $instansi = $b->target_instansi_nama ?: ($b->instansi ?: '-');
 
         // ===== 1) Kirim ke TAMU (sekali saja, kecuali force) =====
