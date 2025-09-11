@@ -1220,7 +1220,7 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         $pdf_url = '';
         if ($kode !== '') {
             $pdf_url = !empty($d['pdf_url']) ? $d['pdf_url']
-            : ($token ? site_url('booking/print_pdf/'.rawurlencode($kode)).'?t='.urlencode($token) : '');
+            : ($token ? site_url('booking/print_pdf/'.rawurlencode($kode)).'?t='.urlencode($token).'&dl=1' : '');
         }
 
 
