@@ -25,6 +25,67 @@ class Booking extends MX_Controller {
         $this->load->view('booking_view', $data);
     }
 
+    public function download_gate()
+{
+    $t = trim((string)$this->input->get('t', true));
+    $k = trim((string)$this->input->get('k', true));
+
+    // Validasi minimal
+    if ($t === '' || $k === '') return $this->_gate_error('Link tidak valid.');
+
+    $row = $this->db->get_where('booking_tamu', [
+        'kode_booking' => $k,
+        'access_token' => $t
+    ])->row();
+
+    if (!$row)                         return $this->_gate_error('Link tidak valid.');
+    if ((int)$row->token_revoked === 1)return $this->_gate_error('Token dicabut.');
+    if (!empty($row->checkout_at))     return $this->_gate_error('Sudah checkout.');
+    if (isset($row->status) && $row->status === 'expired') {
+        return $this->_gate_error('Status sudah tidak berlaku (expired).');
+    }
+
+    $dl = site_url('booking/print_pdf/'.rawurlencode($k)).'?t='.urlencode($t).'&dl=1';
+    $to = site_url('booking/booked?t='.urlencode($t));
+
+    $data = [
+        'controller' => get_class($this),
+        'title'      => 'Mengunduh tiket…',
+        'deskripsi'  => 'Menyiapkan unduhan…',
+        'prev'       => base_url("assets/images/booking.png"),
+        'dl'         => $dl,
+        'to'         => $to,
+        'rec'        => $this->fm->web_me(),
+    ];
+
+    // 200 OK tapi tetap noindex + no-cache
+    $this->output
+        ->set_header('X-Robots-Tag: noindex, nofollow, noarchive')
+        ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+        ->set_header('Pragma: no-cache');
+
+    $this->load->view('download_gate', $data);
+}
+
+private function _gate_error($msg)
+{
+    $this->output
+        ->set_status_header(410, 'Gone') // di halaman ERROR boleh 410
+        ->set_header('X-Robots-Tag: noindex, nofollow, noarchive')
+        ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+        ->set_header('Pragma: no-cache');
+
+    $data = [
+        'controller' => get_class($this),
+        'title'      => 'Link Tidak Berlaku',
+        'deskripsi'  => $msg,
+        'prev'       => base_url("assets/images/booking.png"),
+        'rec'        => $this->fm->web_me(),
+    ];
+    $this->load->view('booking_error', $data);
+}
+
+
     public function booked()
     {
         $token = $this->input->get('t', TRUE);
@@ -514,8 +575,12 @@ private function normalize_date_mysql(?string $s): ?string {
         $qr_url   = base_url('uploads/qr/qr_'.$b->kode_booking.'.png');
         $redir    = site_url('booking/booked?t='.urlencode($b->access_token));
         // $pdf_url  = site_url('booking/print_pdf/'.rawurlencode($b->kode_booking)).'?t='.urlencode($b->access_token);
-        $query   = http_build_query(['t' => $b->access_token, 'dl' => 1]);
-        $pdf_url = site_url('booking/print_pdf/'.rawurlencode($b->kode_booking)).'?'.$query;
+        // $query   = http_build_query(['t' => $b->access_token, 'dl' => 1]);
+        // $pdf_url = site_url('booking/print_pdf/'.rawurlencode($b->kode_booking)).'?'.$query;
+
+        $pdf_url = site_url('booking/download_gate').'?k='.rawurlencode($b->kode_booking).'&t='.urlencode($b->access_token);
+
+
         $instansi = $b->target_instansi_nama ?: ($b->instansi ?: '-');
 
         // ===== 1) Kirim ke TAMU (sekali saja, kecuali force) =====
@@ -1259,16 +1324,15 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         $jam_disp      = isset($d['jam']) ? $d['jam'] : '-';
 
         // (E) link PDF (hanya jika ada $kode) + sertakan token
-        $pdf_url = '';
-        if (!empty($kode) && !empty($token)) {
-            $pdf_url = !empty($d['pdf_url'])
-                ? $d['pdf_url'] // kalau sudah disuplai dari luar, pakai apa adanya
-                : site_url('booking/print_pdf/'.rawurlencode($kode)).'?'.http_build_query([
-                    't'  => $token,
-                    'dl' => 1,   // hapus/barui ke 0 kalau mau preview
-                ]);
+        // $pdf_url = site_url('booking/download_gate').'?k='.rawurlencode($kode).'&t='.urlencode($token); // gateway, bukan print_pdf langsung
+        // (E) link PDF (gateway) — HANYA kalau $kode & $token ada
+        $pdf_url = $d['pdf_url'] ?? '';
+        if ($pdf_url === '' && $kode !== '' && $token) {
+            $pdf_url = site_url('booking/download_gate').'?k='.rawurlencode($kode).'&t='.urlencode($token);
         }
 
+
+      
 
         // (F) web_me
         $web = $this->fm->web_me();
