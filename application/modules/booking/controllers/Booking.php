@@ -421,8 +421,8 @@ private function normalize_date_mysql(?string $s): ?string {
     public function dev_quick_booking()
     {
         // if (ENVIRONMENT !== 'development') show_404();
-        $ip = $this->input->ip_address();
-        if (!in_array($ip, ['127.0.0.1','::1'])) show_404();
+        // $ip = $this->input->ip_address();
+        // if (!in_array($ip, ['127.0.0.1','::1'])) show_404();
 
         // ambil unit_tujuan valid
         $unit = (int)($this->db->select('id')->order_by('id','ASC')->limit(1)->get('unit_tujuan')->row('id') ?? 1);
@@ -435,14 +435,14 @@ private function normalize_date_mysql(?string $s): ?string {
             'access_token'         => $token,
             'status'               => 'approved',
             'nama_tamu'            => 'Tester Dev',
-            'no_hp'                => '081234567890',
+            'no_hp'                => '082333265888',
             'keperluan'            => 'Uji fitur',
             'unit_tujuan'          => $unit,
             'target_instansi_nama' => 'Instansi Dev',
             'tanggal'              => date('Y-m-d'),
             'jam'                  => date('H:i', time()+3600),
             'token_revoked'        => 0,
-            'created_at'           => date('Y-m-d H:i:s'),
+            'create_date'           => date('Y-m-d H:i:s'),
         ];
         $this->db->insert('booking_tamu', $data);
 
@@ -523,6 +523,7 @@ private function normalize_date_mysql(?string $s): ?string {
         $already_user   = $can_stamp_user && !empty($b->wa_sent_at);
         if ($force || !$already_user) {
             $ok_user = $this->_send_wa_konfirmasi($b->no_hp, [
+                'access_token'           => $b->access_token,   // <— TAMBAH INI
                 'nama'                   => $b->nama_tamu,
                 'nama_petugas_instansi'  => $b->nama_petugas_instansi,
                 'kode'                   => $b->kode_booking,
