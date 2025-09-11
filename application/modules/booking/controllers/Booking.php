@@ -420,7 +420,7 @@ private function normalize_date_mysql(?string $s): ?string {
     
     public function dev_quick_booking()
     {
-        if (ENVIRONMENT !== 'development') show_404();
+        // if (ENVIRONMENT !== 'development') show_404();
         $ip = $this->input->ip_address();
         if (!in_array($ip, ['127.0.0.1','::1'])) show_404();
 
