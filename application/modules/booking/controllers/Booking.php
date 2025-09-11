@@ -417,6 +417,45 @@ private function normalize_date_mysql(?string $s): ?string {
     }
     return null; // gagal parse
 }
+    
+    public function dev_quick_booking()
+    {
+        if (ENVIRONMENT !== 'development') show_404();
+        $ip = $this->input->ip_address();
+        if (!in_array($ip, ['127.0.0.1','::1'])) show_404();
+
+        // ambil unit_tujuan valid
+        $unit = (int)($this->db->select('id')->order_by('id','ASC')->limit(1)->get('unit_tujuan')->row('id') ?? 1);
+
+        $kode  = 'BK'.date('ymd').strtoupper(bin2hex(random_bytes(3)));
+        $token = bin2hex(random_bytes(16));
+
+        $data = [
+            'kode_booking'         => $kode,
+            'access_token'         => $token,
+            'status'               => 'approved',
+            'nama_tamu'            => 'Tester Dev',
+            'no_hp'                => '081234567890',
+            'keperluan'            => 'Uji fitur',
+            'unit_tujuan'          => $unit,
+            'target_instansi_nama' => 'Instansi Dev',
+            'tanggal'              => date('Y-m-d'),
+            'jam'                  => date('H:i', time()+3600),
+            'token_revoked'        => 0,
+            'created_at'           => date('Y-m-d H:i:s'),
+        ];
+        $this->db->insert('booking_tamu', $data);
+
+        $urls = [
+            'detail' => site_url('booking/booked?t='.urlencode($token)),
+            'pdf'    => site_url('booking/print_pdf/'.rawurlencode($kode)).'?t='.urlencode($token).'&dl=1',
+            'wa'     => site_url('booking/wa_notify?t='.urlencode($token).'&debug=1&force=1'),
+        ];
+
+        $this->output->set_content_type('application/json')
+        ->set_output(json_encode(['ok'=>true,'booking'=>$data,'urls'=>$urls], JSON_UNESCAPED_SLASHES));
+    }
+
 
     public function wa_notify()
     {
