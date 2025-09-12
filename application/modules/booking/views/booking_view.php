@@ -45,6 +45,80 @@
           </div> -->
 
           <form id="form_app" method="post" enctype="multipart/form-data">
+            <!-- ====== Asal Instansi ====== -->
+<div class="header-title">Asal Instansi</div>
+<div class="row">
+  <div class="col-md-6">
+    <div class="form-group mb-2">
+      <label for="kategori" class="form-label label-required">Kategori Instansi</label>
+      <select id="kategori" name="kategori" class="form-control" required>
+        <option value="">-- Pilih Kategori --</option>
+        <option value="opd">Dinas Pemprov Sulsel</option>
+        <option value="pn">Pengadilan Negeri</option>
+        <option value="pa">Pengadilan Agama</option>
+        <option value="ptun">PTUN Makassar</option>
+        <option value="kejati">Kejaksaan Tinggi</option>
+        <option value="kejari">Kejaksaan Negeri</option>
+        <option value="cabjari">Cabang Kejaksaan Negeri</option>
+        <option value="bnn">BNN</option>
+        <option value="kodim">Kodim Wil. Kodam XIV/Hasanuddin</option>
+        <option value="lainnya">Lainnya</option>
+      </select>
+      <small class="help-hint">Jika tidak ada di daftar, pilih <b>Lainnya</b>.</small>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <!-- MODE SELECT (default) -->
+    <div class="form-group mb-2" id="instansi_select_wrap">
+      <label for="instansi" class="form-label label-required">Instansi</label>
+      <select id="instansi" name="instansi_id" class="form-control" required disabled>
+        <option value="">-- Pilih Instansi --</option>
+      </select>
+      <small class="help-hint">Pilih kategori terlebih dahulu untuk menampilkan daftar instansi.</small>
+    </div>
+
+    <!-- MODE MANUAL (muncul saat kategori = Lainnya) -->
+    <div class="form-group mb-2 d-none" id="instansi_manual_wrap">
+      <label for="instansi_manual" class="form-label label-required">Nama Instansi</label>
+      <input type="text" id="instansi_manual" name="target_instansi_nama"
+      class="form-control" placeholder="Tulis nama instansi">
+      <small class="help-hint">Contoh: KPP Pratama Makassar Utara</small>
+    </div>
+  </div>
+</div>
+
+<div class="divider-soft"></div>
+
+<!-- ====== Tujuan di Lapas ====== -->
+<div class="header-title">Unit Tujuan Lapas</div>
+<div class="form-group mb-2">
+  <label for="unit_tujuan" class="form-label label-required">Unit Tujuan</label>
+  <select id="unit_tujuan" name="unit_tujuan" class="form-control" title="-- Pilih Unit --" required>
+    <option value="">-- Pilih Unit --</option>
+    <?php 
+    function render_options($tree, $level = 0) {
+      $no = 1;
+      foreach ($tree as $node) {
+        $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level);
+        $prefix = ($level > 0) ? $no . '. ' : '';
+        $label  = htmlspecialchars($node->nama_unit, ENT_QUOTES, 'UTF-8');
+        $content = $indent . $prefix . $label;
+
+        echo '<option value="' . (int)$node->id . '" data-content="' . $content . '">' . $content . '</option>';
+
+        if (!empty($node->children)) {
+          render_options($node->children, $level + 1);
+        }
+        $no++;
+      }
+    }
+    render_options($units_tree);
+    ?>
+  </select>
+</div>
+
+<div class="divider-soft"></div>
             <!-- ====== Data Tamu ====== -->
             <div class="header-title">Data Tamu</div>
             <div class="row">
@@ -253,80 +327,7 @@
 
 <div class="divider-soft"></div>
 
-<!-- ====== Asal Instansi ====== -->
-<div class="header-title">Asal Instansi</div>
-<div class="row">
-  <div class="col-md-6">
-    <div class="form-group mb-2">
-      <label for="kategori" class="form-label label-required">Kategori Instansi</label>
-      <select id="kategori" name="kategori" class="form-control" required>
-        <option value="">-- Pilih Kategori --</option>
-        <option value="opd">Dinas Pemprov Sulsel</option>
-        <option value="pn">Pengadilan Negeri</option>
-        <option value="pa">Pengadilan Agama</option>
-        <option value="ptun">PTUN Makassar</option>
-        <option value="kejati">Kejaksaan Tinggi</option>
-        <option value="kejari">Kejaksaan Negeri</option>
-        <option value="cabjari">Cabang Kejaksaan Negeri</option>
-        <option value="bnn">BNN</option>
-        <option value="kodim">Kodim Wil. Kodam XIV/Hasanuddin</option>
-        <option value="lainnya">Lainnya</option>
-      </select>
-      <small class="help-hint">Jika tidak ada di daftar, pilih <b>Lainnya</b>.</small>
-    </div>
-  </div>
 
-  <div class="col-md-6">
-    <!-- MODE SELECT (default) -->
-    <div class="form-group mb-2" id="instansi_select_wrap">
-      <label for="instansi" class="form-label label-required">Instansi</label>
-      <select id="instansi" name="instansi_id" class="form-control" required disabled>
-        <option value="">-- Pilih Instansi --</option>
-      </select>
-      <small class="help-hint">Pilih kategori terlebih dahulu untuk menampilkan daftar instansi.</small>
-    </div>
-
-    <!-- MODE MANUAL (muncul saat kategori = Lainnya) -->
-    <div class="form-group mb-2 d-none" id="instansi_manual_wrap">
-      <label for="instansi_manual" class="form-label label-required">Nama Instansi</label>
-      <input type="text" id="instansi_manual" name="target_instansi_nama"
-      class="form-control" placeholder="Tulis nama instansi">
-      <small class="help-hint">Contoh: KPP Pratama Makassar Utara</small>
-    </div>
-  </div>
-</div>
-
-<div class="divider-soft"></div>
-
-<!-- ====== Tujuan di Lapas ====== -->
-<div class="header-title">Unit Tujuan Lapas</div>
-<div class="form-group mb-2">
-  <label for="unit_tujuan" class="form-label label-required">Unit Tujuan</label>
-  <select id="unit_tujuan" name="unit_tujuan" class="form-control" title="-- Pilih Unit --" required>
-    <option value="">-- Pilih Unit --</option>
-    <?php 
-    function render_options($tree, $level = 0) {
-      $no = 1;
-      foreach ($tree as $node) {
-        $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level);
-        $prefix = ($level > 0) ? $no . '. ' : '';
-        $label  = htmlspecialchars($node->nama_unit, ENT_QUOTES, 'UTF-8');
-        $content = $indent . $prefix . $label;
-
-        echo '<option value="' . (int)$node->id . '" data-content="' . $content . '">' . $content . '</option>';
-
-        if (!empty($node->children)) {
-          render_options($node->children, $level + 1);
-        }
-        $no++;
-      }
-    }
-    render_options($units_tree);
-    ?>
-  </select>
-</div>
-
-<div class="divider-soft"></div>
 
 <!-- ====== Jadwal Kunjungan ====== -->
 <div class="header-title">Jadwal Kunjungan</div>
