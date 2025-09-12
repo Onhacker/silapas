@@ -13,13 +13,13 @@ $hariMap  = [0=>'Minggu',1=>'Senin',2=>'Selasa',3=>'Rabu',4=>'Kamis',5=>'Jumat',
 $abbrTZ   = ($tzName==='Asia/Jakarta'?'WIB':($tzName==='Asia/Makassar'?'WITA':($tzName==='Asia/Jayapura'?'WIT':'')));
 
 $norm = function($s){ // "8.00" / "08:00" -> "08:00" (atau null)
-$s = trim((string)$s);
-if ($s === '') return null;
-$s = str_replace('.', ':', $s);
-if (!preg_match('/^(\d{1,2}):([0-5]\d)$/', $s, $m)) return null;
-$h = max(0, min(23, (int)$m[1]));
-$i = (int)$m[2];
-return sprintf('%02d:%02d', $h, $i);
+  $s = trim((string)$s);
+  if ($s === '') return null;
+  $s = str_replace('.', ':', $s);
+  if (!preg_match('/^(\d{1,2}):([0-5]\d)$/', $s, $m)) return null;
+  $h = max(0, min(23, (int)$m[1]));
+  $i = (int)$m[2];
+  return sprintf('%02d:%02d', $h, $i);
 };
 
 $toMin = function($hhmm){
@@ -29,16 +29,7 @@ $toMin = function($hhmm){
 };
 $dot = fn($s)=> $s ? str_replace(':', '.', $s) : '';
 
-// Default bila DB kosong
-// $def = [
-//   'mon'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
-//   'tue'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
-//   'wed'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
-//   'thu'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
-//   'fri'=>['open'=>'08:00','break_start'=>'11:30','break_end'=>'13:00','close'=>'14:00','closed'=>0],
-//   'sat'=>['open'=>'08:00','break_start'=>null,   'break_end'=>null,   'close'=>'11:30','closed'=>0],
-//   'sun'=>['open'=>null,   'break_start'=>null,   'break_end'=>null,   'close'=>null,   'closed'=>1],
-// ];
+// Hari -> key konfigurasi
 $daysKey = ['sun','mon','tue','wed','thu','fri','sat'];
 
 // Ambil konfigurasi per hari dari $rec
@@ -55,7 +46,7 @@ foreach ($daysKey as $k) {
 
 // Hitung info hari ini (untuk highlight dan label "(hari ini)")
 $w = (int)$now->format('w');               // 0..6
-$k = $daysKey[$w];                          // sun..sat
+$k = $daysKey[$w];                         // sun..sat
 $nowMin = (int)$now->format('H')*60 + (int)$now->format('i');
 
 $open  = $cfg[$k]['open'];
@@ -64,11 +55,11 @@ $bs    = $cfg[$k]['break_start'];
 $be    = $cfg[$k]['break_end'];
 $isClosedDay = $cfg[$k]['closed'] || !$open || !$close;
 
-// (Status detail masih dihitung bila sewaktu-waktu mau dipakai di tempat lain)
+// (Status detail—kalau nanti perlu dipakai)
 $statusToday = 'Tutup';
 if (!$isClosedDay) {
   $o = $toMin($open); $c = $toMin($close);
-  $inOpen = ($o!==null && $c!==null && $nowMin >= $o && $nowMin <= $c);
+  $inOpen  = ($o!==null && $c!==null && $nowMin >= $o && $nowMin <= $c);
   $inBreak = ($bs && $be) ? ($nowMin >= $toMin($bs) && $nowMin < $toMin($be)) : false;
   $statusToday = $inOpen ? ($inBreak ? 'Istirahat' : 'Buka') : 'Tutup';
 }
@@ -112,10 +103,10 @@ if (!$isClosedDay) {
   .row-today{background:#f8fafc}
   .row-off{opacity:.8}
   .time-dash{font-variant-numeric:tabular-nums}
+  .subnote{font-size:.82rem;color:#64748b;margin-top:2px}
 
   @media (max-width:576px){
-    .op-table thead th:nth-child(3),
-    .op-table tbody td:nth-child(3){display:none} /* sembunyikan kolom Istirahat di mobile */
+    .op-table thead th:nth-child(2){width:70%}
   }
 </style>
 
@@ -148,51 +139,51 @@ if (!$isClosedDay) {
         <table class="op-table">
           <thead>
             <tr>
-              <th style="width:30%">Hari</th>
-              <th style="width:35%">Buka – Tutup</th>
-              <th style="width:35%">Istirahat</th>
+              <th style="width:35%">Hari</th>
+              <th style="width:65%">Buka – Tutup</th>
             </tr>
           </thead>
           <tbody>
-      <?php foreach ([1,2,3,4,5,6,0] as $d): // Sen..Sab, Minggu terakhir
-      $kk    = $daysKey[$d];
-      $row   = $cfg[$kk];
-      $o     = $row['open'];   $c = $row['close'];
-      $bsr   = $row['break_start']; $ber = $row['break_end'];
-      $isOff = $row['closed'] || !$o || !$c;
+            <?php foreach ([1,2,3,4,5,6,0] as $d): // Sen..Sab, Minggu terakhir
+              $kk    = $daysKey[$d];
+              $row   = $cfg[$kk];
+              $o     = $row['open'];   $c = $row['close'];
+              $bsr   = $row['break_start']; $ber = $row['break_end'];
+              $isOff = $row['closed'] || !$o || !$c;
 
-      $rowClass = ($d === $w) ? 'row-today' : ($isOff ? 'row-off' : '');
-      ?>
-      <tr class="<?= $rowClass ?>">
-        <td>
-          <strong><?= $hariMap[$d] ?></strong>
-          <?php if ($d === $w): ?>
-            <span class="pill today ml-1">Hari ini</span>
-            <?php elseif ($isOff): ?>
-              <span class="pill off ml-1">Libur</span>
-            <?php endif; ?>
-          </td>
-          <td class="time-dash">
-            <?php if($isOff): ?>
-              <span class="text-muted">—</span>
-              <?php else: ?>
-                <?= $dot($o) ?> – <?= $dot($c) ?> <?= $abbrTZ ?>
-              <?php endif; ?>
-            </td>
-            <td class="time-dash">
-              <?php if(!$isOff && $bsr && $ber): ?>
-                <?= $dot($bsr) ?> – <?= $dot($ber) ?> <?= $abbrTZ ?>
-                <?php else: ?>
-                  <span class="text-muted">—</span>
-                <?php endif; ?>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
+              $rowClass = ($d === $w) ? 'row-today' : ($isOff ? 'row-off' : '');
+            ?>
+              <tr class="<?= $rowClass ?>">
+                <td>
+                  <strong><?= $hariMap[$d] ?></strong>
+                  <?php if ($d === $w): ?>
+                    <span class="pill today ml-1">Hari ini</span>
+                  <?php elseif ($isOff): ?>
+                    <span class="pill off ml-1">Libur</span>
+                  <?php endif; ?>
+                </td>
+                <td class="time-dash">
+                  <?php if($isOff): ?>
+                    <span class="text-muted">—</span>
+                  <?php else: ?>
+                    <div><?= $dot($o) ?> – <?= $dot($c) ?> <?= $abbrTZ ?></div>
+                    <?php if($bsr && $ber): ?>
+                      <div class="subnote">Istirahat <?= $dot($bsr) ?> – <?= $dot($ber) ?> <!-- <?= $abbrTZ ?> --></div>
+                    <?php endif; ?>
+                  <?php endif; ?>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+
+      <?php if (!empty($deskripsi)): ?>
+        <p class="text-muted"><?= htmlspecialchars($deskripsi, ENT_QUOTES, 'UTF-8') ?></p>
+      <?php endif; ?>
+
     </div>
   </div>
-</div>
 </div>
 
 <?php $this->load->view("front_end/footer.php"); ?>
