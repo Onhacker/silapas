@@ -188,8 +188,8 @@
 
         </style>
         <div class="divider mb-3"></div>
-        <div class="row text-center mb-3">
-          <a class="col-5 text-nowrap" href="<?php echo site_url('hal/privacy_policy') ?>">
+        <div class="row text-center  mb-3">
+          <a class="col-5 text-nowrap text-blue" href="<?php echo site_url('hal/privacy_policy') ?>">
             Kebijakan Privasi
           </a>
 
@@ -197,11 +197,11 @@
             <i class="fas fa-arrow-up" style="color:#4a81d4"></i>
           </a>
 
-          <a class="col-5 text-nowrap" href="<?php echo site_url('hal') ?>" aria-label="Syarat & Ketentuan">
+          <a class="col-5 text-nowrap text-blue" href="<?php echo site_url('hal') ?>" aria-label="Syarat & Ketentuan">
             <span class="d-inline d-sm-none">
               <abbr title="Syarat & Ketentuan">S&K</abbr>
             </span>
-            <span class="d-none d-sm-inline">Syarat & Ketentuan</span>
+            <span class="d-none d-sm-inline text-blue">Syarat & Ketentuan</span>
           </a>
         </div>
       </div> 
@@ -408,6 +408,22 @@
           <i class="fas fa-address-book mr-1"></i>Kontak 
         </div>
       </a>
+      <a href="<?= base_url('hal/privacy_policy') ?>" style="text-decoration: none;">
+        <div class="external-event text-dark ui-draggable ui-draggable-handle"
+        data-class="bg-success"
+        style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
+        <i class="fas fa-user-shield mr-1" aria-hidden="true"></i>Kebijakan Privasi
+      </div>
+    </a>
+
+    <a href="<?= base_url('hal') ?>" style="text-decoration: none;">
+      <div class="external-event text-dark ui-draggable ui-draggable-handle"
+      data-class="bg-success"
+      style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
+      <i class="fas fa-file-contract mr-1" aria-hidden="true"></i>Syarat &amp; Ketentuan
+    </div>
+  </a>
+
     </div>
   </div>
 </div>

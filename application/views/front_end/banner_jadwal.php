@@ -118,7 +118,8 @@ $tanggalIndo = "{$hariNama}, ".$now->format('d')." {$bulanNama} ".$now->format('
 <style type="text/css">
 /* ====== Card gaya “event” ====== */
 .op-card{position:relative;border-radius:22px;padding:22px;overflow:hidden;color:#fff;
-  background:linear-gradient(135deg,#1e3c72 0%,#4e77be 100%);box-shadow:0 8px 28px rgba(0,0,0,.12)}
+  background:linear-gradient(135deg, #4a81d4 0%, #005f6c 100%);box-shadow:0 8px 28px rgba(0,0,0,.12)}
+  
 .op-card:before{content:"";position:absolute;inset:0;
   background:radial-gradient(1200px 420px at -10% 0%,rgba(255,255,255,.08),transparent 60%),
              radial-gradient(1200px 420px at 110% 100%,rgba(255,255,255,.08),transparent 60%)}
