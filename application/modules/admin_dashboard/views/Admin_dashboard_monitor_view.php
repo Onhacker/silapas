@@ -69,7 +69,7 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Daftar Booking & Sedang Berkunjung'
 .scope-icon{
   display:inline-flex;align-items:center;justify-content:center;
   width:28px;height:28px;border-radius:50%;
-  background:#00FA9A;border:1px solid #e5e7eb;font-size:1rem;color:#0ea5e9
+  background:#F54927;border:1px solid #e5e7eb;font-size:1rem;color:#0ea5e9
 }
 @media (max-width:768px){ .scope-text{font-size:1.35rem} }
 .brand{display:flex;align-items:center;gap:.6rem}
@@ -107,35 +107,29 @@ $base_sub   = htmlspecialchars($subtitle ?? 'Daftar Booking & Sedang Berkunjung'
         <div class="card-body d-flex flex-wrap justify-content-between align-items-center board-head pb-2">
           <div class="d-flex align-items-center" style="gap:1rem;">
             <div>
-  <div class="text-dark small mb-1">Ruang Lingkup</div>
-  <div class="scope-wrap">
-    <span class="scope-icon"><i class="mdi mdi-office-building-marker-outline"></i></span>
-    <span id="infoScope" class="scope-text"><?php echo $web->type ?></span>
-  </div>
-</div>
+              <div class="text-dark small mb-1">Ruang Lingkup</div>
+              <div class="scope-wrap">
+                <span class="scope-icon"><i class="mdi mdi-office-building-marker-outline"></i></span>
+                <span id="infoScope" class="scope-text"><?php echo $web->type ?></span>
+              </div>
+            </div>
 
-
-            <!-- Server Time: sudah dibesarkan & dipercantik -->
             <div>
-              <div class="text-dark small mb-1">Server Time</div>
+              <div class="text-dark small mb-1">Waktu Lokasi <?php echo $web->waktu ?></div>
               <div class="server-time-wrap">
                 <span class="server-time-icon"><i class="mdi mdi-clock-outline"></i></span>
-                <span id="infoTime" class="server-time">--:--:--</span>
-                
+                <span id="infoTime" class="server-time">--:--:--</span>   
               </div>
-               <button id="btnRefresh" class="btn ml-2" style="background-color: black">
-              
-              <span class="badge-live " id="stateBadge"><strong>Live</strong></span>
+               <button id="btnRefresh" class="btn btn-lg btn-rounded ml-2" style="background-color: black">
+              <span class="badge-live" id="stateBadge"><strong>Live</strong></span>
 
             </button>
             </div>
 
             <div class="card-body pt-3">
-    <!-- <div class="brand badge badge-danger px-3 py-2 badge-live"><span class="dot"></span><h1>Live Wallboard</h1></div> -->
-
-              <!-- <span class="badge badge-dark px-3 py-2 badge-live brand" id="stateBadge"><strong>Live</strong></span> -->
               <style>
-                .badge-live{position:relative;display:inline-flex;align-items:center;gap:.45rem;transform-origin:center;animation:livePulse 1.25s ease-in-out infinite}
+             
+                .badge-live{position:relative;display:inline-flex;align-items:center;gap:.80rem;transform-origin:center;animation:livePulse 1.25s ease-in-out infinite}
                 .badge-live::before{content:"";width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:livePing 1.25s cubic-bezier(0,0,.2,1) infinite}
                 @keyframes livePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
                 @keyframes livePing{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}80%{box-shadow:0 0 0 10px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
@@ -420,61 +414,96 @@ function renderVisit(list){
     });
   }
 
-  function startClock(){
-    if (clockTimer) clearInterval(clockTimer);
-    clockTimer = setInterval(()=>{
-      const now = new Date(Date.now()+serverOffsetMs);
-      elTime.textContent = fmtTimeFull(now);
-    }, 1000);
-  }
+ 
 
   async function loadData(){
-    const params = new URLSearchParams();
-    if (state.q) params.set('q', state.q);
-    params.set('page', state.page);
-    params.set('per_page', state.per_page);
-    const url = `<?= site_url('admin_dashboard/monitor_data') ?>?`+params.toString();
+  const params = new URLSearchParams();
+  if (state.q) params.set('q', state.q);
+  params.set('page', state.page);
+  params.set('per_page', state.per_page);
+  const url = `<?= site_url('admin_dashboard/monitor_data') ?>?` + params.toString();
 
-    elBadge.textContent = 'Memuat...'; elBadge.classList.add('blink');
+  elBadge.textContent = 'Memuat...';
+  elBadge.classList.add('blink');
 
-    try{
-      const t0 = Date.now();
-      const r  = await fetch(url, { credentials:'same-origin' });
-      const j  = await r.json();
-      const t1 = Date.now();
+  try {
+    // --- catat waktu sebelum request (monotonic) ---
+    window.__req_t0 = performance.now();
 
-      if (!j || !j.ok) throw new Error('Gagal ambil data');
+    const res = await fetch(url, { credentials: 'same-origin' });
+    const j   = await res.json();
 
-      if (j.server_time){
-        const serverMs = Date.parse(j.server_time);
-        const rttHalf  = Math.round((t1 - t0)/2);
-        serverOffsetMs = (serverMs + rttHalf) - Date.now();
-        startClock();
-      }
+    if (!j || !j.ok) throw new Error('Gagal ambil data');
 
-      if (j.booked_pages > 0 && state.page > j.booked_pages){
-        state.page = j.booked_pages;
-        return loadData();
-      }
+    // --- sinkron jam UI dengan waktu server (zona dari DB) ---
+   if (j.server_ms != null || j.server_time) {
+  const rttHalf = Math.round((performance.now() - (window.__req_t0 ?? performance.now())) / 2);
+  const baseServerMs = Number.isFinite(Number(j.server_ms))
+    ? Number(j.server_ms)
+    : Date.parse(j.server_time || '');
 
-      renderBooked(j.booked || []);
-      renderVisit(j.in_visit || []);
-      elCB.textContent = j.count_booked || 0;
-      elCV.textContent = j.count_visit || 0;
-
-      lastTotalPages = j.booked_pages || 0;
-      const nowPage  = j.page || 1;
-      pageInfo.textContent = `Hal. ${nowPage}/${lastTotalPages || 1}`;
-      btnPrev.disabled = !(nowPage > 1);
-      btnNext.disabled = !(lastTotalPages && nowPage < lastTotalPages);
-
-      elBadge.textContent = 'Live'; elBadge.classList.remove('blink');
-
-      tickDurations();
-    }catch(e){
-      elBadge.textContent = 'Gagal memuat'; console.error(e);
-    }
+  if (Number.isFinite(baseServerMs)) {
+    window.serverOffsetMs = (baseServerMs + rttHalf) - Date.now();
+    window.serverTz       = j.server_tz || 'Asia/Makassar';
+    startClock();
   }
+}
+
+function fmtMsInServerTz(ms, { withDay = false, shortDay = false } = {}) {
+  const tz = window.serverTz || 'Asia/Makassar';
+  const opts = {
+    timeZone: tz,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false,
+    ...(withDay ? { weekday: shortDay ? 'short' : 'long' } : {})
+  };
+
+  const parts = new Intl.DateTimeFormat('id-ID', opts).formatToParts(new Date(ms));
+  const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
+
+  const dayLabel = map.weekday ? (map.weekday.replace('.', '') + ', ') : '';
+  return `${withDay ? dayLabel : ''}${map.day}-${map.month}-${map.year} ${map.hour}:${map.minute}:${map.second}`;
+}
+
+
+function startClock(){
+  if (window.clockTimer) clearInterval(window.clockTimer);
+  window.clockTimer = setInterval(()=>{
+    const ms = Date.now() + (window.serverOffsetMs || 0);
+    elTime.textContent = fmtMsInServerTz(ms, { withDay: true }); // contoh: "Jumat, 12/09/2025 14:05:33"
+  }, 1000);
+}
+
+    // --- pagination guard ---
+    if (j.booked_pages > 0 && state.page > j.booked_pages){
+      state.page = j.booked_pages;
+      return loadData();
+    }
+
+    // --- render data ---
+    renderBooked(j.booked || []);
+    renderVisit(j.in_visit || []);
+    elCB.textContent = j.count_booked ?? 0;
+    elCV.textContent = j.count_visit  ?? 0;
+
+    lastTotalPages = j.booked_pages ?? 0;
+    const nowPage  = j.page ?? 1;
+    pageInfo.textContent = `Hal. ${nowPage}/${lastTotalPages || 1}`;
+    btnPrev.disabled = !(nowPage > 1);
+    btnNext.disabled = !(lastTotalPages && nowPage < lastTotalPages);
+
+    elBadge.textContent = 'Live';
+    elBadge.classList.remove('blink');
+
+    tickDurations();
+  } catch (e) {
+    elBadge.textContent = 'Gagal memuat';
+    elBadge.classList.remove('blink');
+    console.error(e);
+  }
+}
+
 
   function startTimers(){
     if (refreshTimer) clearInterval(refreshTimer);

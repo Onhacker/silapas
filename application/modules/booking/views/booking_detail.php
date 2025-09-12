@@ -432,7 +432,7 @@ if (!function_exists('hari_id')) {
         <div class="p-3 bg-light rounded mt-3">
           <div class="kv-label mb-2"><i class="mdi mdi-information-outline"></i> Catatan</div>
           <ul class="mb-0 pl-3">
-            <li>Datang ±10 menit sebelum jadwal.</li>
+            <li>Checkin <?php echo $rec->early_min ?> menit sebelum jadwal.</li>
             <li>Bawa KTP asli & identitas instansi.</li>
             <li>Tunjukkan QR saat check-in.</li>
             <li>Unduh & simpan berkas agar tidak hilang.</li>

@@ -117,7 +117,7 @@ $slides = [
        <?= $rec->meta_deskripsi ?>
     </p>
   </div>
-
+ <?php $this->load->view("front_end/banner_jadwal.php"); ?>
 
     <div class="feature-slider" id="featureSlider">
       <button class="fs-nav prev" type="button" aria-label="Sebelumnya">‹</button>
@@ -164,8 +164,7 @@ $slides = [
         </li>
 
         <li class="media mb-2 align-items-center">
-          <div class="avatar-sm rounded-circle bg-soft-secondary text-secondary mr-3 d-flex align-items-center justify-content-center">
-            <i class="fas fa-eye font-20"></i>
+          <div class="avatar-sm rounded-circle bg-soft-secondary text-secondary mr-3 d-flex align-items-center justify-content-center"><i class="fas fa-eye font-20"></i>
           </div>
           <div class="media-body">
             <h4 class="mt-0 mb-1"><strong>Status Transparan, Real-time</strong></h4>
@@ -193,15 +192,7 @@ $slides = [
           </div>
         </li>
 
-        <li class="media mb-2 align-items-center">
-          <div class="avatar-sm rounded-circle bg-soft-info text-info mr-3 d-flex align-items-center justify-content-center">
-            <i class="fas fa-universal-access font-20"></i>
-          </div>
-          <div class="media-body">
-            <h4 class="mt-0 mb-1"><strong>Ramah Akses</strong></h4>
-            <p>Antarmuka ringan, dapat diakses dari jaringan terbatas, dan mendukung fitur aksesibilitas untuk kebutuhan khusus.</p>
-          </div>
-        </li>
+       
 
         <li class="media mb-2 align-items-center">
           <div class="avatar-sm rounded-circle bg-soft-secondary text-secondary mr-3 d-flex align-items-center justify-content-center">

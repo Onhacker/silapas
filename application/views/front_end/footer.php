@@ -314,11 +314,12 @@
 
 
     <div class="nav-item">
-      <a href="<?= base_url('hal/alur') ?>" class="<?= ($uri == 'hal/alur') ? 'text-active' : 'text-dark' ?>">
-        <i class="fas fa-project-diagram d-block mb-1"></i>
-        <span class="small">Alur</span>
+      <a href="<?= base_url('hal/jadwal') ?>" class="<?= ($uri == 'hal/jadwal') ? 'text-active' : 'text-dark' ?>">
+        <i class="far fa-calendar-alt d-block mb-1"></i>
+        <span class="small">Jadwal</span>
       </a>
     </div>
+
 
     <div class="space-left"></div>
     <div>
@@ -339,13 +340,78 @@
     </div>
 
     <div class="nav-item">
-      <a href="<?= base_url('hal/kontak') ?>" class="<?= ($uri == 'hal/kontak') ? 'text-active' : 'text-dark' ?>">
-        <i class="fas fa-address-book d-block mb-1"></i>
-        <span class="small">Kontak</span>
+      <a class="<?= ($uri == 'hal/kontak' || $uri == 'hal/alur') ? 'text-active' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModalfront">
+        <i class="fas fa-bars d-block mb-1"></i>
+        <span class="small">Menu</span>
+      </a>
+    </div>
+
+
+  </div>
+</nav>
+
+<style type="text/css">
+
+  .modal-dialog.modal-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    transform: translateY(100%); 
+    transition: transform 0.3s ease-out; 
+    margin: 0;
+  }
+
+  .modal.fade.show .modal-dialog.modal-bottom {
+    transform: translateY(0); 
+  }
+  .modal-dialog-full {
+    max-width: 100%;
+  }
+
+  .modal-content-full {
+    height: 100%;
+    border-radius: 0;
+  }
+
+
+  .modal-content {
+    border-radius: 0; 
+    width: 100%; 
+    margin: 0;
+  }
+</style>
+<div class="modal " id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-bottom fadeInUp animated modal-dialog-full" style="animation-duration: 0.5s;">
+    <div class="modal-content">
+     <div class="modal-header bg-blue text-white">
+      <h5 class="modal-title d-flex align-items-center text-white" id="menumoLabel">
+        <i class="fas fa-concierge-bell mr-2"></i> Menu
+      </h5>
+      <button type="button" class="close text-white" data-dismiss="modal" aria-label="Tutup">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+
+       <a href="<?php echo base_url('hal/kontak') ?>" style="text-decoration: none;">
+        <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
+         <i class="fas fa-project-diagram mr-1"></i>Alur Kunjungan 
+        </div>
+      </a>
+
+      <!-- Kontak -->
+      <a href="<?php echo base_url('hal/kontak') ?>" style="text-decoration: none;">
+        <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
+          <i class="fas fa-address-book mr-1"></i>Kontak 
+        </div>
       </a>
     </div>
   </div>
-</nav>
+</div>
+</div>
 
 
 <script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>

@@ -35,7 +35,7 @@ class Admin_permohonan extends Admin_Controller {
         $this->render($data);
     }
 
-    public function get_data()
+   public function get_data()
 {
     $post = $this->input->post(NULL, TRUE);
 
@@ -66,31 +66,30 @@ class Admin_permohonan extends Admin_Controller {
         $unit = $row->unit_tujuan_nama ?: '-';
 
         $kode    = (string)$row->kode_booking;
-$kodeEsc = htmlspecialchars($kode, ENT_QUOTES, 'UTF-8');
+        $kodeEsc = htmlspecialchars($kode, ENT_QUOTES, 'UTF-8');
 
-            $kodeHtml =
-              '<a href="'.site_url('admin_permohonan/detail/'.rawurlencode($kode)).'" '.
-              'class="badge badge-info" title="Lihat detail">'.
-              $kodeEsc.'</a>'.
-              ' <button type="button" class="btn text-muted btn-copy-kode" '.
-              'data-kode="'.$kodeEsc.'" title="Salin kode" aria-label="Salin kode">'.
-              '<i class="fe-copy"></i></button>';
+        $kodeHtml =
+          '<span class="badge badge-secondary" title="Lihat detail">'.
+          $kodeEsc.'</span>'.
+          ' <button type="button" class="btn text-muted btn-copy-kode" '.
+          'data-kode="'.$kodeEsc.'" title="Salin kode" aria-label="Salin kode">'.
+          '<i class="fe-copy"></i></button>';
+           
 
-            $data[] = [
-              'no'      => $start,
-              'kode'    => $kodeHtml,
-              'tgljam'  => hari_ini($row->tanggal).", ".htmlspecialchars(tgl_view($row->tanggal)).' '.$row->jam,
-              'tamu'    => '<b>'.htmlspecialchars($row->nama_tamu).'</b>'.
-                           '<div class="text-muted small">'.htmlspecialchars($row->jabatan ?: '-').'</div>',
-              'asal'    => htmlspecialchars($asal),
-              'instansi'=> '<b>'.htmlspecialchars($unit).'</b>'.
-                           (!empty($row->nama_petugas_instansi)
-                               ? '<div class="small text-muted">'.htmlspecialchars($row->nama_petugas_instansi).'</div>'
-                               : ''),
-              'status'  => $badge
-            ];
-
-
+        $data[] = [
+          'cek'     => '<div class="checkbox checkbox-danger checkbox-single"><input type="checkbox" class="row-check" value="'.$kodeEsc.'" aria-label="Pilih baris"><label></label></div>', // <-- kolom baru
+          'no'      => $start,
+          'kode'    => $kodeHtml,
+          'tgljam'  => hari_ini($row->tanggal).", ".htmlspecialchars(tgl_view($row->tanggal)).' '.$row->jam,
+          'tamu'    => '<b>'.htmlspecialchars($row->nama_tamu).'</b>'.
+                       '<div class="text-muted small">'.htmlspecialchars($row->jabatan ?: '-').'</div>',
+          'asal'    => htmlspecialchars($asal),
+          'instansi'=> '<b>'.htmlspecialchars($unit).'</b>'.
+                       (!empty($row->nama_petugas_instansi)
+                           ? '<div class="small text-muted">'.htmlspecialchars($row->nama_petugas_instansi).'</div>'
+                           : ''),
+          'status'  => $badge
+        ];
     }
 
     $output = [
@@ -101,6 +100,7 @@ $kodeEsc = htmlspecialchars($kode, ENT_QUOTES, 'UTF-8');
     ];
     echo json_encode($output);
 }
+
 
 
     public function cetak_pdf()
@@ -239,6 +239,81 @@ public function lampiran($jenis = '', $kode = '')
     exit;
 }
 
+public function hapus_batch()
+{
+    // Hanya izinkan username admin (sesuai permintaan)
+    if ($this->session->userdata('admin_username') !== 'admin') {
+        return $this->output
+            ->set_status_header(403)
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success' => false,
+                'message' => 'Tidak diizinkan.'
+            ]));
+    }
+
+    // Ambil array kode[] dari POST
+    $list = $this->input->post('kode');
+    if (!is_array($list) || empty($list)) {
+        return $this->output
+            ->set_status_header(400)
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success' => false,
+                'message' => 'Tidak ada data yang dipilih.'
+            ]));
+    }
+
+    // Normalisasi & validasi nilai kode_booking
+    $kodes = [];
+    foreach ($list as $k) {
+        $k = trim((string)$k);
+        // Sesuaikan pola jika format kode_booking kamu berbeda
+        if ($k !== '' && preg_match('/^[A-Za-z0-9._-]{3,64}$/', $k)) {
+            $kodes[$k] = true; // set unique
+        }
+    }
+    $kodes = array_keys($kodes);
+
+    if (empty($kodes)) {
+        return $this->output
+            ->set_status_header(400)
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success' => false,
+                'message' => 'Format kode tidak valid.'
+            ]));
+    }
+
+    // Eksekusi hapus batch dalam transaksi
+    $this->db->trans_begin();
+
+    $this->db->where_in('kode_booking', $kodes);
+    $this->db->delete('booking_tamu');
+
+    $affected = $this->db->affected_rows();
+
+    if ($this->db->trans_status() === false) {
+        $this->db->trans_rollback();
+        return $this->output
+            ->set_status_header(500)
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success' => false,
+                'message' => 'Gagal menghapus data (transaksi dibatalkan).'
+            ]));
+    }
+
+    $this->db->trans_commit();
+
+    // Sukses — balas JSON agar cocok dengan handler JS kamu
+    return $this->output
+        ->set_content_type('application/json')
+        ->set_output(json_encode([
+            'success' => true,
+            'message' => $affected.' data terhapus.'
+        ]));
+}
 
 
 }

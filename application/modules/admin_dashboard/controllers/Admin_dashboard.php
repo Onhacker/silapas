@@ -7,7 +7,7 @@ class Admin_dashboard extends Admin_Controller
     {
         parent::__construct();
         $this->load->model("M_admin_dashboard","ma");
-        date_default_timezone_set('Asia/Makassar');
+        // date_default_timezone_set('Asia/Makassar');
         // cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
         
     }
@@ -227,22 +227,30 @@ public function monitor_data()
     };
 
     $total_pages = ($booked_total > 0) ? (int)ceil($booked_total / $per_page) : 0;
+          $web    = $this->om->web_me();
+        $tzName = $web->waktu ?: 'Asia/Makassar';
+        $tz     = new DateTimeZone($tzName);
+        $nowTz  = new DateTimeImmutable('now', $tz);
 
-    $this->json_exit([
-        'ok'            => true,
-        'scope'         => 'all',
-        'q'             => $q,
-        'page'          => $page,
-        'per_page'      => $per_page,
-        'booked_total'  => $booked_total,
-        'booked_pages'  => $total_pages,
-        'booked'   => array_map($map_booked, $booked_rows),
-        'in_visit' => array_map($map_visit,  $invisit),
-        'count_booked'  => $booked_total,
-        'count_visit'   => count($invisit),
-        'server_time'   => date('c'),
-    ]);
-}
+        $this->json_exit([
+          'ok'           => true,
+          'scope'        => 'all',
+          'q'            => $q,
+          'page'         => $page,
+          'per_page'     => $per_page,
+          'booked_total' => $booked_total,
+          'booked_pages' => $total_pages,
+          'booked'       => array_map($map_booked, $booked_rows),
+          'in_visit'     => array_map($map_visit,  $invisit),
+          'count_booked' => $booked_total,
+          'count_visit'  => count($invisit),
+
+          // waktu server berdasar TZ dari DB
+          'server_tz'    => $tzName,                         // contoh: "Asia/Makassar"
+          'server_time'  => $nowTz->format(DateTime::ATOM),  // contoh: "2025-09-12T14:05:00+08:00"
+          'server_ms'    => (int) round(microtime(true) * 1000) // epoch ms
+        ]);
+    }
 
 
 

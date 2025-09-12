@@ -137,125 +137,150 @@ public function upload_surat_tugas()
      * Ubah status -> checked_in (idempotent)
      */
    public function checkin_api(){
-    $kode = trim((string)$this->input->post('kode', true));
-    if ($kode === '') return $this->json_exit(["ok"=>false,"msg"=>"Kode kosong"], 400);
-
-    $row = $this->db->get_where('booking_tamu', ['kode_booking'=>$kode])->row_array();
-    if (!$row) return $this->json_exit(["ok"=>false,"msg"=>"Booking tidak ditemukan"], 404);
-
-    // Sudah checkout? stop
-    if (!empty($row['checkout_at'])) {
-        return $this->json_exit(["ok"=>false,"msg"=>"Sudah checked_out"], 409);
-    }
-
-    // Hanya boleh dari status ini
-    $status = strtolower((string)$row['status']);
-    if (!in_array($status, ['approved','checked_in'])) {
-        return $this->json_exit(["ok"=>false,"msg"=>"Status sekarang '$status' tidak bisa di-check-in"], 409);
-    }
-
-    // ===== RULE BARU: tanggal harus sama & belum lewat jam jadwal + toleransi =====
-// Pastikan server timezone Asia/Makassar (sudah kamu set di __construct)
-        $todayLocal   = date('Y-m-d');
-        $nowTs        = time(); // epoch saat ini (Makassar)
-        $scheduledStr = trim($row['tanggal']).' '.trim($row['jam']); // "YYYY-mm-dd HH:ii[:ss]"
-        $scheduledTs  = strtotime($scheduledStr);
-
-                // === TEMP BYPASS VALIDASI JADWAL (untuk uji coba) ===
-
-        // 1) Harus tepat di tanggal yang sama
-        if ($row['tanggal'] !== $todayLocal) {
-            return $this->json_exit([
-                "ok"  => false,
-                "msg" => "Check-in ditolak: hanya bisa pada tanggal ".date('d-m-Y', strtotime($row['tanggal']))."."
-            ], 409);
+        $kode = trim((string)$this->input->post('kode', true));
+        if ($kode === '') {
+            return $this->json_exit(["ok"=>false, "msg"=>"Kode kosong"], 400);
         }
 
-        // 2) Tidak boleh melewati jam jadwal + toleransi 1 jam
+        $row = $this->db->get_where('booking_tamu', ['kode_booking'=>$kode])->row_array();
+        if (!$row) {
+            return $this->json_exit(["ok"=>false, "msg"=>"Booking tidak ditemukan"], 404);
+        }
+
+        // Sudah checkout? stop
+        if (!empty($row['checkout_at'])) {
+            return $this->json_exit(["ok"=>false, "msg"=>"Sudah checked_out"], 409);
+        }
+
+        // Hanya boleh dari status ini
+        $status = strtolower((string)$row['status']);
+        if (!in_array($status, ['approved','checked_in'], true)) {
+            return $this->json_exit(["ok"=>false, "msg"=>"Status sekarang '$status' tidak bisa di-check-in"], 409);
+        }
+
+        // ===== VALIDASI WAKTU (Asia/Makassar disarankan diset global) =====
+        $todayLocal = date('Y-m-d');
+        $nowTs      = time(); // epoch saat ini (Makassar)
+
+        $tanggal = trim((string)$row['tanggal']);   // 'Y-m-d'
+        $jam     = trim((string)$row['jam']);       // 'H:i' atau 'H:i:s'
+        if ($tanggal === '' || $jam === '') {
+            return $this->json_exit(["ok"=>false, "msg"=>"Check-in ditolak: jadwal belum lengkap."], 409);
+        }
+
+        // $scheduledStr = $tanggal.' '.$jam;          // "YYYY-mm-dd HH:ii[:ss]"
+        $scheduledTs = !empty($row['jadwal_at'])
+            ? strtotime($row['jadwal_at'])
+            : strtotime($row['tanggal'].' '.$row['jam']); // fallback
+
+        // $scheduledTs  = strtotime($scheduledStr);
         if ($scheduledTs === false) {
-            // Jadwal tak valid → tolak dengan pesan jelas
+            return $this->json_exit(["ok"=>false, "msg"=>"Check-in ditolak: format jadwal tidak valid."], 409);
+        }
+
+        // Kebijakan: hanya hari H
+        if ($tanggal !== $todayLocal) {
             return $this->json_exit([
-                "ok"  => false,
-                "msg" => "Check-in ditolak: format jadwal tidak valid."
+                "ok"=>false,
+                "msg"=>"Check-in ditolak: hanya bisa pada tanggal ".date('d-m-Y', strtotime($tanggal))."."
             ], 409);
         }
 
-        $GRACE_MIN    = 60;                 // ← toleransi dalam menit
-        $deadlineTs   = $scheduledTs + ($GRACE_MIN * 60);
+        // Ambil konfigurasi early/late/lead dari profil web
+        $ceki      = $this->om->web_me(); // <- penting: titik koma
+        $EARLY_MIN = isset($ceki->early_min)         ? (int)$ceki->early_min         : 10;
+        $LATE_MIN  = isset($ceki->late_min)          ? (int)$ceki->late_min          : 60;
+        $LEAD_MIN  = isset($ceki->min_lead_minutes)  ? (int)$ceki->min_lead_minutes  : 10;
 
-        if ($nowTs > $deadlineTs) {
-            $jamInfo   = date('H:i', strtotime($row['jam'])); // jam jadwal
-            $batasInfo = date('H:i', $deadlineTs);            // batas toleransi
+        // Clamp 0..1440 menit
+        $EARLY_MIN = max(0, min(1440, $EARLY_MIN));
+        $LATE_MIN  = max(0, min(1440, $LATE_MIN));
+        $LEAD_MIN  = max(0, min(1440, $LEAD_MIN));
+
+        // Hitung window check-in
+        $createdTs = (!empty($row['create_date']) && $row['create_date'] !== '0000-00-00 00:00:00')
+        ? strtotime($row['create_date']) : null;
+
+        $startByEarly = $scheduledTs - ($EARLY_MIN * 60);               // boleh X menit sebelum jadwal
+        $startByLead  = $createdTs ? $createdTs + ($LEAD_MIN * 60) : null; // tidak boleh sebelum booking+lead
+        $startTs      = $startByLead ? max($startByEarly, $startByLead) : $startByEarly;
+        $endTs        = $scheduledTs + ($LATE_MIN  * 60);               // toleransi keterlambatan
+
+        if ($nowTs < $startTs) {
             return $this->json_exit([
-                "ok"  => false,
-                "msg" => "Check-in ditolak: melewati batas toleransi {$GRACE_MIN} menit dari jam jadwal (jadwal: {$jamInfo} WITA, batas: {$batasInfo} WITA)."
+                "ok"=>false,
+                "msg"=>"Check-in ditolak: terlalu awal. Boleh mulai ".date('H:i',$startTs)."–".date('H:i',$endTs)." WITA."
+
             ], 409);
         }
-
-        // === END TEMP BYPASS === 
-        // ===== END RULE BARU =====
-
-
-    // Nama petugas dari session
-    $petugas = trim((string)($this->session->userdata('admin_nama') ?: $this->session->userdata('admin_username') ?: ''));
-
-    // DETAIL ADMIN (tanpa token)
-    $detail_url = site_url('admin_scan/detail/'.$row['kode_booking']);
-
-    // Idempotent: bila sudah checked_in sebelumnya, jangan ubah checkin_at
-    if (!empty($row['checkin_at']) || $status === 'checked_in') {
-        if ($petugas !== '' && empty($row['petugas_checkin'])) {
-            $this->db->where('kode_booking', $kode)->update('booking_tamu', [
-                'petugas_checkin' => $petugas
-            ]);
-            $row['petugas_checkin'] = $petugas;
+        if ($nowTs > $endTs) {
+            return $this->json_exit([
+                "ok"=>false,
+                "msg"=>"Check-in ditolak: melewati batas toleransi sampai ".date('H:i', $endTs)." WITA."
+            ], 409);
         }
+        // ===== END VALIDASI WAKTU =====
+
+        // Nama petugas dari session
+        $petugas = trim((string)($this->session->userdata('admin_nama') ?: $this->session->userdata('admin_username') ?: ''));
+
+        // DETAIL ADMIN (tanpa token)
+        $detail_url = site_url('admin_scan/detail/'.$row['kode_booking']);
+
+        // Idempotent: bila sudah checked_in sebelumnya, jangan ubah checkin_at
+        if (!empty($row['checkin_at']) || $status === 'checked_in') {
+            if ($petugas !== '' && empty($row['petugas_checkin'])) {
+                $this->db->where('kode_booking', $kode)->update('booking_tamu', [
+                    'petugas_checkin' => $petugas
+                ]);
+                $row['petugas_checkin'] = $petugas;
+            }
+
+            return $this->json_exit([
+                "ok"=>true, "msg"=>"Sudah checked_in", "already"=>true,
+                "detail_url"=>$detail_url,
+                "data"=>[
+                    "kode"             => $row['kode_booking'],
+                    "nama"             => $row['nama_tamu'],
+                    "checkin_at"       => $row['checkin_at'],
+                    "status"           => "checked_in",
+                    "petugas_checkin"  => $row['petugas_checkin'] ?? null,
+                ]
+            ], 200);
+        }
+
+        // Proses check-in baru
+        $ts = time(); // timestamp sekarang
+
+        $hari_id = [
+            'Sun'=>'Minggu','Mon'=>'Senin','Tue'=>'Selasa',
+            'Wed'=>'Rabu','Thu'=>'Kamis','Fri'=>'Jumat','Sat'=>'Sabtu'
+        ];
+
+        $now_db    = date('Y-m-d H:i:s', $ts); // format DB
+        $now_label = date('H:i:s', $ts).' '.($hari_id[date('D',$ts)] ?? date('D',$ts)).', '.date('d-m-Y', $ts);
+
+        $this->db->where('kode_booking', $kode)->update('booking_tamu', [
+            'checkin_at'      => $now_db,
+            'status'          => 'checked_in',
+            'petugas_checkin' => $petugas ?: null,
+        ]);
 
         return $this->json_exit([
-            "ok"=>true, "msg"=>"Sudah checked_in", "already"=>true,
-            "detail_url"=>$detail_url,
-            "data"=>[
-                "kode"             => $row['kode_booking'],
-                "nama"             => $row['nama_tamu'],
-                "checkin_at"       => $row['checkin_at'],
-                "status"           => "checked_in",
-                "petugas_checkin"  => $row['petugas_checkin'] ?? null,
+            "ok"        => true,
+            "msg"       => "Check-in berhasil",
+            "detail_url"=> $detail_url,
+            "data"      => [
+                "kode"            => $row['kode_booking'],
+                "nama"            => $row['nama_tamu'],
+                "checkin_at"      => $now_label,     // label untuk tampilan (dengan detik)
+                // "checkin_at_raw"=> $now_db,       // kalau mau kirim juga format DB
+                "status"          => "checked_in",
+                "petugas_checkin" => $petugas ?: null,
             ]
         ], 200);
     }
 
-    // Proses check-in baru
-        $ts = time(); // timestamp sekarang
-
-        $hari_id = [
-          'Sun'=>'Minggu','Mon'=>'Senin','Tue'=>'Selasa',
-          'Wed'=>'Rabu','Thu'=>'Kamis','Fri'=>'Jumat','Sat'=>'Sabtu'
-        ];
-
-        $now_db    = date('Y-m-d H:i:s', $ts); // untuk DB
-        $now_label = date('H:i:s', $ts).' '.($hari_id[date('D',$ts)] ?? date('D',$ts)).', '.date('d-m-Y', $ts);
-
-        $this->db->where('kode_booking', $kode)->update('booking_tamu', [
-          'checkin_at'      => $now_db,
-          'status'          => 'checked_in',
-          'petugas_checkin' => $petugas ?: null,
-        ]);
-
-        return $this->json_exit([
-          "ok"        => true,
-          "msg"       => "Check-in berhasil",
-          "detail_url"=> $detail_url,
-          "data"      => [
-            "kode"            => $row['kode_booking'],
-            "nama"            => $row['nama_tamu'],
-            "checkin_at"      => $now_label,     // label untuk tampilan (dengan detik)
-            // "checkin_at_raw"=> $now_db,       // <-- opsional kalau mau kirim juga format DB
-            "status"          => "checked_in",
-            "petugas_checkin" => $petugas ?: null,
-          ]
-        ], 200);
-
-}
 
 
 public function checkout_api(){

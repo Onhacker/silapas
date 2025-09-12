@@ -874,48 +874,207 @@ private function normalize_date_mysql(?string $s): ?string {
         $this->form_validation->set_error_delimiters('<br> ', ' ');
     }
 
-    private function _validate_jadwal($tanggal, $jam_raw){
-        $errors   = [];
-        $tanggal  = trim((string)$tanggal);
-        $jam_raw  = trim((string)$jam_raw);
-        $jam      = null;
+//     private function _validate_jadwal($tanggal, $jam_raw){
+//         $errors   = [];
+//         $tanggal  = trim((string)$tanggal);
+//         $jam_raw  = trim((string)$jam_raw);
+//         $jam      = null;
 
-    // --- Ambil lead time dari pengaturan website ---
-    // Prioritas: $this->fm->web_me(), fallback ke $this->om->web_me()
-        $web = null;
-        if (isset($this->fm) && method_exists($this->fm, 'web_me')) {
-            $web = $this->fm->web_me();
-        } elseif (isset($this->om) && method_exists($this->om, 'web_me')) {
-            $web = $this->om->web_me();
-        }
-        $min_lead_minutes = 0;
-        if ($web && isset($web->min_lead_minutes)) {
-            $min_lead_minutes = (int)$web->min_lead_minutes;
-        // jaga-jaga agar tidak nilai aneh
-            if ($min_lead_minutes < 0) $min_lead_minutes = 0;
-        if ($min_lead_minutes > 240) $min_lead_minutes = 240; // batas 4 jam (opsional)
+//     // --- Ambil lead time dari pengaturan website ---
+//     // Prioritas: $this->fm->web_me(), fallback ke $this->om->web_me()
+//         $web = null;
+//         if (isset($this->fm) && method_exists($this->fm, 'web_me')) {
+//             $web = $this->fm->web_me();
+//         } elseif (isset($this->om) && method_exists($this->om, 'web_me')) {
+//             $web = $this->om->web_me();
+//         }
+//         $min_lead_minutes = 0;
+//         if ($web && isset($web->min_lead_minutes)) {
+//             $min_lead_minutes = (int)$web->min_lead_minutes;
+//         // jaga-jaga agar tidak nilai aneh
+//             if ($min_lead_minutes < 0) $min_lead_minutes = 0;
+//         if ($min_lead_minutes > 240) $min_lead_minutes = 240; // batas 4 jam (opsional)
+//     }
+
+//     // --- Validasi tanggal ---
+//     $dt = DateTime::createFromFormat('Y-m-d', $tanggal);
+//     if (!$dt || $dt->format('Y-m-d') !== $tanggal) {
+//         $errors[] = '* Tanggal tidak valid (format harus YYYY-MM-DD).';
+//     } else {
+//         $today = date('Y-m-d');
+//         if (strtotime($tanggal) < strtotime($today)) {
+//             $errors[] = '* Tanggal tidak boleh mundur (minimal hari ini).';
+//         }
+
+//         $hari = (int) date('w', strtotime($tanggal)); // 0=Min, 1=Sen, ...
+//         if ($hari === 0) {
+//             $errors[] = '* Hari Minggu libur, tidak bisa booking.';
+//         }
+
+//         // --- Validasi jam ---
+//         if ($jam_raw === '') {
+//             $errors[] = '* Jam harus diisi.';
+//         } else {
+//             // normalisasi "16.30" -> "16:30"
+//             $jam_norm = str_replace('.', ':', $jam_raw);
+//             $jam_norm = preg_replace('/\s+/', '', $jam_norm);
+
+//             if (!preg_match('/^(?:[01]?\d|2[0-3]):[0-5]\d$/', $jam_norm)) {
+//                 $errors[] = '* Format jam tidak valid (pakai HH:MM, contoh 16:55).';
+//             } else {
+//                 list($hh, $mm) = explode(':', $jam_norm);
+//                 $hh = (int)$hh; $mm = (int)$mm;
+//                 $jam = sprintf('%02d:%02d', $hh, $mm);
+//                 $menit = $hh * 60 + $mm;
+
+//                 // Jam operasional
+//                 // === Jam operasional dinamis (per-hari + istirahat) ===
+//                 $toMin = function($hhmm){
+//                     if (!$hhmm || !preg_match('/^\d{2}:\d{2}$/', $hhmm)) return null;
+//                     [$h,$m] = array_map('intval', explode(':', $hhmm));
+//                     return $h*60 + $m;
+//                 };
+
+//                 // default jika belum diset di DB
+//                 $def = [
+//                   'mon'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
+//                   'tue'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
+//                   'wed'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
+//                   'thu'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
+//                   'fri'=>['open'=>'08:00','break_start'=>'11:30','break_end'=>'13:00','close'=>'14:00','closed'=>0],
+//                   'sat'=>['open'=>'08:00','break_start'=>'','break_end'=>'','close'=>'11:30','closed'=>0],
+//                   'sun'=>['open'=>'','break_start'=>'','break_end'=>'','close'=>'','closed'=>1],
+//                 ];
+
+//                 // ambil dari $web (settings), fallback ke default
+//                 $kmap = ['1'=>'mon','2'=>'tue','3'=>'wed','4'=>'thu','5'=>'fri','6'=>'sat','0'=>'sun'];
+//                 $k = $kmap[(string)$hari];
+
+//                 $cfg = [
+//                   'open'        => isset($web->{"op_{$k}_open"})        ? $web->{"op_{$k}_open"}        : $def[$k]['open'],
+//                   'break_start' => isset($web->{"op_{$k}_break_start"}) ? $web->{"op_{$k}_break_start"} : $def[$k]['break_start'],
+//                   'break_end'   => isset($web->{"op_{$k}_break_end"})   ? $web->{"op_{$k}_break_end"}   : $def[$k]['break_end'],
+//                   'close'       => isset($web->{"op_{$k}_close"})       ? $web->{"op_{$k}_close"}       : $def[$k]['close'],
+//                   'closed'      => isset($web->{"op_{$k}_closed"})      ? (int)$web->{"op_{$k}_closed"} : $def[$k]['closed'],
+//                 ];
+
+//                 if ($cfg['closed']) {
+//                     $errors[] = '* Hari '.$this->_nama_hari_id($hari).' libur, tidak bisa booking.';
+//                 } else {
+//                     $min = $toMin($cfg['open']);
+//                     $max = $toMin($cfg['close']);
+//                     $bs  = $toMin($cfg['break_start']);
+//                     $be  = $toMin($cfg['break_end']);
+
+//                     if ($min===null || $max===null || $min >= $max) {
+//                         $errors[] = '* Jam operasional hari '.$this->_nama_hari_id($hari).' belum valid (buka/tutup).';
+//                     } else {
+//                         // validasi jam yang dipilih (menit sudah dihitung di atas)
+//                         $inBreak = ($bs!==null && $be!==null && $bs < $be && $menit >= $bs && $menit < $be);
+
+//                         if ($tanggal === $today) {
+//                             // earliest = max(buka, sekarang + lead). Jika earliest jatuh di sela istirahat, geser ke akhir istirahat.
+//                             $nowMin    = ((int)date('H')) * 60 + ((int)date('i')) + $min_lead_minutes;
+//                             $earliest  = max($min, $nowMin);
+//                             if ($bs!==null && $be!==null && $bs < $be && $earliest >= $bs && $earliest < $be) {
+//                                 $earliest = $be;
+//                             }
+//                             if ($earliest > $max) {
+//                                 $errors[] = '* Jadwal operasional hari ini sudah berakhir.';
+//                             } else {
+//                                 if ($menit < $earliest) {
+//                                     $minLabel = sprintf('%02d:%02d', intdiv($earliest,60), $earliest%60);
+//                                     $errors[] = '* Untuk hari ini, jam minimal adalah '.$minLabel
+//                                               . ($min_lead_minutes ? ' (termasuk jeda '.$min_lead_minutes.' menit).' : '.');
+//                                 }
+//                                 if ($menit > $max) {
+//                                     $maxLabel = sprintf('%02d:%02d', intdiv($max,60), $max%60);
+//                                     $errors[] = '* Jam melewati jam operasional (maksimal '.$maxLabel.').';
+//                                 }
+//                                 if ($inBreak) {
+//                                     $bsLabel = sprintf('%02d:%02d', intdiv($bs,60), $bs%60);
+//                                     $beLabel = sprintf('%02d:%02d', intdiv($be,60), $be%60);
+//                                     $errors[] = '* Jam yang dipilih berada pada waktu istirahat ('.$bsLabel.'–'.$beLabel.').';
+//                                 }
+//                             }
+//                         } else {
+//                             // bukan hari ini → cek range & break
+//                             if ($menit < $min || $menit > $max) {
+//                                 $minLabel = sprintf('%02d:%02d', intdiv($min,60), $min%60);
+//                                 $maxLabel = sprintf('%02d:%02d', intdiv($max,60), $max%60);
+//                                 $errors[] = '* Jam kunjungan tidak sesuai operasional ('.$minLabel.'–'.$maxLabel.').';
+//                             } elseif ($inBreak) {
+//                                 $bsLabel = sprintf('%02d:%02d', intdiv($bs,60), $bs%60);
+//                                 $beLabel = sprintf('%02d:%02d', intdiv($be,60), $be%60);
+//                                 $errors[] = '* Jam yang dipilih berada pada waktu istirahat ('.$bsLabel.'–'.$beLabel.').';
+//                             }
+//                         }
+//                     }
+//                 }
+//                 // === END jam operasional dinamis ===
+
+//             }
+//         }
+//     }
+
+//     if ($errors) return [false, null, null, '<br> '.implode('<br> ', $errors)];
+//     return [true, $tanggal, $jam, ''];
+// }
+
+
+
+private function _validate_jadwal($tanggal, $jam_raw)
+{
+    $errors  = [];
+    $tanggal = trim((string) $tanggal);
+    $jam_raw = trim((string) $jam_raw);
+    $jam     = null;
+
+    // --- Ambil pengaturan (prioritas fm -> om) ---
+    $web = null;
+    if (isset($this->fm) && method_exists($this->fm, 'web_me')) {
+        $web = $this->fm->web_me();
+    } elseif (isset($this->om) && method_exists($this->om, 'web_me')) {
+        $web = $this->om->web_me();
     }
 
+    // Zona waktu dari DB (fallback ke default PHP)
+    $tzName = ($web && !empty($web->waktu)) ? (string) $web->waktu : date_default_timezone_get();
+    try {
+        $tz = new DateTimeZone($tzName);
+    } catch (\Exception $e) {
+        $tz = new DateTimeZone(date_default_timezone_get());
+    }
+
+    // Lead time (samakan dengan form: 0..1440)
+    $min_lead_minutes = 0;
+    if ($web && isset($web->min_lead_minutes)) {
+        $min_lead_minutes = (int) $web->min_lead_minutes;
+    }
+    $min_lead_minutes = max(0, min(1440, $min_lead_minutes));
+
     // --- Validasi tanggal ---
-    $dt = DateTime::createFromFormat('Y-m-d', $tanggal);
+    $dt = DateTime::createFromFormat('Y-m-d', $tanggal, $tz);
     if (!$dt || $dt->format('Y-m-d') !== $tanggal) {
         $errors[] = '* Tanggal tidak valid (format harus YYYY-MM-DD).';
     } else {
-        $today = date('Y-m-d');
+        // "Hari ini" & waktu sekarang dalam TZ database
+        $nowTz  = new DateTimeImmutable('now', $tz);
+        $today  = $nowTz->format('Y-m-d');
+        $nowMin = ((int) $nowTz->format('H')) * 60 + ((int) $nowTz->format('i'));
+
         if (strtotime($tanggal) < strtotime($today)) {
             $errors[] = '* Tanggal tidak boleh mundur (minimal hari ini).';
         }
 
-        $hari = (int) date('w', strtotime($tanggal)); // 0=Min, 1=Sen, ...
-        if ($hari === 0) {
-            $errors[] = '* Hari Minggu libur, tidak bisa booking.';
-        }
+        // 0=Min..6=Sab di TZ database
+        $hari = (int) $dt->format('w');
 
         // --- Validasi jam ---
         if ($jam_raw === '') {
             $errors[] = '* Jam harus diisi.';
         } else {
-            // normalisasi "16.30" -> "16:30"
+            // Normalisasi input user: "16.30" -> "16:30", buang spasi
             $jam_norm = str_replace('.', ':', $jam_raw);
             $jam_norm = preg_replace('/\s+/', '', $jam_norm);
 
@@ -923,47 +1082,126 @@ private function normalize_date_mysql(?string $s): ?string {
                 $errors[] = '* Format jam tidak valid (pakai HH:MM, contoh 16:55).';
             } else {
                 list($hh, $mm) = explode(':', $jam_norm);
-                $hh = (int)$hh; $mm = (int)$mm;
-                $jam = sprintf('%02d:%02d', $hh, $mm);
-                $menit = $hh * 60 + $mm;
+                $hh     = (int) $hh;
+                $mm     = (int) $mm;
+                $jam    = sprintf('%02d:%02d', $hh, $mm);
+                $menit  = $hh * 60 + $mm;
 
-                // Jam operasional
-                if     ($hari >= 1 && $hari <= 4) { $min=480; $max=900; }   // Sen–Kam 08:00–15:00
-                elseif ($hari === 5)              { $min=480; $max=840; }   // Jum      08:00–14:00
-                else                               { $min=480; $max=690; }   // Sab      08:00–11:30
+                // === Jam operasional dinamis (per-hari + istirahat) ===
 
-                if ($tanggal === $today) {
-                    // Minimal menit untuk HARI INI = max(jam buka, sekarang + lead)
-                    $nowMin    = ((int)date('H')) * 60 + ((int)date('i')) + $min_lead_minutes;
-                    $min_today = max($min, $nowMin);
+                // Parser HH:MM (terima "H:MM" atau "HH.MM" dari DB)
+                $normHHMM = function ($v) {
+                    $v = trim((string) $v);
+                    if ($v === '') return null;
+                    $v = str_replace('.', ':', $v);
+                    if (!preg_match('/^(\d{1,2}):([0-5]\d)$/', $v, $m)) return null;
+                    $h = max(0, min(23, (int) $m[1]));
+                    $i = (int) $m[2];
+                    return sprintf('%02d:%02d', $h, $i);
+                };
+                $toMin = function ($hhmm) {
+                    if ($hhmm === null) return null;
+                    list($h, $i) = array_map('intval', explode(':', $hhmm));
+                    return $h * 60 + $i;
+                };
 
-                    if ($min_today > $max) {
-                        $errors[] = '* Jadwal operasional hari ini sudah berakhir.';
-                    } else {
-                        if ($menit < $min_today) {
-                            $minLabel = sprintf('%02d:%02d', intdiv($min_today,60), $min_today%60);
-                            $errors[] = '* Untuk hari ini, jam minimal adalah '.$minLabel
-                            . ($min_lead_minutes ? ' (lead '.$min_lead_minutes.' menit).' : '.');
-                        }
-                        if ($menit > $max) {
-                            $maxLabel = sprintf('%02d:%02d', intdiv($max,60), $max%60);
-                            $errors[] = '* Jam melewati jam operasional (maksimal '.$maxLabel.').';
-                        }
-                    }
+                // Default jika DB kosong
+                // $def = [
+                //     'mon' => ['open' => '08:00', 'break_start' => '12:00', 'break_end' => '13:00', 'close' => '15:00', 'closed' => 0],
+                //     'tue' => ['open' => '08:00', 'break_start' => '12:00', 'break_end' => '13:00', 'close' => '15:00', 'closed' => 0],
+                //     'wed' => ['open' => '08:00', 'break_start' => '12:00', 'break_end' => '13:00', 'close' => '15:00', 'closed' => 0],
+                //     'thu' => ['open' => '08:00', 'break_start' => '12:00', 'break_end' => '13:00', 'close' => '15:00', 'closed' => 0],
+                //     'fri' => ['open' => '08:00', 'break_start' => '11:30', 'break_end' => '13:00', 'close' => '14:00', 'closed' => 0],
+                //     'sat' => ['open' => '08:00', 'break_start' => '',      'break_end' => '',      'close' => '11:30', 'closed' => 0],
+                //     'sun' => ['open' => '',       'break_start' => '',      'break_end' => '',      'close' => '',      'closed' => 1],
+                // ];
+
+                // Map 0..6 -> key harian
+                $kmap = ['0' => 'sun', '1' => 'mon', '2' => 'tue', '3' => 'wed', '4' => 'thu', '5' => 'fri', '6' => 'sat'];
+                $k    = $kmap[(string) $hari];
+
+                // Ambil konfigurasi dari $web (kalau ada), lalu normalisasi ke "HH:MM"
+                $cfg = [
+                    'open'        => $normHHMM($web->{"op_{$k}_open"}        ),
+                    'break_start' => $normHHMM($web->{"op_{$k}_break_start"} ),
+                    'break_end'   => $normHHMM($web->{"op_{$k}_break_end"}   ),
+                    'close'       => $normHHMM($web->{"op_{$k}_close"}       ),
+                    'closed'      => (int) ($web->{"op_{$k}_closed"}         ),
+                ];
+
+                if ($cfg['closed']) {
+                    $errors[] = '* Hari ' . $this->_nama_hari_id($hari) . ' libur, tidak bisa booking.';
                 } else {
-                    // Bukan hari ini → hanya cek dalam range operasional
-                    if ($menit < $min || $menit > $max) {
-                        $errors[] = '* Jam kunjungan tidak sesuai dengan jadwal operasional.';
+                    $min = $toMin($cfg['open']);
+                    $max = $toMin($cfg['close']);
+                    $bs  = $toMin($cfg['break_start']);
+                    $be  = $toMin($cfg['break_end']);
+
+                    if ($min === null || $max === null || $min >= $max) {
+                        $errors[] = '* Jam operasional hari ' . $this->_nama_hari_id($hari) . ' belum valid (buka/tutup).';
+                    } else {
+                        $inBreak = ($bs !== null && $be !== null && $bs < $be && $menit >= $bs && $menit < $be);
+
+                        if ($tanggal === $today) {
+                            // earliest = max(buka, (sekarang + lead))
+                            $earliest = max($min, $nowMin + $min_lead_minutes);
+
+                            // Jika earliest jatuh di sela istirahat → geser ke akhir istirahat
+                            if ($bs !== null && $be !== null && $bs < $be && $earliest >= $bs && $earliest < $be) {
+                                $earliest = $be;
+                            }
+
+                            if ($earliest > $max) {
+                                $errors[] = '* Jadwal operasional hari ini sudah berakhir.';
+                            } else {
+                                if ($menit < $earliest) {
+                                    $minLabel = sprintf('%02d:%02d', intdiv($earliest, 60), $earliest % 60);
+                                    $msg = '* Untuk hari ini, jam minimal adalah ' . $minLabel;
+                                    if ($min_lead_minutes) $msg .= ' (termasuk jeda ' . $min_lead_minutes . ' menit).';
+                                    $errors[] = $msg;
+                                }
+                                if ($menit > $max) {
+                                    $maxLabel = sprintf('%02d:%02d', intdiv($max, 60), $max % 60);
+                                    $errors[] = '* Jam melewati jam operasional (maksimal ' . $maxLabel . ').';
+                                }
+                                if ($inBreak) {
+                                    $bsLabel = sprintf('%02d:%02d', intdiv($bs, 60), $bs % 60);
+                                    $beLabel = sprintf('%02d:%02d', intdiv($be, 60), $be % 60);
+                                    $errors[] = '* Jam yang dipilih berada pada waktu istirahat (' . $bsLabel . '–' . $beLabel . ').';
+                                }
+                            }
+                        } else {
+                            // Bukan hari ini → cek range & (opsional) break
+                            if ($menit < $min || $menit > $max) {
+                                $minLabel = sprintf('%02d:%02d', intdiv($min, 60), $min % 60);
+                                $maxLabel = sprintf('%02d:%02d', intdiv($max, 60), $max % 60);
+                                $errors[] = '* Jam kunjungan tidak sesuai operasional (' . $minLabel . '–' . $maxLabel . ').';
+                            } elseif ($inBreak) {
+                                $bsLabel = sprintf('%02d:%02d', intdiv($bs, 60), $bs % 60);
+                                $beLabel = sprintf('%02d:%02d', intdiv($be, 60), $be % 60);
+                                $errors[] = '* Jam yang dipilih berada pada waktu istirahat (' . $bsLabel . '–' . $beLabel . ').';
+                            }
+                        }
                     }
                 }
+                // === END jam operasional dinamis ===
             }
         }
     }
 
-    if ($errors) return [false, null, null, '<br> '.implode('<br> ', $errors)];
+    if ($errors) {
+        return [false, null, null, '<br> ' . implode('<br> ', $errors)];
+    }
     return [true, $tanggal, $jam, ''];
 }
 
+
+
+
+private function _nama_hari_id($w){
+  $m=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  return $m[(int)$w] ?? '';
+}
 
     private function _validate_pendamping($unit_id, $diminta){
         $row = $this->db->select('nama_unit, jumlah_pendamping')
@@ -1353,6 +1591,7 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
             $pesan .= "🔳 Download kode booking (PDF):\n{$pdf_url}\n\n";
         }
         $pesan .= "🔗 Detail booking:\n{$redirect_url}\n\n";
+        $pesan .= "Tunjukkan kode booking (PDF)/Barcode pada petugas pintu masuk saat kunjungan\n\n";
         $pesan .= "📇 Simpan kontak kami agar link bisa diklik langsung\n\n";
         $pesan .= "_Pesan ini dikirim otomatis oleh Aplikasi {$web->nama_website}._";
 

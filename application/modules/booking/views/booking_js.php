@@ -1,84 +1,5 @@
 <script>
-//     $(document).ready(function() {
-//     $('#btn_cari').on('click', function() {
-//         var noTracking = $('#no_tracking').val().trim();
 
-//         if (noTracking === '') {
-//             $('#hasil_tracking').html(`<div class="alert alert-danger text-center col-md-6">Masukkan No. Tracking terlebih dahulu.</div>`);
-//             return;
-//         }
-
-//         // Menampilkan spinner loading saat permintaan AJAX dimulai
-//         $.ajax({
-//             url: '<?= site_url("tracking/cek") ?>',
-//             type: 'POST',
-//             data: { no_registrasi: noTracking },
-//             dataType: 'json',
-//             beforeSend: function() {
-//                 $('#hasil_tracking').empty(); // Kosongkan hasil sebelumnya
-//                 $('#loading-spinner').show(); // Tampilkan spinner loading
-//             },
-//             success: function(res) {
-//                 $('#loading-spinner').hide(); // Sembunyikan spinner setelah respons diterima
-//                 $('#icl').hide(); // Sembunyikan spinner setelah respons diterima
-//                 if (res.status === true) {
-//                     const statusInfo = getStatusIcon(res.data.status);
-//                     const durasiLabel = res.data.status === 3 ? 'Durasi Permohonan' : 'Proses Berlangsung';
-
-//                     // Menambahkan pesan berkas telah dikirim via WhatsApp atau bisa diambil di kantor desa
-//                     let berkasInfo = '';
-//                     if (res.data.status === 3) {
-//                         berkasInfo = '<li><strong>Berkas:</strong> Berkas digital telah dikirim melalui WhatsApp. Anda juga dapat mengambil berkas fisik langsung di kantor ' + res.data.kantor + '.</li>';
-
-//                     }
-//                     let fisik = "";
-//                     if (res.data.ket && res.data.ket.trim() !== "") {
-//                         fisik = '<li><strong>' + res.data.ket + '</strong></li>';
-//                     }
-
-
-
-//                     $('#hasil_tracking').html(`
-//                         <div class="col-md-8">
-//                             <div class="card card-pricing">
-//                                 <div class="card-body text-center">
-//                                     <p class="card-pricing-plan-name font-weight-bold text-uppercase">${res.data.nama_permohonan}</p>
-//                                     <p class="card-pricing-plan-name font-weight-bold">${res.data.deskripsi}</p>
-//                                     <span class="card-pricing-icon ${statusInfo.color}">
-//                                         <i class="${statusInfo.icon}"></i>
-//                                     </span>
-//                                     <h4 class="card-pricing-price text-dark font-weight-bold">🧑‍ ${res.data.nama}</h4>
-//                                     <ul class="card-pricing-features text-center text-dark mt-2">
-//                                         <li><strong>NIK:</strong><br> ${res.data.nik}</li>
-//                                         <li><strong>No. KK:</strong><br> ${res.data.no_kk}</li>
-//                                         <li><strong>Alamat:</strong><br> ${res.data.alamat}</li>
-//                                         <li><strong>Tanggal Permohonan:</strong><br> ${res.data.tgl_permohonan}</li>
-//                                         <li><strong>Update Terakhir:</strong><br> ${res.data.update_time}</li>
-//                                         <li><strong>${durasiLabel}:</strong><br> ${res.data.durasi}</li>
-//                                         <li><strong>Status:</strong><br> <span class="badge ${statusInfo.badgeClass}">${statusInfo.label}</span></li>
-//                                         ${res.data.status == 4 ? `<li><strong>Alasan Penolakan:</strong> ${res.data.alasan_penolakan}</li>` : ''}
-//                                         ${berkasInfo}
-//                                         ${fisik}
-//                                     </ul>
-//                                     <button class="btn btn-info waves-effect mt-3 mb-2 text-dark" disabled>No. Tracking: ${$('#no_tracking').val()}</button>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     `);
-//                 }
-//                 else {
-//                     $('#hasil_tracking').html(`<div class="alert alert-warning text-center col-md-6">❗ Data tidak ditemukan.</div>`);
-//                 }
-//             },
-//             error: function() {
-//                 $('#loading-spinner').hide(); // Sembunyikan spinner setelah error
-//                 $('#hasil_tracking').html(`<div class="alert alert-danger text-center col-md-6">Terjadi kesalahan. Coba lagi.</div>`);
-//             }
-//         });
-//     });
-// });
-
-// versi bootstrap 4 pakai 'ml-2', kalau bootstrap 5 ganti jadi 'ms-2'
 const MARGIN_CLASS = 'ml-2';
 
 function setLoading(isLoading, btn, opts) {
@@ -258,59 +179,116 @@ function simpan(btn){
   });
 }
 
-
+window.OP_HOURS = <?= json_encode([
+  'tz'    => $rec->waktu ?? 'Asia/Makassar',
+  'lead'  => (int)($rec->min_lead_minutes ?? 10),
+  'days'  => [
+    // 0=Min..6=Sab (ikut getDay())
+    '0' => ['open'=>$rec->op_sun_open ?? null, 'break_start'=>$rec->op_sun_break_start ?? null, 'break_end'=>$rec->op_sun_break_end ?? null, 'close'=>$rec->op_sun_close ?? null, 'closed'=>(int)($rec->op_sun_closed ?? 1)],
+    '1' => ['open'=>$rec->op_mon_open ?? '08:00','break_start'=>$rec->op_mon_break_start ?? null,'break_end'=>$rec->op_mon_break_end ?? null,'close'=>$rec->op_mon_close ?? '15:00','closed'=>(int)($rec->op_mon_closed ?? 0)],
+    '2' => ['open'=>$rec->op_tue_open ?? '08:00','break_start'=>$rec->op_tue_break_start ?? null,'break_end'=>$rec->op_tue_break_end ?? null,'close'=>$rec->op_tue_close ?? '15:00','closed'=>(int)($rec->op_tue_closed ?? 0)],
+    '3' => ['open'=>$rec->op_wed_open ?? '08:00','break_start'=>$rec->op_wed_break_start ?? null,'break_end'=>$rec->op_wed_break_end ?? null,'close'=>$rec->op_wed_close ?? '15:00','closed'=>(int)($rec->op_wed_closed ?? 0)],
+    '4' => ['open'=>$rec->op_thu_open ?? '08:00','break_start'=>$rec->op_thu_break_start ?? null,'break_end'=>$rec->op_thu_break_end ?? null,'close'=>$rec->op_thu_close ?? '15:00','closed'=>(int)($rec->op_thu_closed ?? 0)],
+    '5' => ['open'=>$rec->op_fri_open ?? '08:00','break_start'=>$rec->op_fri_break_start ?? null,'break_end'=>$rec->op_fri_break_end ?? null,'close'=>$rec->op_fri_close ?? '14:00','closed'=>(int)($rec->op_fri_closed ?? 0)],
+    '6' => ['open'=>$rec->op_sat_open ?? '08:00','break_start'=>$rec->op_sat_break_start ?? null,'break_end'=>$rec->op_sat_break_end ?? null,'close'=>$rec->op_sat_close ?? '11:30','closed'=>(int)($rec->op_sat_closed ?? 0)],
+  ]
+], JSON_UNESCAPED_SLASHES) ?>;
 const tanggalInput = document.getElementById('tanggal');
-const jamInput = document.getElementById('jam');
-const infoTanggal = document.getElementById('tanggal-info');
-const infoJam = document.getElementById('jam-info');
+const jamInput     = document.getElementById('jam');
+const infoTanggal  = document.getElementById('infoTanggal');
+const infoJam      = document.getElementById('jam-info');
 
-// Set agar tanggal minimum = hari ini
-const today = new Date().toISOString().split("T")[0];
-tanggalInput.setAttribute("min", today);
+const HARI_ID = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 
-tanggalInput.addEventListener('change', function() {
-    const tgl = new Date(this.value);
-    const hari = tgl.getDay(); // 0 = Minggu, 1 = Senin, dst.
+function pad(n){ return (n<10?'0':'')+n; }
+function toMin(hhmm){ if(!hhmm) return null; const [h,m]=hhmm.split(':').map(x=>+x); return h*60+m; }
+function fromMin(m){ const h=Math.floor(m/60), i=m%60; return `${pad(h)}:${pad(i)}`; }
+function dot(hhmm){ return hhmm ? hhmm.replace(':','.') : ''; }
 
-    // reset jam
-    jamInput.value = "";
-    jamInput.disabled = true;
-    jamInput.removeAttribute("min");
-    jamInput.removeAttribute("max");
-    infoTanggal.innerText = "";
-    infoJam.innerText = "";
+// Hari ini (YYYY-MM-DD) di TZ server kalau offset ada, fallback browser
+function todayYmd(){
+  const base = Date.now() + (window.serverOffsetMs || 0);
+  const d = new Date(base);
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
 
-    if (isNaN(hari)) return; // input kosong
+// set min tanggal = hari ini (di TZ server bila tersedia)
+if (tanggalInput) {
+  tanggalInput.setAttribute('min', todayYmd());
+}
 
-    if (hari === 0) { // Minggu
-        this.value = ""; // kosongkan lagi
-        infoTanggal.innerText = "Hari Minggu libur, silakan pilih hari lain.";
-        Swal.fire({
-            title: "Info",
-            html: "Hari Minggu libur, silakan pilih hari lain.",
-            icon: "error",
-            allowOutsideClick: false,
-        });
-        return;
+function buildInfoLine(dayIdx, conf){
+  const hari = HARI_ID[dayIdx] || '';
+  if (!conf || conf.closed) return `${hari}: Libur`;
+  let line = `${hari}: ${dot(conf.open)} - ${dot(conf.close)}`;
+  if (conf.break_start && conf.break_end) {
+    line += ` (Istirahat ${dot(conf.break_start)} - ${dot(conf.break_end)})`;
+  }
+  if (window.OP_HOURS?.tz) line += ` ${({'Asia/Jakarta':'WIB','Asia/Makassar':'WITA','Asia/Jayapura':'WIT'})[window.OP_HOURS.tz] || ''}`;
+  return line;
+}
+
+function sameYmd(a,b){ return a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+tanggalInput?.addEventListener('change', function() {
+  const picked = this.value ? new Date(this.value) : null;
+  // reset UI
+  jamInput.value = '';
+  jamInput.disabled = true;
+  jamInput.removeAttribute('min');
+  jamInput.removeAttribute('max');
+  if (infoTanggal) infoTanggal.innerText = '';
+  if (infoJam) infoJam.innerText = '';
+
+  if (!picked || isNaN(picked)) return;
+
+  const dayIdx = picked.getDay(); // 0=Min..6=Sab
+  const conf   = window.OP_HOURS?.days?.[String(dayIdx)];
+
+  // jika tidak ada konfigurasi → treat libur
+  if (!conf || conf.closed) {
+    this.value = '';
+    if (infoTanggal) infoTanggal.innerText = `Hari ${HARI_ID[dayIdx]} libur, silakan pilih hari lain.`;
+    if (window.Swal) {
+      Swal.fire({ title:'Info', html:`Hari ${HARI_ID[dayIdx]} libur, silakan pilih hari lain.`, icon:'error', allowOutsideClick:false });
     }
+    return;
+  }
 
-    // hari valid → enable jam sesuai aturan
-    jamInput.disabled = false;
+  // enable input time + set min/max dari DB
+  jamInput.disabled = false;
 
-    if (hari === 5) { // Jumat
-        jamInput.min = "08:00";
-        jamInput.max = "14:00";
-        infoJam.innerText = "Jam kunjungan Jumat: 08.00 - 14.00";
-    } else if (hari === 6) { // Sabtu
-        jamInput.min = "08:00";
-        jamInput.max = "11:30";
-        infoJam.innerText = "Jam kunjungan Sabtu: 08.00 - 11.30";
-    } else { // Senin - Kamis
-        jamInput.min = "08:00";
-        jamInput.max = "15:00";
-        infoJam.innerText = "Jam kunjungan Senin-Kamis: 08.00 - 15.00";
+  // min/max dasar dari jam buka–tutup
+  let minStr = conf.open || '00:00';
+  let maxStr = conf.close || '23:59';
+
+  // jika tanggal yang dipilih adalah "hari ini" (di TZ server), terapkan lead-time
+  const nowMsServer = Date.now() + (window.serverOffsetMs || 0);
+  const todayServer = new Date(nowMsServer);
+  if (sameYmd(picked, todayServer)) {
+    const lead = Math.max(0, Math.min(1440, +(window.OP_HOURS?.lead ?? 0)));
+    const nowMin = todayServer.getHours()*60 + todayServer.getMinutes() + lead;
+    const minByLead = fromMin(nowMin);
+    // ambil yang paling besar: jam buka vs (sekarang+lead)
+    minStr = fromMin( Math.max( toMin(minStr), nowMin ) );
+  }
+
+  jamInput.min = minStr;
+  jamInput.max = maxStr;
+
+  // Tampilkan info di bawah field
+  if (infoJam) {
+    infoJam.innerText = buildInfoLine(dayIdx, conf);
+    // info tambahan untuk HARI INI (bila min terdorong oleh lead)
+    const pushed = toMin(minStr) > toMin(conf.open || '00:00');
+    if (pushed) {
+      infoJam.innerText += ` • Minimal untuk hari ini: ${dot(minStr)}`;
     }
+  }
 });
+
+
+
 
 $('#unit_tujuan').on('change', function(){
   const unitId = $(this).val();

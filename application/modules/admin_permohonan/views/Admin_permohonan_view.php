@@ -9,6 +9,10 @@
   .select2-container .select2-selection--single { height: 38px; padding: 6px 8px; }
   .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 24px; }
   .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px; right: 6px; }
+
+  /* Checkbox kolom */
+  th.select-col, td.select-col { width: 36px; text-align: center; vertical-align: middle; }
+  #sel-counter { min-height: 1.25rem; }
 </style>
 
 <div class="container-fluid">
@@ -37,7 +41,6 @@
                 <label class="small mb-1" for="form_asal">Form Asal</label>
                 <input type="text" id="form_asal" name="form_asal" class="form-control" placeholder="Nama tamu / Instansi">
               </div>
-
               <div class="col-md-2">
                 <div class="form-group">
                   <label class="small mb-1" for="filter_status">Status</label>
@@ -47,29 +50,62 @@
                     <option value="checked_in">Checked-in</option>
                     <option value="checked_out">Checked-out</option>
                     <option value="expired">Expired</option>
-                    <option value="checked_out">Rejected</option>
+                    <option value="rejected">Rejected</option> 
                   </select>
                 </div>
               </div>
+              </form>
+              <!-- Toolbar di atas tabel -->
+              <div class="col-12">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-2">
 
-              <div class="col-md-12 mb-2 text-right">
-                <button type="button" id="btn-filter" class="btn btn-primary btn-sm mr-1">
-                  <i class="fa fa-search"></i> Tampilkan
-                </button>
-                <button type="button" id="btn-reset" class="btn btn-warning btn-sm mr-1">
-                  <i class="fa fa-undo"></i> Reset
-                </button>
-                <button type="button" id="btn-cetak" class="btn btn-danger btn-sm">
-                  <i class="fa fa-file-pdf-o"></i> Cetak PDF
-                </button>
+                  <!-- Kiri: Detail + Hapus + counter -->
+                  <div class="d-flex align-items-center mb-2 mb-md-0">
+                    <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Aksi terpilih">
+                      <button type="button" id="btn-detail" class="mr-1 btn btn-primary" disabled>
+                        <i class="fa fa-eye"></i> Detail
+                      </button>
+                      <?php if ($this->session->userdata('admin_username') === 'admin'): ?>
+                        <button type="button" id="btn-hapus" class="mr-1 btn btn-danger" disabled>
+                          <i class="fa fa-trash"></i> Hapus
+                        </button>
+                      <?php endif; ?>
+
+                    </div>
+                    <span class="badge badge-blue small" id="sel-counter" aria-live="polite"></span>
+                  </div>
+
+                  <!-- Kanan: Tampilkan + Reset + Cetak -->
+                  <div class="btn-group btn-group-sm">
+                    <button type="button" id="btn-filter" class="mr-1 btn btn-primary">
+                      <i class="fa fa-search"></i> Tampilkan
+                    </button>
+                    <button type="button" id="btn-reset" class="mr-1 btn btn-warning">
+                      <i class="fa fa-undo"></i> Reset
+                    </button>
+                    <button type="button" id="btn-cetak" class="mr-1 btn btn-danger">
+                      <i class="fa fa-file-pdf"></i> Cetak PDF
+                    </button>
+                  </div>
+
+                </div>
               </div>
-            </div>
-          </form>
 
-          <div class="table-responsive mt-3">
+
+          <div class="table-responsive mt-1">
+            
             <table id="tbl_booking" class="table table-striped table-bordered table-sm w-100 align-middle">
               <thead>
                 <tr>
+                  <th width="5%" class="select-col">
+                    <div class="checkbox checkbox-danger checkbox-single">
+                      <input id="check-all" type="checkbox"><label></label>
+                    </div>
+                  </th>
+
+                <!--   <th class="select-col">
+                    <input type="checkbox" id="check-all" aria-label="Pilih semua">
+                  </th> -->
                   <th width="4%" class="text-center">No</th>
                   <th>Kode Booking</th>
                   <th>Tanggal/Jam</th>
@@ -89,13 +125,32 @@
   </div>
 </div>
 
-<script src="<?php echo base_url('assets/admin/datatables/js/jquery.dataTables.min.js'); ?>"></script>
-<script src="<?php echo base_url('assets/admin/datatables/js/dataTables.bootstrap4.min.js'); ?>"></script>
 <script>
 var tbl;
 
 function reloadTable(){
   tbl.ajax.reload(null,false);
+}
+
+function getSelectedCodes(){
+  const codes = [];
+  $('#tbl_booking tbody input.row-check:checked').each(function(){
+    codes.push(this.value);
+  });
+  return codes;
+}
+
+function updateToolbarState(){
+  const sel = getSelectedCodes();
+  const n   = sel.length;
+  const btnDetail = document.getElementById('btn-detail');
+  const btnHapus  = document.getElementById('btn-hapus');
+
+  if (btnDetail) btnDetail.disabled = !(n === 1);
+  if (btnHapus)  btnHapus.disabled  = !(n >= 1);
+
+  const lab = n > 0 ? (n + ' item dipilih') : '';
+  document.getElementById('sel-counter').textContent = lab;
 }
 
 $(function(){
@@ -107,33 +162,40 @@ $(function(){
   tbl = $('#tbl_booking').DataTable({
     processing: true,
     serverSide: true,
-    order: [],
-    ajax: {
-      url: "<?php echo site_url('admin_permohonan/get_data'); ?>",
-      type: "POST",
-      data: function(d){
-        d.tanggal_mulai   = $('#tanggal_mulai').val();
-        d.tanggal_selesai = $('#tanggal_selesai').val();
-        d.unit_tujuan     = $('#unit_tujuan').val();
-        d.form_asal       = $('#form_asal').val();
-        d.status          = $('#filter_status').val(); // << konsisten dengan ID baru
-      }
-    },
-    columns: [
-      { data: 'no', className:'text-center' },
-      { data: 'kode', className:'text-center' },
-      { data: 'tgljam', className:'text-center' },
-      { data: 'tamu' },
-      { data: 'asal' },
-      { data: 'instansi' },
-      { data: 'status', className:'text-center' }
+    ordering: true,
+  order: [[3, 'desc'], [2, 'desc']], // default: Tanggal (desc), lalu Kode (desc)
+  ajax: {
+    url: "<?php echo site_url('admin_permohonan/get_data'); ?>",
+    type: "POST",
+    data: function(d){
+      d.tanggal_mulai   = $('#tanggal_mulai').val();
+      d.tanggal_selesai = $('#tanggal_selesai').val();
+      d.unit_tujuan     = $('#unit_tujuan').val();
+      d.form_asal       = $('#form_asal').val();
+      d.status          = $('#filter_status').val();
+    }
+  },
+  columns: [
+    { data: 'cek', orderable:false, searchable:false },              // 0: checkbox → non-DB
+    { data: 'no',  orderable:false, searchable:false },              // 1: nomor urut → non-DB
+    { data: 'kode',    name:'bt.kode_booking', className:'text-center' }, // 2: kode_booking
+    { data: 'tgljam',  name:'bt.tanggal',      className:'text-center' }, // 3: tanggal (server tambah jam)
+    { data: 'tamu',    name:'bt.nama_tamu' },                            // 4: nama_tamu
+    { data: 'asal',    name:'asal' },                                    // 5: alias COALESCE(...) AS asal
+    { data: 'instansi',name:'unit_tujuan_nama' },                        // 6: alias u.nama_unit AS unit_tujuan_nama
+    { data: 'status',  name:'bt.status', className:'text-center', searchable:false } // 7: status
     ],
     columnDefs: [
-      { targets: [3,4,5,6], orderable: false } // nonaktifkan sort di kolom HTML/badge
-    ]
+    { targets: [0,1], orderable: false } // hanya checkbox & no yang non-orderable
+    ],
+    drawCallback: function(){
+      $('#check-all').prop('checked', false);
+      updateToolbarState();
+    }
   });
 
-  // Tampilkan
+
+  // Filter
   $('#btn-filter').on('click', function(){ reloadTable(); });
 
   // Reset
@@ -172,9 +234,84 @@ $(function(){
   $(document).on('keydown', '.select2-search__field', function(e){
     if (e.key === 'Enter') e.preventDefault();
   });
+
+  // Master checkbox
+  $('#check-all').on('change', function(){
+    const checked = this.checked;
+    $('#tbl_booking tbody input.row-check').prop('checked', checked);
+    updateToolbarState();
+  });
+
+  // Update toolbar saat user pilih/deselect
+  $('#tbl_booking').on('change', 'input.row-check', updateToolbarState);
+
+  // Tombol DETAIL (tepat 1 item)
+  $('#btn-detail').on('click', function(){
+    const sel = getSelectedCodes();
+    if (sel.length !== 1) {
+      if (window.Swal) Swal.fire('Pilih 1 data', 'Harap pilih tepat 1 data untuk melihat detail.', 'info');
+      else alert('Harap pilih tepat 1 data.');
+      return;
+    }
+    const kode = sel[0];
+    window.open('<?php echo site_url('admin_permohonan/detail/'); ?>' + encodeURIComponent(kode), '_blank');
+  });
+
+  // Tombol HAPUS (>= 1 item) — hanya render jika ada tombolnya
+  $('#btn-hapus').on('click', function(){
+    const sel = getSelectedCodes();
+    if (!sel.length) {
+      if (window.Swal) Swal.fire('Belum ada pilihan', 'Pilih minimal 1 data untuk dihapus.', 'info');
+      else alert('Pilih minimal 1 data.');
+      return;
+    }
+
+    const doDelete = ()=>{
+      const $btn = $('#btn-hapus').prop('disabled', true);
+      $.ajax({
+        url: "<?php echo site_url('admin_permohonan/hapus_batch'); ?>",
+        method: "POST",
+        dataType: "json",
+        data: { kode: sel }, // backend terima array kode[]
+        success: function(resp){
+          if (resp && resp.success) {
+            if (window.Swal) Swal.fire('Berhasil', resp.message || 'Data terhapus.', 'success');
+            else alert('Data terhapus.');
+            reloadTable();
+          } else {
+            if (window.Swal) Swal.fire('Gagal', (resp && resp.message) || 'Gagal menghapus data.', 'error');
+            else alert('Gagal menghapus data.');
+          }
+        },
+        error: function(){
+          if (window.Swal) Swal.fire('Error', 'Terjadi kendala jaringan/server.', 'error');
+          else alert('Terjadi kendala jaringan/server.');
+        },
+        complete: function(){
+          $btn.prop('disabled', false);
+        }
+      });
+    };
+
+    if (window.Swal) {
+      Swal.fire({
+        title: 'Hapus data terpilih?',
+        text: sel.length + ' item akan dihapus permanen.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, hapus',
+        cancelButtonText: 'Batal'
+      }).then(r => { if (r.isConfirmed) doDelete(); });
+    } else {
+      if (confirm('Hapus '+sel.length+' item?')) doDelete();
+    }
+  });
+
 });
 </script>
+
 <script>
+/* copy kode tetap */
 document.addEventListener('click', function (e) {
   const btn = e.target.closest('.btn-copy-kode');
   if (!btn) return;
@@ -182,17 +319,11 @@ document.addEventListener('click', function (e) {
   const text = btn.getAttribute('data-kode') || '';
   if (!text) return;
 
-  const ok = (t) => {
+  const ok = () => {
     if (window.Swal) {
       Swal.fire({toast:true, position:'center', icon:'success', title:'Kode disalin', timer:1500, showConfirmButton:false});
     }
   };
-
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(ok).catch(fallback);
-  } else {
-    fallback();
-  }
 
   function fallback(){
     const ta = document.createElement('textarea');
@@ -206,6 +337,11 @@ document.addEventListener('click', function (e) {
     document.body.removeChild(ta);
     ok();
   }
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(ok).catch(fallback);
+  } else {
+    fallback();
+  }
 });
 </script>
-

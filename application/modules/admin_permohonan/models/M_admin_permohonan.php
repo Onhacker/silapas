@@ -3,6 +3,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class M_admin_permohonan extends CI_Model {
     private $table = 'booking_tamu';
+    // urutan kolom mengikuti indeks DataTables di frontend
+    private $column_order = [
+        '',                 // 0: cek (non-DB)
+        '',                 // 1: no (non-DB)
+        'bt.kode_booking',  // 2
+        'bt.tanggal',       // 3  (akan ditambah order by bt.jam)
+        'bt.nama_tamu',     // 4
+        'asal',             // 5  (alias dari SELECT)
+        'unit_tujuan_nama', // 6  (alias dari SELECT)
+        'bt.status',        // 7
+    ];
 
     // Kolom untuk pencarian global DataTables
     private $column_search = [
@@ -86,7 +97,7 @@ class M_admin_permohonan extends CI_Model {
     {
         $this->_base_query($post);
 
-        // Pencarian global DataTables
+    // Pencarian global DataTables
         if (!empty($post['search']['value'])) {
             $sv = $post['search']['value'];
             $this->db->group_start();
@@ -96,12 +107,35 @@ class M_admin_permohonan extends CI_Model {
             $this->db->group_end();
         }
 
+    // ORDERING dari DataTables
+        if (!empty($post['order']) && is_array($post['order'])) {
+            foreach ($post['order'] as $ord) {
+                $idx = isset($ord['column']) ? (int)$ord['column'] : -1;
+                $dir = strtolower($ord['dir'] ?? 'asc');
+                if (!in_array($dir, ['asc','desc'], true)) $dir = 'asc';
+
+            // nama kolom dari columns[i][name] (lebih presisi bila ada)
+                $nameFromClient = $post['columns'][$idx]['name'] ?? '';
+                $col = $nameFromClient ?: ($this->column_order[$idx] ?? '');
+
+                if ($col === '' || $idx < 0) continue;
+
+            // Tanggal → tambahkan urutan jam sebagai tie-breaker
+                if ($col === 'bt.tanggal') {
+                    $this->db->order_by('bt.tanggal', $dir);
+                    $this->db->order_by('bt.jam', $dir);
+                } else {
+                // alias 'asal' & 'unit_tujuan_nama' aman dipakai di ORDER BY (sudah di SELECT)
+                    $this->db->order_by($col, $dir);
+                }
+            }
+        } else {
         // Urutan default (terbaru di atas)
-        if (empty($post['order'])) {
             $this->db->order_by('bt.tanggal','DESC');
             $this->db->order_by('bt.jam','DESC');
         }
     }
+
 
     public function get_datatables($post)
     {

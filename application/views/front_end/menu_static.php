@@ -3,6 +3,9 @@
     <li class="has-submenu <?= ($uri === 'booking') ? 'active-menu' : '' ?>">
         <a href="<?= site_url('booking'); ?>"><i class="fe-calendar"></i> Booking</a>
     </li>
+    <li class="has-submenu <?= ($uri === 'hal/jadwal') ? 'active-menu' : '' ?>">
+        <a href="<?= site_url('hal/jadwal'); ?>"><i class="fe-calendar"></i> Jadwal Kunjungan</a>
+    </li>
     <li class="has-submenu <?= ($uri === 'hal/struktur') ? 'active-menu' : '' ?>">
         <a href="<?= site_url('hal/struktur'); ?>"><i class="fe-users"></i> Struktur Organisasi</a>
     </li>

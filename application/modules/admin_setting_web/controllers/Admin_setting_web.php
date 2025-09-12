@@ -22,13 +22,15 @@ public function update()
     $post = $this->input->post(NULL, TRUE);
     $this->load->library('form_validation');
 
-    // ===== RULES =====
+    // ===== RULES DASAR =====
     $this->form_validation->set_rules('nama_website','Nama Website','trim|required');
     $this->form_validation->set_rules('email','Email','trim|required|valid_email');
     $this->form_validation->set_rules('url','URL Aplikasi','trim|required|valid_url');
     $this->form_validation->set_rules('no_telp','No. HP/WhatsApp','trim|required|regex_match[/^\+?\d{10,15}$/]');
     $this->form_validation->set_rules('waktu','Zona Waktu','trim|required|in_list[Asia/Jakarta,Asia/Makassar,Asia/Jayapura]');
     $this->form_validation->set_rules('min_lead_minutes','Minimal Jeda Booking (menit)','trim|integer|greater_than_equal_to[0]|less_than_equal_to[1440]');
+    $this->form_validation->set_rules('early_min','Batas Datang Lebih Awal','trim|integer|greater_than_equal_to[0]|less_than_equal_to[1440]');
+    $this->form_validation->set_rules('late_min','Batas Keterlambatan','trim|integer|greater_than_equal_to[0]|less_than_equal_to[1440]');
 
     $this->form_validation->set_message('required', '* %s Harus diisi');
     $this->form_validation->set_message('valid_email', '* %s Tidak valid');
@@ -45,7 +47,7 @@ public function update()
         return;
     }
 
-    // ===== NORMALISASI NILAI =====
+    // ===== NORMALISASI NILAI UMUM =====
     $url = trim($post['url'] ?? '');
     if ($url !== '' && !preg_match('~^https?://~i',$url)) {
         $url = 'http://'.$url;
@@ -55,11 +57,18 @@ public function update()
     }
 
     $no_telp = preg_replace('/\s+/', '', (string)($post['no_telp'] ?? ''));
-    $minLead = isset($post['min_lead_minutes']) ? (int)$post['min_lead_minutes'] : null;
-    if ($minLead !== null) {
-        if ($minLead < 0)   $minLead = 0;
-        if ($minLead > 1440)$minLead = 1440;
-    }
+
+    // Clamp angka menit
+    $clamp = function($v, $min=0, $max=1440){
+        if ($v === null || $v === '') return null;
+        $n = (int)$v;
+        if ($n < $min) $n = $min;
+        if ($n > $max) $n = $max;
+        return $n;
+    };
+    $minLead = $clamp($post['min_lead_minutes'] ?? null);
+    $earlyMin= $clamp($post['early_min'] ?? null);
+    $lateMin = $clamp($post['late_min'] ?? null);
 
     // ===== SIAPKAN DATA UPDATE (tanpa token/secret dulu) =====
     $row = [
@@ -78,6 +87,8 @@ public function update()
         'type'             => $post['type'] ?? '',
         'credits'          => $post['credits'] ?? '',
         'min_lead_minutes' => $minLead,
+        'early_min'        => $earlyMin,
+        'late_min'         => $lateMin,
         'instagram'        => $post['instagram'] ?? '',
         'facebook'         => $post['facebook'] ?? '',
     ];
@@ -97,7 +108,7 @@ public function update()
             'allowed_types' => 'gif|jpg|jpeg|png|ico|GIF|JPG|JPEG|PNG|ICO',
             'max_size'      => 1024,
             'overwrite'     => TRUE,
-            'file_name'     => 'favicon', // CI otomatis tambahkan ekstensi
+            'file_name'     => 'favicon',
         ];
         $this->load->library('upload');
         $this->upload->initialize($config);
@@ -113,7 +124,99 @@ public function update()
             return;
         }
         $fdata = $this->upload->data();
-        $row['favicon'] = $fdata['file_name']; // contoh: favicon.png
+        $row['favicon'] = $fdata['file_name']; // ex: favicon.png
+    }
+
+    // ===== JAM OPERASIONAL PER HARI + ISTIRAHAT =====
+    // Helper normalisasi HH:MM (boleh "8:5" → "08:05", "08.30" → "08:30")
+    $normTime = function($v){
+        $v = trim((string)$v);
+        if ($v === '') return null;
+        $v = str_replace('.', ':', $v);
+        if (!preg_match('/^(\d{1,2}):([0-5]\d)$/', $v, $m)) return false;
+        $h = (int)$m[1]; $i = (int)$m[2];
+        if ($h < 0 || $h > 23) return false;
+        return sprintf('%02d:%02d', $h, $i);
+    };
+    $toMin = function($hhmm){
+        if ($hhmm === null) return null;
+        [$h,$m] = array_map('intval', explode(':', $hhmm));
+        return $h*60 + $m;
+    };
+
+    $days = [
+        'mon' => 'Senin',  'tue' => 'Selasa', 'wed' => 'Rabu',
+        'thu' => 'Kamis',  'fri' => 'Jumat',  'sat' => 'Sabtu',
+        'sun' => 'Minggu',
+    ];
+
+    $errors = [];
+
+    foreach ($days as $k => $label) {
+        $closed = isset($post["op_{$k}_closed"]) ? 1 : 0;
+
+        $open  = $normTime($post["op_{$k}_open"]        ?? '');
+        $bSta  = $normTime($post["op_{$k}_break_start"] ?? '');
+        $bEnd  = $normTime($post["op_{$k}_break_end"]   ?? '');
+        $close = $normTime($post["op_{$k}_close"]       ?? '');
+
+        if ($closed) {
+            // Hari libur → kosongkan jam
+            $row["op_{$k}_open"]         = null;
+            $row["op_{$k}_break_start"]  = null;
+            $row["op_{$k}_break_end"]    = null;
+            $row["op_{$k}_close"]        = null;
+            $row["op_{$k}_closed"]       = 1;
+            continue;
+        }
+
+        // Validasi dasar format
+        if ($open === false || $close === false) {
+            $errors[] = "* {$label}: format jam buka/tutup tidak valid (HH:MM).";
+            continue;
+        }
+        if ($open === null || $close === null) {
+            $errors[] = "* {$label}: jam buka & tutup wajib diisi.";
+            continue;
+        }
+
+        $o = $toMin($open);
+        $c = $toMin($close);
+        if (!is_null($o) && !is_null($c) && $o >= $c) {
+            $errors[] = "* {$label}: jam tutup harus lebih besar dari jam buka.";
+        }
+
+        // Istirahat opsional: kalau salah satu diisi, keduanya wajib & harus di dalam rentang
+        $hasBreak = ($bSta !== null || $bEnd !== null);
+        if ($hasBreak) {
+            if ($bSta === false || $bEnd === false) {
+                $errors[] = "* {$label}: format jam istirahat tidak valid (HH:MM).";
+            } elseif ($bSta === null || $bEnd === null) {
+                $errors[] = "* {$label}: lengkapi jam istirahat (mulai & selesai).";
+            } else {
+                $bs = $toMin($bSta);
+                $be = $toMin($bEnd);
+                if (!($o <= $bs && $bs < $be && $be <= $c)) {
+                    $errors[] = "* {$label}: jam istirahat harus berada di dalam rentang buka–tutup.";
+                }
+            }
+        }
+
+        // Simpan nilai normal
+        $row["op_{$k}_open"]         = $open;
+        $row["op_{$k}_break_start"]  = $bSta;
+        $row["op_{$k}_break_end"]    = $bEnd;
+        $row["op_{$k}_close"]        = $close;
+        $row["op_{$k}_closed"]       = 0;
+    }
+
+    if (!empty($errors)) {
+        echo json_encode([
+            "success"=>false,
+            "title"=>"Validasi Jam Operasional",
+            "pesan"=>'<br> '.implode('<br> ', $errors)
+        ]);
+        return;
     }
 
     // ===== SIMPAN =====

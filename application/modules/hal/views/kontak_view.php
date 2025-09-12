@@ -176,34 +176,137 @@ $deskripsi = isset($deskripsi) ? htmlspecialchars($deskripsi, ENT_QUOTES, 'UTF-8
             <?php endif; ?>
 
             <?php
-$jam_default = "Senin - Kamis: 08.00 - 15.00<br>Jumat: 08.00 - 14.00<br>Sabtu: 08.00 - 11.30 WITA";
-$jam_raw     = (string)($rec->jam_kerja ?? $jam_default);
+            // ====== JAM LAYANAN (DARI DB) ======
+            $tzMap   = ['Asia/Jakarta'=>'WIB','Asia/Makassar'=>'WITA','Asia/Jayapura'=>'WIT'];
+            $tzShort = $tzMap[$rec->waktu ?? 'Asia/Makassar'] ?? 'WITA';
 
-/* Pecah jadi array baris; dukung <br> & newline */
-$jam_lines = preg_split('/\s*<br\s*\/?>\s*|\r\n|\r|\n/i', $jam_raw);
-$jam_lines = array_values(array_filter(array_map('trim', $jam_lines), 'strlen'));
-?>
-<style>
-  .jam-kerja .title { color:#0f172a; }
-  .jam-kerja .jam-list { margin:0; padding:0; list-style:none; }
-  .jam-kerja .jam-list li { display:flex; align-items:flex-start; margin-bottom:.35rem; }
-  .jam-kerja .dot { font-size:20px; line-height:1; margin-right:.25rem; color:#4f46e5; } /* indigo */
-</style>
+            // fallback lama bila jam_kerja free-text masih dipakai
+            $jam_default = "Senin - Kamis: 08.00 - 15.00<br>Jumat: 08.00 - 14.00<br>Sabtu: 08.00 - 11.30 {$tzShort}";
+            $jam_text    = trim((string)($rec->jam_kerja ?? ''));
 
-<div class="jam-kerja">
-  <div class="d-flex align-items-center mb-1">
-    <i class="mdi mdi-clock-outline mr-2 text-primary"></i>
-    <strong class="title">Jam Layanan</strong>
-  </div>
-  <ul class="jam-list">
-    <?php foreach ($jam_lines as $line): ?>
-      <li>
-        <i class="mdi mdi-circle-small dot"></i>
-        <span><?= htmlspecialchars($line, ENT_QUOTES, 'UTF-8') ?></span>
-      </li>
-    <?php endforeach; ?>
-  </ul>
-</div>
+            $jam_lines = [];
+
+            if ($jam_text !== '') {
+              // --- mode legacy: pecah baris HTML/teks lama ---
+              $jam_lines = preg_split('/\s*<br\s*\/?>\s*|\r\n|\r|\n/i', $jam_text);
+              $jam_lines = array_values(array_filter(array_map('trim', $jam_lines), 'strlen'));
+            } else {
+              // --- mode baru: bangun dari field per-hari (op_mon_* dst.) ---
+              $daysMap = [
+                'mon' => 'Senin', 'tue' => 'Selasa', 'wed' => 'Rabu',
+                'thu' => 'Kamis', 'fri' => 'Jumat',  'sat' => 'Sabtu', 'sun' => 'Minggu'
+              ];
+
+              $normColon = function(?string $v): ?string {
+                $v = trim((string)$v);
+                if ($v === '') return null;
+                $v = str_replace('.', ':', $v);
+                if (!preg_match('/^(\d{1,2}):([0-5]\d)$/', $v, $m)) return null;
+                $h = max(0, min(23, (int)$m[1])); $i = (int)$m[2];
+                return sprintf('%02d:%02d', $h, $i);
+              };
+              $fmtDot = function(?string $hhmm): ?string {
+                if ($hhmm === null) return null;
+                return str_replace(':', '.', $hhmm);
+              };
+              $sigOf = function($o,$c,$bs,$be,$closed){
+                return $closed ? 'CLOSED' : ($o.'|'.$c.'|'.($bs?:'')."|".($be?:''));
+              };
+
+              // tarik jadwal per-hari
+              $rows = [];
+              foreach ($daysMap as $k => $label) {
+                $o   = $normColon($rec->{"op_{$k}_open"} ?? null);
+                $c   = $normColon($rec->{"op_{$k}_close"} ?? null);
+                $bs  = $normColon($rec->{"op_{$k}_break_start"} ?? null);
+                $be  = $normColon($rec->{"op_{$k}_break_end"} ?? null);
+                $cl  = (int)($rec->{"op_{$k}_closed"} ?? 0) === 1;
+
+                // jika ditandai libur, kosongkan jam
+                if ($cl) { $o = $c = $bs = $be = null; }
+
+                $rows[] = [
+                  'key'    => $k,
+                  'label'  => $label,
+                  'open'   => $o,
+                  'close'  => $c,
+                  'bstart' => $bs,
+                  'bend'   => $be,
+                  'closed' => $cl,
+                  'sig'    => $sigOf($o,$c,$bs,$be,$cl),
+                ];
+              }
+
+              // kelompokkan hari2 berurutan dengan jadwal yang sama
+              $groups = [];
+              $cur = null;
+              foreach ($rows as $i => $r) {
+                if ($cur === null) {
+                  $cur = ['start'=>$i,'end'=>$i,'sig'=>$r['sig']];
+                } elseif ($r['sig'] === $cur['sig']) {
+                  $cur['end'] = $i;
+                } else {
+                  $groups[] = $cur; $cur = ['start'=>$i,'end'=>$i,'sig'=>$r['sig']];
+                }
+              }
+              if ($cur) $groups[] = $cur;
+
+              $keys   = array_keys($daysMap); // ['mon','tue',...]
+              $labels = array_values($daysMap);
+
+              foreach ($groups as $g) {
+                $a = $g['start']; $b = $g['end'];
+                $labelHari = ($a === $b) ? $labels[$a] : ($labels[$a].' - '.$labels[$b]);
+
+                $sample = $rows[$a];
+                if ($sample['closed']) {
+                  $jam_lines[] = "{$labelHari}: Libur";
+                  continue;
+                }
+
+                // jika tidak ada jam buka/tutup, lewati (tidak terkonfigurasi)
+                if (!$sample['open'] || !$sample['close']) continue;
+
+                $open  = $fmtDot($sample['open']);
+                $close = $fmtDot($sample['close']);
+
+                $line = "{$labelHari}: {$open} - {$close} {$tzShort}";
+                if ($sample['bstart'] && $sample['bend']) {
+                  $line .= " (Istirahat ".$fmtDot($sample['bstart'])." - ".$fmtDot($sample['bend']).")";
+                }
+                $jam_lines[] = $line;
+              }
+
+              // bila tidak ada yang terbentuk, pakai default
+              if (empty($jam_lines)) {
+                $fallback = preg_split('/\s*<br\s*\/?>\s*|\r\n|\r|\n/i', $jam_default);
+                $jam_lines = array_values(array_filter(array_map('trim', $fallback), 'strlen'));
+              }
+            }
+            ?>
+            <style>
+              .jam-kerja .title { color:#0f172a; }
+              .jam-kerja .jam-list { margin:0; padding:0; list-style:none; }
+              .jam-kerja .jam-list li { display:flex; align-items:flex-start; margin-bottom:.35rem; }
+              .jam-kerja .dot { font-size:20px; line-height:1; margin-right:.25rem; color:#4f46e5; }
+            </style>
+
+            <div class="jam-kerja">
+              <div class="d-flex align-items-center mb-1">
+                <i class="mdi mdi-clock-outline mr-2 text-primary"></i>
+                <strong class="title">Jam Layanan</strong>
+              </div>
+              <ul class="jam-list">
+                <?php foreach ($jam_lines as $line): ?>
+                  <li>
+                    <i class="mdi mdi-circle-small dot"></i>
+                    <span><?= htmlspecialchars($line, ENT_QUOTES, 'UTF-8') ?></span>
+                  </li>
+                <?php endforeach; ?>
+              </ul>
+            </div>
+            <!-- END OFF JAM LAYANAN -->
+
 
 
           </div>

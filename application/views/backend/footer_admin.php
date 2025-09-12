@@ -85,10 +85,10 @@
       </a>
     </div>
 
-    <div class="nav-item">
-      <a href="<?= base_url('hal/alur') ?>" class="<?= ($uri == 'hal/alur') ? 'text-active' : 'text-dark' ?>">
-        <i class="fas fa-project-diagram d-block mb-1"></i>
-        <span class="small">Alur</span>
+  <div class="nav-item">
+      <a href="<?= base_url('hal/jadwal') ?>" class="<?= ($uri == 'hal/jadwal') ? 'text-active' : 'text-dark' ?>">
+        <i class="far fa-calendar-alt d-block mb-1"></i>
+        <span class="small">Jadwal</span>
       </a>
     </div>
     <div class="space-left"></div>
@@ -121,12 +121,6 @@
 
   <div class="space-right"></div>
 
-  <!-- <div class="nav-item">
-    <a href="<?= base_url('admin_dashboard/monitor') ?>" class="<?= ($uri == 'admin_dashboard/monitor') ? 'text-active' : 'text-dark' ?>">
-      <i class="fas fa-clipboard-list d-block mb-1"></i>
-      <span class="small">Monitoring</span>
-    </a>
-  </div> -->
   <div class="nav-item">
     <a href="<?= base_url('hal/struktur') ?>" class="<?= ($uri == 'hal/struktur') ? 'text-active' : 'text-dark' ?>">
       <i class="fas fa-sitemap d-block mb-1"></i>
@@ -204,6 +198,16 @@
         <i class="mdi mdi-calendar-check mr-1"></i>Booking
       </div>
     </a>
+
+     <a href="<?= base_url('hal/alur') ?>" style="text-decoration: none;">
+      <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success"
+           style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
+        <i class="fas fa-project-diagram mr-1"></i>Alur Kunjungan
+      </div>
+    </a>
+
+
+   
 
     <!-- Statistik (dashboard) -->
     <?php if (user_can_mod(['admin_dashboard'])): ?>

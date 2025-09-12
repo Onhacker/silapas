@@ -129,8 +129,8 @@
 
             <!-- Waktu & Lead time -->
             <div class="form-row">
-              <div class="form-group col-md-6">
-                <label class="text-primary" for="waktu">Zona Waktu</label>
+              <div class="form-group col-md-12">
+                <label class="text-primary" for="waktu">Zona Waktu <?php echo date("H:i") ?></label>
                 <?php
                   $arr_waktu = [
                     "Asia/Jakarta"  => "WIB (Asia/Jakarta)",
@@ -141,17 +141,172 @@
                   echo form_dropdown("waktu",$arr_waktu,$waktu,'id="waktu" class="form-control"');
                 ?>
               </div>
-              <div class="form-group col-md-6">
-                <label class="text-primary" for="min_lead_minutes">Minimal Jeda Booking (menit)</label>
-                <input type="number" class="form-control" id="min_lead_minutes" name="min_lead_minutes"
-                       min="0" max="1440" step="1"
-                       value="<?= isset($record->min_lead_minutes)?(int)$record->min_lead_minutes:10; ?>">
-                <small class="text-info">Contoh: 10 = slot paling cepat 10 menit dari sekarang.</small>
-              </div>
+              <div class="form-group col-md-4">
+                  <label class="text-primary" for="min_lead_minutes">Jeda Minimum Booking (menit)</label>
+                  <input type="number" class="form-control" id="min_lead_minutes" name="min_lead_minutes"
+                  min="0" max="1440" step="1"
+                  value="<?= isset($record->min_lead_minutes)?(int)$record->min_lead_minutes:10; ?>">
+                  <small class="text-danger">
+                    Contoh: isi <b>10</b> berarti jam kunjungan paling cepat yang bisa dipilih adalah
+                    <b><?= date('H:i'); ?></b> + 10 menit. Tujuannya agar waktu booking dan checkin tidak terlalu mepet
+                    sehingga mengurangi risiko gagal check-in. Hal ini terjadi jika pengunjung melakukan booking dan checkin di hari yang sama. Membatasi jam kunjungan minimum saat booking dibuat → ada jeda persiapan.
+                </small>
             </div>
 
+            <div class="form-group col-md-4">
+              <label class="text-primary" for="early_min">Batas Datang Lebih Awal (menit)</label>
+              <input type="number" class="form-control" id="early_min" name="early_min"
+              min="0" max="1440" step="1"
+              value="<?= isset($record->early_min)?(int)$record->early_min:10; ?>">
+              <small class="text-danger">
+                Pengunjung diperbolehkan check-in maksimal <b>X</b> menit sebelum jam kunjungan terjadwal.
+                (Contoh: isi 10 → boleh checkin 10 menit lebih awal dari jam kunjungan terjadwal.)
+            </small>
+        </div>
+
+        <div class="form-group col-md-4">
+              <label class="text-primary" for="late_min">Batas Keterlambatan (menit)</label>
+              <input type="number" class="form-control" id="late_min" name="late_min"
+              min="0" max="1440" step="1"
+              value="<?= isset($record->late_min)?(int)$record->late_min:60; ?>">
+              <small class="text-danger">
+                Pengunjung masih diperbolehkan check-in hingga <b>X</b> menit setelah jam kunjungan terjadwal.
+                (Contoh: isi 60 → toleransi terlambat 60 menit.)
+            </small>
+        </div>
+     </div>
+<!-- ========= JAM OPERASIONAL (PER HARI + ISTIRAHAT) ========= -->
+<h5 class="mb-3 text-uppercase bg-success p-2 text-white">
+  <i class="fe-clock mr-1"></i> Jam Operasional (per Hari)
+</h5>
+
+<?php
+  // helper kecil untuk nilai default
+  function v($rec, $k, $def=''){ return isset($rec->$k) ? $rec->$k : $def; }
+  // $defaults = [
+  //   'mon' => ['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
+  //   'tue' => ['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
+  //   'wed' => ['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
+  //   'thu' => ['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
+  //   'fri' => ['open'=>'08:00','break_start'=>'11:30','break_end'=>'13:00','close'=>'14:00','closed'=>0],
+  //   'sat' => ['open'=>'08:00','break_start'=>'','break_end'=>'','close'=>'11:30','closed'=>0],
+  //   'sun' => ['open'=>'','break_start'=>'','break_end'=>'','close'=>'','closed'=>1],
+  // ];
+  $days = [
+    'mon'=>'Senin','tue'=>'Selasa','wed'=>'Rabu','thu'=>'Kamis','fri'=>'Jumat','sat'=>'Sabtu','sun'=>'Minggu'
+  ];
+?>
+
+<div class="table-responsive">
+  <table class="table table-sm table-bordered mb-2">
+    <thead class="thead-light">
+      <tr class="text-center">
+        <th style="width:14%">Hari</th>
+        <th style="width:18%">Buka</th>
+        <th style="width:22%">Istirahat Mulai</th>
+        <th style="width:22%">Istirahat Selesai</th>
+        <th style="width:18%">Tutup</th>
+        <th style="width:6%">Libur</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php foreach ($days as $key=>$label): 
+        $def = $defaults[$key];
+        $o = v($record, "op_{$key}_open");
+        $bs= v($record, "op_{$key}_break_start");
+        $be= v($record, "op_{$key}_break_end");
+        $c = v($record, "op_{$key}_close");
+        $cl= (int) v($record, "op_{$key}_closed");
+      ?>
+      <tr data-day="<?= $key ?>">
+        <td><strong><?= $label ?></strong></td>
+        <td><input type="time" class="form-control form-control-sm" name="op_<?= $key ?>_open" value="<?= $o ?>"></td>
+        <td><input type="time" class="form-control form-control-sm" name="op_<?= $key ?>_break_start" value="<?= $bs ?>"></td>
+        <td><input type="time" class="form-control form-control-sm" name="op_<?= $key ?>_break_end" value="<?= $be ?>"></td>
+        <td><input type="time" class="form-control form-control-sm" name="op_<?= $key ?>_close" value="<?= $c ?>"></td>
+        <td class="text-center align-middle">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input day-closed" id="op_<?= $key ?>_closed"
+                   name="op_<?= $key ?>_closed" <?= $cl ? 'checked' : '' ?>>
+            <label class="custom-control-label" for="op_<?= $key ?>_closed"></label>
+          </div>
+        </td>
+      </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
+  <small class="text-muted d-block">
+    • Kosongkan jam istirahat bila tidak ada.<br>
+    • Jika <b>Libur</b> dicentang, semua input jam hari tersebut akan dinonaktifkan saat simpan.
+  </small>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const rows = document.querySelectorAll('tr[data-day]');
+  const toMin = v => {
+    if (!v) return null;
+    const m = /^(\d{2}):(\d{2})$/.exec(v.trim());
+    if (!m) return null;
+    return (+m[1])*60 + (+m[2]);
+  };
+
+  rows.forEach(tr => {
+    const day = tr.getAttribute('data-day');
+    const el = {
+      open:  tr.querySelector(`[name="op_${day}_open"]`),
+      bs:    tr.querySelector(`[name="op_${day}_break_start"]`),
+      be:    tr.querySelector(`[name="op_${day}_break_end"]`),
+      close: tr.querySelector(`[name="op_${day}_close"]`),
+      closed:tr.querySelector(`#op_${day}_closed`)
+    };
+
+    function toggleClosed(){
+      const dis = el.closed.checked;
+      [el.open, el.bs, el.be, el.close].forEach(x => { if (x) x.disabled = dis; });
+      if (dis){ [el.open, el.bs, el.be, el.close].forEach(x => { if (x) x.setCustomValidity(''); }); }
+    }
+
+    function validateRanges(){
+      [el.open, el.bs, el.be, el.close].forEach(x => { if (x) x.setCustomValidity(''); });
+      if (el.closed.checked) return;
+
+      const o  = toMin(el.open?.value);
+      const c  = toMin(el.close?.value);
+      const bs = toMin(el.bs?.value);
+      const be = toMin(el.be?.value);
+
+      if (o===null || c===null || o>=c){
+        el.close?.setCustomValidity('Jam tutup harus > jam buka');
+        return;
+      }
+      if ((bs!==null || be!==null) && !(bs!==null && be!==null)){
+        (el.bs?.setCustomValidity('Lengkapi jam istirahat'), el.be?.setCustomValidity('Lengkapi jam istirahat'));
+        return;
+      }
+      if (bs!==null && be!==null){
+        if (!(o<=bs && bs<be && be<=c)){
+          el.be?.setCustomValidity('Istirahat harus di dalam rentang buka–tutup');
+          return;
+        }
+      }
+    }
+
+    ['input','change'].forEach(evt=>{
+      [el.open, el.bs, el.be, el.close].forEach(x => x && x.addEventListener(evt, validateRanges));
+      el.closed && el.closed.addEventListener(evt, ()=>{ toggleClosed(); validateRanges(); });
+    });
+
+    toggleClosed();
+    validateRanges();
+  });
+});
+</script>
+
+
+
             <!-- Integrasi WhatsApp -->
-            <div class="form-row">
+            <div class="form-row mt-2">
               <div class="form-group col-md-6">
                 <label class="text-primary" for="wa_api_token">WA API Token</label>
                 <input type="password" class="form-control" id="wa_api_token" name="wa_api_token"

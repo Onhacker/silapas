@@ -18,6 +18,15 @@ class Hal extends MX_Controller {
 
 	}
 
+	function jadwal(){
+		$data["rec"] = $this->fm->web_me();
+		$data["title"] = "Jadwal Kunjungan";
+		$data["deskripsi"] = "Jadwal Kunjungan Tamu ".$data["rec"]->type.". .";
+		$data["prev"] = base_url("assets/images/icon_app.png");
+		$this->load->view('jadwal',$data);
+
+	}
+
 	function alur(){
 		$data["rec"] = $this->fm->web_me();
 		$data["title"] = "Alur Permohonan Kunjungan";
