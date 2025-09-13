@@ -27,6 +27,8 @@ const urlsToCache = [
   '/assets/admin/libs/datatables/jquery.dataTables.min.js',
   '/assets/admin/libs/datatables/dataTables.bootstrap4.js',
   '/assets/admin/js/jquery.easyui.min.js',
+  '/assets/admin/libs/flatpickr/flatpickr.min.css',
+  '/assets/admin/libs/flatpickr/flatpickr.min.js',
   '/assets/admin/libs/dropify/dropify_peng.js',
   '/assets/admin/libs/sweetalert2/sweetalert2.min.js',
   '/assets/admin/libs/tippy-js/tippy.all.min.js',

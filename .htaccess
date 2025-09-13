@@ -42,3 +42,6 @@ RewriteRule ^(.*)$ index.php/$1 [L]
 <filesMatch "\.(css|js|jpg|png|gif|woff|woff2)$">
   Header set Cache-Control "max-age=31536000, public"
 </filesMatch>
+<FilesMatch "^service_worker\.js$">
+  Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+</FilesMatch>

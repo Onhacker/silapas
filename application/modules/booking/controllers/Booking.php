@@ -1031,14 +1031,14 @@ private function _validate_jadwal($tanggal, $jam_raw)
     $jam     = null;
 
     // --- Ambil pengaturan website (diasumsikan selalu ada) ---
-    if (isset($this->fm) && method_exists($this->fm, 'web_me')) {
-        $web = $this->fm->web_me();
-    } elseif (isset($this->om) && method_exists($this->om, 'web_me')) {
+    // if (isset($this->fm) && method_exists($this->fm, 'web_me')) {
+        // $web = $this->fm->web_me();
+    // } elseif (isset($this->om) && method_exists($this->om, 'web_me')) {
         $web = $this->om->web_me();
-    } else {
+    // } else {
         // Fallback hard-fail bila tak ada provider
-        return [false, null, null, '<br> * Konfigurasi website tidak ditemukan.'];
-    }
+        // return [false, null, null, '<br> * Konfigurasi website tidak ditemukan.'];
+    // }
 
     // Zona waktu dari DB (fallback ke default PHP bila tidak valid)
     $tzName = !empty($web->waktu) ? (string)$web->waktu : date_default_timezone_get();
