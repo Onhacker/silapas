@@ -491,3 +491,414 @@ function loader() {
 })();
 </script>
 
+<script>
+  // ====== Label file custom ======
+  (function(){
+    var st = document.getElementById('surat_tugas');
+    if (st) {
+      st.addEventListener('change', function(e){
+        var f = e.target.files && e.target.files[0] ? e.target.files[0].name : 'Pilih file...';
+        var lbl = document.querySelector('label[for="surat_tugas"].custom-file-label');
+        if (lbl) lbl.textContent = f;
+      });
+    }
+  })();
+
+  // ====== Mode instansi: Select vs Manual (Lainnya) ======
+  (function(){
+    var kat   = document.getElementById('kategori');
+    var selW  = document.getElementById('instansi_select_wrap');
+    var sel   = document.getElementById('instansi');
+    var manW  = document.getElementById('instansi_manual_wrap');
+    var man   = document.getElementById('instansi_manual');
+
+    function useSelectMode(){
+      selW.classList.remove('d-none');
+      sel.removeAttribute('disabled');
+      sel.setAttribute('required','required');
+
+      manW.classList.add('d-none');
+      man.setAttribute('disabled','disabled');
+      man.removeAttribute('required');
+      man.value = '';
+    }
+
+    function useManualMode(){
+      manW.classList.remove('d-none');
+      man.removeAttribute('disabled');
+      man.setAttribute('required','required');
+
+      selW.classList.add('d-none');
+      sel.setAttribute('disabled','disabled');
+      sel.removeAttribute('required');
+      sel.value = '';
+    }
+
+    kat.addEventListener('change', function(){
+      var v = this.value || '';
+      if (v === 'lainnya'){
+        useManualMode();
+      } else if (v){
+        useSelectMode();
+        // TODO: AJAX load daftar instansi berdasarkan kategori `v`
+        sel.innerHTML = '<option value="">-- Pilih Instansi --</option>';
+      } else {
+        sel.value=''; sel.setAttribute('disabled','disabled'); sel.removeAttribute('required');
+        man.value=''; man.setAttribute('disabled','disabled'); man.removeAttribute('required');
+        selW.classList.remove('d-none'); manW.classList.add('d-none');
+      }
+    });
+
+    // trigger awal
+    kat.dispatchEvent(new Event('change'));
+  })();
+
+  // ====== Batasi input angka untuk NIK & HP ======
+  ['nik','no_hp'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('input', function(){
+      this.value = this.value.replace(/[^\d]/g,'');
+    });
+  });
+</script>
+
+<script>
+/**
+ * Panel Pendamping (inline) — simpan ke hidden `pendamping_json`.
+ * Pastikan panggil window._ensurePendampingBeforeSubmit() di awal simpan().
+ */
+ (function(){
+  // ===== State & elemen (UNIFIED ke window.pendamping) =====
+  window.pendamping = Array.isArray(window.pendamping) ? window.pendamping : [];
+  let pendamping = window.pendamping;                   // referensi yang sama
+  let editIndex  = (typeof window.editIndex === 'number') ? window.editIndex : -1;
+
+  const btnSet   = document.getElementById('btnSetPendamping'); // opsional (tidak wajib ada)
+  const wrap     = document.getElementById('pendampingWrap');
+  const inJumlah = document.getElementById('jumlah_pendamping');
+
+  const inNik    = document.getElementById('pd_nik');
+  const inNama   = document.getElementById('pd_nama');
+  const btnAdd   = document.getElementById('btnPdAdd');
+  const btnSave  = document.getElementById('btnPdSave');
+  const btnCancel= document.getElementById('btnPdCancel');
+
+  const tbody    = document.querySelector('#tblPendampingLocal tbody');
+  const pdHelp   = document.getElementById('pdHelp');
+  const pdFilled = document.getElementById('pdFilled');
+  const pdTarget = document.getElementById('pdTarget');
+  const hidJson  = document.getElementById('pendamping_json');
+
+  // NIK pemohon (agar tidak sama)
+  const inNikPemohon = document.getElementById('nik');
+
+  // Utils
+  const onlyDigits = s => String(s||'').replace(/\D+/g,'');
+  const is16Digits = s => /^\d{16}$/.test(String(s||''));
+  function esc(s){
+    return String(s||'').replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'
+    }[m]));
+  }
+
+  function getTarget(){
+    return parseInt(inJumlah.value,10) || 0;
+  }
+
+  function render(){
+    pdFilled.textContent = pendamping.length;
+    pdTarget.textContent = getTarget();
+
+    if (!pendamping.length){
+      tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Belum ada pendamping.</td></tr>`;
+    } else {
+      tbody.innerHTML = pendamping.map((p,i)=>`
+        <tr>
+        <td class="text-center">${i+1}</td>
+        <td><code>${esc(p.nik)}</code></td>
+        <td>${esc(p.nama)}</td>
+        <td class="text-center">
+        <button type="button" class="btn btn-xs btn-outline-info" onclick="pdEdit(${i})" title="Edit">
+        <i class="fas fa-edit"></i>
+        </button>
+        <button type="button" class="btn btn-xs btn-outline-danger" onclick="pdDel(${i})" title="Hapus">
+        <i class="fas fa-trash-alt"></i>
+        </button>
+        </td>
+        </tr>
+        `).join('');
+    }
+
+    // sinkron hidden json
+    hidJson.value = JSON.stringify(pendamping);
+
+    // warning kuota
+    if (pendamping.length !== getTarget()){
+      pdHelp.classList.remove('text-muted');
+      pdHelp.classList.add('text-danger');
+      pdHelp.textContent = `Jumlah pendamping terisi ${pendamping.length}/${getTarget()}.`;
+    } else {
+      pdHelp.classList.remove('text-danger');
+      pdHelp.classList.add('text-muted');
+      pdHelp.textContent = 'Pastikan jumlah pendamping sesuai field “Jumlah Pendamping”.';
+    }
+  }
+  function resetRowForm(){
+    editIndex = -1;
+    window.editIndex = editIndex;
+    inNik.value = '';
+    inNama.value = '';
+    btnAdd.classList.remove('d-none');
+    btnSave.classList.add('d-none');
+    btnCancel.classList.add('d-none');
+  inNik.focus(); // <— tambah baris ini
+}
+
+  // Expose untuk tombol tabel
+  window.pdEdit = function(i){
+    if (i<0 || i>=pendamping.length) return;
+    editIndex = i;
+    window.editIndex = editIndex;
+    inNik.value  = pendamping[i].nik;
+    inNama.value = pendamping[i].nama;
+    btnAdd.classList.add('d-none');
+    btnSave.classList.remove('d-none');
+    btnCancel.classList.remove('d-none');
+    if (wrap.classList.contains('d-none')) wrap.classList.remove('d-none');
+  inNik.focus(); // <— tadinya inNama.focus()
+};
+
+
+window.pdDel = async function(i){
+  if (i < 0 || i >= pendamping.length) return;
+
+  const nama = (pendamping[i] && (pendamping[i].nama || pendamping[i].NAMA || ''));
+  const { isConfirmed } = await Swal.fire({
+    title: 'Hapus pendamping?',
+    text: nama ? `Nama: ${nama}` : 'Data ini akan dihapus.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, hapus',
+    cancelButtonText: 'Batal',
+    reverseButtons: true,
+    focusCancel: true
+  });
+
+  if (!isConfirmed) return;
+
+  pendamping.splice(i, 1);
+  if (editIndex === i) resetRowForm();
+  else if (editIndex > i) { editIndex--; window.editIndex = editIndex; }
+  render();
+
+  Swal.fire({
+    title: 'Terhapus',
+    text: 'Data pendamping berhasil dihapus.',
+    icon: 'success',
+    timer: 1200,
+    showConfirmButton: false
+  });
+};
+
+  // Events
+  if (btnSet) {
+    btnSet.addEventListener('click', ()=>{
+      wrap.classList.toggle('d-none');
+      pdTarget.textContent = getTarget();
+    });
+  }
+
+  if (Number(inJumlah?.value || 0) > 0) {
+    wrap.classList.remove('d-none');
+  }
+
+  inJumlah.addEventListener('change', ()=>{
+    pdTarget.textContent = getTarget();
+    if (pendamping.length !== getTarget()){
+      wrap.classList.remove('d-none');
+    }
+    render();
+  });
+
+  // filter nik (16 digit)
+  inNik.addEventListener('input', ()=>{
+    inNik.value = onlyDigits(inNik.value).slice(0,16);
+  });
+
+  btnAdd.addEventListener('click', ()=>{
+    const nik  = onlyDigits(inNik.value);
+    const nama = String(inNama.value||'').trim();
+
+    if (!is16Digits(nik)) { alert('NIK pendamping wajib 16 digit.'); inNik.focus(); return; }
+    if (!nama)           { alert('Nama pendamping wajib diisi.'); inNama.focus(); return; }
+
+    if (inNikPemohon && onlyDigits(inNikPemohon.value) === nik){
+      alert('NIK pendamping tidak boleh sama dengan NIK tamu.');
+      inNik.focus(); return;
+    }
+    if (pendamping.some(p=>p.nik===nik)){
+      alert('NIK pendamping sudah ada di daftar.'); inNik.focus(); return;
+    }
+
+    const target = getTarget();
+    if (target && pendamping.length >= target){
+      alert('Jumlah pendamping sudah mencapai batas.');
+      return;
+    }
+
+    pendamping.push({nik, nama});
+    resetRowForm();
+    render();
+  });
+
+  btnSave.addEventListener('click', ()=>{
+    if (editIndex < 0) return;
+    const nik  = onlyDigits(inNik.value);
+    const nama = String(inNama.value||'').trim();
+
+    if (!is16Digits(nik)) { alert('NIK pendamping wajib 16 digit.'); inNik.focus(); return; }
+    if (!nama)           { alert('Nama pendamping wajib diisi.'); inNama.focus(); return; }
+    if (inNikPemohon && onlyDigits(inNikPemohon.value) === nik){
+      alert('NIK pendamping tidak boleh sama dengan NIK tamu.');
+      inNik.focus(); return;
+    }
+    if (pendamping.some((p,idx)=> idx!==editIndex && p.nik===nik)){
+      alert('NIK pendamping sudah ada di daftar.'); inNik.focus(); return;
+    }
+
+    pendamping[editIndex] = {nik, nama};
+    resetRowForm();
+    render();
+  });
+
+  btnCancel.addEventListener('click', resetRowForm);
+
+  // Hook untuk submit (panggil ini di awal simpan())
+  window._ensurePendampingBeforeSubmit = function(){
+    hidJson.value = JSON.stringify(pendamping);
+    const target = getTarget();
+    if (target !== pendamping.length){
+      throw new Error(`Jumlah pendamping terisi ${pendamping.length}/${target}.`);
+    }
+    if (pendamping.some(p => !/^\d{16}$/.test(p.nik) || !p.nama?.trim())) {
+      throw new Error('Lengkapi NIK (16 digit) dan Nama semua pendamping.');
+    }
+  };
+
+  // ------ EXPOSE ke global agar dipanggil stepper ------
+  window.render = render;
+  window.editIndex = editIndex;
+
+  // render awal
+  render();
+})();
+</script>
+
+<script>
+// batas maksimum baris pendamping (ubah sesuai kebutuhan)
+const MAX_PENDAMPING = 20;
+
+// ambil elemen
+const elJumlah = document.getElementById('jumlah_pendamping');
+const elBadge  = document.getElementById('pdCountBadge');
+const btnPlus  = document.getElementById('btnPdPlus');
+const btnMinus = document.getElementById('btnPdMinus');
+
+// fallback kalau variabel global belum ada
+window.pendamping = Array.isArray(window.pendamping) ? window.pendamping : [];
+window.editIndex  = typeof window.editIndex === 'number' ? window.editIndex : -1;
+
+// set nilai awal input = panjang array sekarang
+function updateJumlahInput() {
+  const n = window.pendamping.length;
+  if (elJumlah) elJumlah.value = n;
+  if (elBadge)  elBadge.textContent = n;
+}
+
+// sinkronkan target jumlah dgn array `pendamping`
+async function syncJumlahPendamping(target) {
+  let t = parseInt(target, 10);
+  if (isNaN(t)) t = 0;
+  t = Math.max(0, Math.min(MAX_PENDAMPING, t));
+
+  const cur = window.pendamping.length;
+  if (t === cur) { updateJumlahInput(); return; }
+
+  if (t > cur) {
+    // tambah baris kosong
+    for (let i = cur; i < t; i++) {
+      window.pendamping.push({ nik: '', nama: '' });
+    }
+    updateJumlahInput();
+
+    // Paksa tampilkan panel pendamping
+    document.getElementById('pendampingWrap')?.classList.remove('d-none');
+
+    // Render tabel via fungsi global + auto-buka editor baris kosong pertama
+    if (typeof window.render === 'function') window.render();
+    const firstEmpty = window.pendamping.findIndex(p => !p.nik || !p.nama);
+    if (firstEmpty >= 0 && typeof window.pdEdit === 'function') window.pdEdit(firstEmpty);
+
+    return;
+  }
+
+  // t < cur → konfirmasi pengurangan
+  let ok = true;
+  if (typeof Swal !== 'undefined') {
+    const { isConfirmed } = await Swal.fire({
+      title: 'Kurangi pendamping?',
+      text: `${cur - t} baris terakhir akan dihapus.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, kurangi',
+      cancelButtonText: 'Batal',
+      reverseButtons: true,
+      focusCancel: true
+    });
+    ok = isConfirmed;
+  } else {
+    ok = confirm(`Hapus ${cur - t} pendamping terakhir?`);
+  }
+  if (!ok) { updateJumlahInput(); return; }
+
+  window.pendamping.splice(t); // buang sisa di akhir
+  if (typeof window.editIndex === 'number' && window.editIndex >= t) window.editIndex = -1;
+  updateJumlahInput();
+  if (typeof window.render === 'function') window.render();
+}
+
+// handler tombol +/-
+btnPlus && btnPlus.addEventListener('click', () => syncJumlahPendamping(window.pendamping.length + 1));
+btnMinus && btnMinus.addEventListener('click', () => syncJumlahPendamping(window.pendamping.length - 1));
+
+// ketik manual → debounce
+let pdTimer = null;
+elJumlah && elJumlah.addEventListener('input', () => {
+  clearTimeout(pdTimer);
+  pdTimer = setTimeout(() => syncJumlahPendamping(elJumlah.value), 250);
+});
+// perubahan final (enter/tab/blur)
+elJumlah && elJumlah.addEventListener('change', () => syncJumlahPendamping(elJumlah.value));
+
+// inisialisasi tampilan awal
+updateJumlahInput();
+</script>
+
+<script>
+// booking_js
+function simpan(){
+  try {
+    // WAJIB: pastikan jumlah pendamping = data yang diisi
+    window._ensurePendampingBeforeSubmit();
+  } catch (e) {
+    alert(e.message);   // contoh: "Jumlah pendamping terisi 1/3."
+    return;             // stop submit
+  }
+
+  // ... lanjutkan membuat FormData dan kirim AJAX sesuai implementasi kamu
+  // const fd = new FormData(document.getElementById('form_app'));
+  // $.ajax({ url:'<?= site_url("booking/add") ?>', method:'POST', data: fd, ... });
+}
+</script>
+
