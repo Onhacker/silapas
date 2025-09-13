@@ -387,8 +387,19 @@
 
 /* Kalau punya navbar/topbar super tinggi, turunkan sedikit */
 #topnav, .navbar, header { z-index: 199980; }
+:root { --topnav-h: 64px; } /* sesuaikan tinggi header sebenarnya */
+#topnav, .navbar, header { position: sticky; top: 0; z-index: 199980; }
+.content-page, .content, main { padding-top: var(--topnav-h); }
+
 
 </style>
+<script>
+window.addEventListener('load', () => {
+  const h = (document.querySelector('#topnav, .navbar, header') || {}).offsetHeight || 64;
+  document.documentElement.style.setProperty('--topnav-h', h + 'px');
+});
+</script>
+
 <div class="modal " id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
   <div class="modal-dialog modal-bottom fadeInUp animated modal-dialog-full" style="animation-duration: 0.5s;">
     <div class="modal-content">
