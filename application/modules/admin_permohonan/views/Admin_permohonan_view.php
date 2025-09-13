@@ -254,7 +254,9 @@ $(function(){
       return;
     }
     const kode = sel[0];
-    window.open('<?php echo site_url('admin_permohonan/detail/'); ?>' + encodeURIComponent(kode), '_blank');
+    // window.open('<?php echo site_url('admin_permohonan/detail/'); ?>' + encodeURIComponent(kode), '_blank');
+    window.location.href = '<?= site_url('admin_permohonan/detail/'); ?>' + encodeURIComponent(kode);
+
   });
 
   // Tombol HAPUS (>= 1 item) — hanya render jika ada tombolnya

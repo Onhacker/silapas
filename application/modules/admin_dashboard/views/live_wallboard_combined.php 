@@ -1,148 +1,33 @@
-<?php
-$sec      = isset($sec)  ? (int)$sec  : 45;
-$auto     = !empty($auto);
-$tabs     = isset($tabs) ? (array)$tabs : [];
-$tabsJson = json_encode($tabs, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-?>
-<style>
-  :root{--bg:#0b1220;--card:#0f172a;--text:#e5e7eb;--muted:#94a3b8;--accent:#22c55e}
-  .wb-wrap{display:flex;flex-direction:column;min-height:70vh;background:var(--bg);color:var(--text);border-radius:12px;overflow:hidden}
-  .wb-topbar{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}
-  .wb-brand{display:flex;align-items:center;gap:.6rem}.wb-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:wbping 1.6s infinite}
-  @keyframes wbping{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}80%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
-  .wb-brand h2{font-size:1rem;margin:0}
-  .wb-meta{display:flex;align-items:center;gap:1rem;color:var(--muted);font-size:.9rem}.wb-meta b{color:var(--text)}
-  .wb-ctrl button{background:transparent;border:1px solid rgba(255,255,255,.2);color:var(--text);padding:.35rem .6rem;border-radius:.5rem;cursor:pointer}
-  .wb-ctrl button:hover{border-color:#fff}
-  .wb-stage{position:relative;min-height:70vh;background:#fff;border-top:1px solid rgba(255,255,255,.08)}
-  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;opacity:0;transition:opacity .35s ease}
-  iframe.show{opacity:1}
-  .wb-tabs{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:.35rem;background:rgba(15,23,42,.6);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.1);padding:.25rem .35rem;border-radius:999px;z-index:5}
-  .wb-tag{color:var(--muted);font-weight:600;font-size:.8rem;padding:.15rem .6rem;border-radius:999px}
-  .wb-tag.active{background:#1f2937;color:#fff}
-</style>
-
-<div class="wb-wrap">
-  <div class="wb-topbar">
-    <div class="wb-brand"><span class="wb-dot"></span><h2>Live Wallboard</h2></div>
-    <div class="wb-meta">
-      <span id="wbTabTitle">—</span><span>•</span><span id="wbClock">--:--:--</span><span>•</span>
-      <span>Rotasi <b id="wbDurText"><?= (int)$sec ?></b> dtk</span>
-    </div>
-    <div class="wb-ctrl">
-      <button id="wbPrev" title="Sebelumnya">« Prev</button>
-      <button id="wbNext" title="Berikutnya">Next »</button>
-      <button id="wbPause" title="Jeda / Lanjut">⏸︎</button>
-      <button id="wbFS" title="Fullscreen">⛶</button>
+<div class="container-fluid">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+      <h3 class="mb-0"><?= htmlspecialchars($title ?? 'Wallboard', ENT_QUOTES, 'UTF-8') ?></h3>
+      <div class="text-muted small"><?= htmlspecialchars($subtitle ?? '', ENT_QUOTES, 'UTF-8') ?></div>
     </div>
   </div>
 
-  <div class="wb-stage">
-    <iframe id="wbFrameA" referrerpolicy="same-origin"></iframe>
-    <iframe id="wbFrameB" referrerpolicy="same-origin"></iframe>
-    <div class="wb-tabs" id="wbTabs"></div>
+  <div class="row">
+    <!-- Kolom kiri: Monitor (daftar booking & sedang berkunjung) -->
+    <div class="col-xl-7 col-lg-7 mb-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <?= $monitorHtml /* sudah berupa HTML siap tampil */ ?>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kolom kanan: Dashboard (grafik/rekap) -->
+    <div class="col-xl-5 col-lg-5 mb-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <?= $dashboardHtml /* sudah berupa HTML siap tampil */ ?>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<script>
-(function(){
-  var TABS = <?= $tabsJson ?: '[]' ?>;
-  var DURATION = <?= (int)$sec ?> * 1000;
-  var AUTOFS = <?= $auto ? 'true' : 'false' ?>;
-
-  var idx = 0, timer = null, paused = false, activeA = true;
-  var frameA = document.getElementById('wbFrameA');
-  var frameB = document.getElementById('wbFrameB');
-  var clock  = document.getElementById('wbClock');
-  var tabTitle = document.getElementById('wbTabTitle');
-  var tabsWrap = document.getElementById('wbTabs');
-  document.getElementById('wbDurText').textContent = (DURATION/1000)|0;
-
-  // render tabs
-  for (var i=0;i<TABS.length;i++){
-    var sp = document.createElement('span');
-    sp.className = 'wb-tag' + (i===0?' active':'');
-    sp.textContent = (TABS[i].title || ('Tab '+(i+1)));
-    (function(n){ sp.addEventListener('click', function(){ swapTo(n); if(!paused) start(); }); })(i);
-    tabsWrap.appendChild(sp);
-  }
-  function setActiveTag(n){
-    var tags = tabsWrap.children;
-    for (var i=0;i<tags.length;i++){ tags[i].classList.toggle('active', i===n); }
-  }
-
-  // jam live
-  setInterval(function(){
-    var d=new Date(), p=function(n){return (n<10?'0':'')+n};
-    clock.textContent = p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
-  }, 1000);
-
-  function bust(url){
-    var sep = url.indexOf('?')>-1 ? '&' : '?';
-    return url + sep + '_ts=' + Date.now();
-  }
-
-  function swapTo(n){
-    if (!TABS.length) return;
-    idx = (n + TABS.length) % TABS.length;
-    var url = bust(TABS[idx].url);
-    var title = TABS[idx].title || ('Tab '+(idx+1));
-    tabTitle.textContent = title;
-    setActiveTag(idx);
-
-    var nextFrame = activeA ? frameB : frameA;
-    var curFrame  = activeA ? frameA : frameB;
-
-    nextFrame.classList.remove('show');
-    nextFrame.onload = null;
-    nextFrame.src = url;
-
-    nextFrame.onload = function(){
-      nextFrame.classList.add('show');
-      curFrame.classList.remove('show');
-      activeA = !activeA;
-    };
-    setTimeout(function(){
-      if (!nextFrame.classList.contains('show')){
-        nextFrame.classList.add('show');
-        curFrame.classList.remove('show');
-        activeA = !activeA;
-      }
-    }, 3000);
-  }
-
-  function start(){ stop(); timer = setInterval(function(){ swapTo(idx+1); }, DURATION); }
-  function stop(){ if (timer){ clearInterval(timer); timer=null; } }
-
-  // tombol
-  document.getElementById('wbNext').addEventListener('click', function(){ swapTo(idx+1); if(!paused) start(); });
-  document.getElementById('wbPrev').addEventListener('click', function(){ swapTo(idx-1); if(!paused) start(); });
-  document.getElementById('wbPause').addEventListener('click', function(){
-    paused = !paused; this.textContent = paused ? '▶︎' : '⏸︎'; if (paused) stop(); else start();
-  });
-
-  // Fullscreen toggle (pakai dokumen utama)
-  document.getElementById('wbFS').addEventListener('click', function(){
-    if (!document.fullscreenElement){
-      (document.documentElement.requestFullscreen
-        ? document.documentElement.requestFullscreen({navigationUI:'hide'})
-        : document.body.requestFullscreen()).catch(function(){});
-    } else {
-      document.exitFullscreen().catch(function(){});
-    }
-  });
-
-  // hotkeys
-  document.addEventListener('keydown', function(e){
-    var k=(e.key||'').toLowerCase();
-    if (k==='n'){ e.preventDefault(); document.getElementById('wbNext').click(); }
-    else if (k==='p'){ e.preventDefault(); document.getElementById('wbPrev').click(); }
-    else if (k===' '){ e.preventDefault(); document.getElementById('wbPause').click(); }
-    else if (k==='f'){ e.preventDefault(); document.getElementById('wbFS').click(); }
-  });
-
-  if (AUTOFS){ setTimeout(function(){ try{ document.getElementById('wbFS').click(); }catch(e){} }, 600); }
-
-  swapTo(0); start();
-})();
-</script>
+<style>
+  /* opsional: biar area di dalam card bisa scroll jika konten tinggi */
+  .card-body { max-height: calc(100vh - 220px); overflow:auto; }
+</style>

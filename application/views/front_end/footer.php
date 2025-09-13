@@ -381,6 +381,13 @@
     width: 100%; 
     margin: 0;
   }
+  /* Pastikan modal di atas backdrop */
+#kontakModalfront { z-index: 200000 !important; }        /* modal */
+.modal-backdrop.show { z-index: 199990 !important; }     /* backdrop (di bawah modal) */
+
+/* Kalau punya navbar/topbar super tinggi, turunkan sedikit */
+#topnav, .navbar, header { z-index: 199980; }
+
 </style>
 <div class="modal " id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
   <div class="modal-dialog modal-bottom fadeInUp animated modal-dialog-full" style="animation-duration: 0.5s;">
@@ -428,6 +435,16 @@
   </div>
 </div>
 </div>
+<script>
+// jQuery:
+$('#kontakModalfront').appendTo('body');
+
+// Vanilla:
+document.addEventListener('DOMContentLoaded', () => {
+  const m = document.getElementById('kontakModalfront');
+  if (m && m.parentNode !== document.body) document.body.appendChild(m);
+});
+</script>
 
 
 <script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>
@@ -495,8 +512,6 @@
   })
     .catch(err => console.warn("❌ Gagal daftar Service Worker:", err));
   }
-
-
 
 
 // Reload otomatis ketika controller SW berubah (worker baru mengambil alih)
