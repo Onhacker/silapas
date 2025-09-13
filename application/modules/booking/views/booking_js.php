@@ -365,4 +365,129 @@ function loader() {
 // });
 
 </script>
+<script>
+(function(){
+  // ====== Elemen ======
+  const elView  = document.getElementById('tanggal_view') || document.getElementById('tanggal'); // kalau belum ada tanggal_view, pakai tanggal
+  const elISO   = document.getElementById('tanggal');       // hidden YYYY-MM-DD (atau input aslinya kalau belum pakai hidden)
+  const jamInput = document.getElementById('jam');
+  const infoJam  = document.getElementById('jam-info');
+  const infoTgl  = document.getElementById('tanggal-info'); // <- perbaikan ID
+
+  // ====== Util ======
+  const HARI_ID = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const TZ_ABBR = {'Asia/Jakarta':'WIB','Asia/Makassar':'WITA','Asia/Jayapura':'WIT'};
+  const tzAbbr  = TZ_ABBR[(window.OP_HOURS && OP_HOURS.tz) || 'Asia/Makassar'] || '';
+
+  const pad = n => (n<10?'0':'')+n;
+  const toMin = s => !s ? null : ( (h=s.split(':')[0]|0, m=s.split(':')[1]|0), h*60+m );
+  const fromMin = n => `${pad(Math.floor(n/60))}:${pad(n%60)}`;
+  const dot = s => s ? s.replace(':','.') : '';
+
+  function todayYmd(){
+    const base = Date.now() + (window.serverOffsetMs || 0);
+    const d = new Date(base);
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function buildInfoLine(dayIdx, conf, pushedMin=null){
+    if (!conf || conf.closed) return `Hari ${HARI_ID[dayIdx]}: Libur`;
+    let line = `Hari ${HARI_ID[dayIdx]}: ${dot(conf.open)}–${dot(conf.close)} ${tzAbbr}`;
+    if (conf.break_start && conf.break_end) {
+      line += ` (Istirahat ${dot(conf.break_start)}–${dot(conf.break_end)} ${tzAbbr})`;
+    }
+    if (pushedMin && toMin(pushedMin) > toMin(conf.open||'00:00')) {
+      line += ` • Minimal hari ini: ${dot(pushedMin)}`;
+    }
+    return line;
+  }
+
+  function sameYmd(a,b){ return a&&b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+  function applyForDate(d){
+    // Reset state
+    jamInput.value = '';
+    jamInput.disabled = true;
+    jamInput.removeAttribute('min');
+    jamInput.removeAttribute('max');
+    if (infoTgl) infoTgl.textContent = '';
+    if (infoJam) infoJam.textContent = '';
+
+    if (!(d instanceof Date) || isNaN(d)) return;
+
+    const dayIdx = d.getDay();                   // 0=Min..6=Sab
+    const conf   = OP_HOURS?.days?.[String(dayIdx)];
+
+    // Minggu/libur
+    if (!conf || conf.closed) {
+      if (infoTgl) infoTgl.textContent = `Hari ${HARI_ID[dayIdx]} libur, silakan pilih hari lain.`;
+      if (window.Swal) Swal.fire({title:'Info', html:`Hari ${HARI_ID[dayIdx]} libur, silakan pilih hari lain.`, icon:'info'});
+      // kosongkan hidden biar tidak terkirim
+      if (elISO && elISO !== elView) elISO.value = '';
+      if (elView && elView.id === 'tanggal') elView.value = '';
+      return;
+    }
+
+    // Enable jam + min/max dasar
+    jamInput.disabled = false;
+    let minStr = conf.open || '00:00';
+    let maxStr = conf.close || '23:59';
+
+    // Lead time untuk HARI INI (pakai jam server offset bila ada)
+    const nowMsServer = Date.now() + (window.serverOffsetMs || 0);
+    const nowServer   = new Date(nowMsServer);
+    if (sameYmd(d, nowServer)) {
+      const lead = Math.max(0, Math.min(1440, +(OP_HOURS?.lead ?? 0)));
+      let earliest = nowServer.getHours()*60 + nowServer.getMinutes() + lead;
+
+      // Jika earliest nabrak istirahat, geser ke akhir istirahat
+      const bs = toMin(conf.break_start), be = toMin(conf.break_end);
+      if (bs!==null && be!==null && bs<be && earliest>=bs && earliest<be) earliest = be;
+
+      // Ambil yang terbesar antara jam buka & earliest
+      const openMin = toMin(minStr) ?? 0;
+      minStr = fromMin(Math.max(openMin, earliest));
+    }
+
+    // Pasang batas ke input
+    jamInput.min = minStr;
+    jamInput.max = maxStr;
+
+    // Info kecil di bawah input jam
+    if (infoJam) infoJam.textContent = buildInfoLine(dayIdx, conf, minStr);
+  }
+
+  // ====== Inisialisasi datepicker ======
+  if (window.flatpickr && elView && elView.id !== 'tanggal') {
+    // Mode 2 input: tanggal_view (dd/mm/yyyy) + hidden tanggal (yyyy-mm-dd)
+    flatpickr(elView, {
+      locale: flatpickr.l10ns.id,
+      dateFormat: 'd/m/Y',
+      allowInput: true,
+      disableMobile: true,
+      minDate: todayYmd(),
+      disable: [date => date.getDay() === 0], // disable Minggu di kalender
+      onChange: function(selectedDates, _, inst){
+        const d = selectedDates && selectedDates[0] ? selectedDates[0] : null;
+        // sinkron hidden (yyyy-mm-dd)
+        if (elISO) elISO.value = d ? inst.formatDate(d,'Y-m-d') : '';
+        applyForDate(d);
+      }
+    });
+  } else {
+    // Fallback: pakai <input type="date" id="tanggal">
+    if (elView) elView.setAttribute('min', todayYmd());
+    elView?.addEventListener('change', function(){
+      const d = this.value ? new Date(this.value) : null;
+      // Kalau kamu tetap ingin tampil dd/mm/yyyy, tampilkan ke info saja (input native tetap yyyy-mm-dd)
+      applyForDate(d);
+    });
+  }
+
+  // Jalankan sekali (kalau sudah ada nilai awal)
+  if (elISO && elISO.value) {
+    applyForDate(new Date(elISO.value));
+  }
+})();
+</script>
 
