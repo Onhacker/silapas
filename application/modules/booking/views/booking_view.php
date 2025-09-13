@@ -531,10 +531,11 @@ function withIdLocale(opts){
 
   if (window.flatpickr && elView) {
     flatpickr(elView, withIdLocale({
-    dateFormat: 'd/m/Y',
-    allowInput: true,
-    disableMobile: true,
-    minDate: minToday,
+      dateFormat: 'd/m/Y',
+      allowInput: false,
+      clickOpens: true,      // klik input buka kalender
+      disableMobile: true,
+      minDate: minToday,
     onChange(selectedDates, _, inst){
       const d = selectedDates && selectedDates[0] ? selectedDates[0] : null;
       if (elISO) elISO.value = d ? inst.formatDate(d,'Y-m-d') : '';
