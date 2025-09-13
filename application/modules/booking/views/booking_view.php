@@ -599,7 +599,8 @@ function withIdLocale(opts){
   if (window.flatpickr) {
     flatpickr(view, withIdLocale({
       dateFormat: 'd/m/Y',
-      allowInput: true,
+      allowInput: false,
+      clickOpens: true,      // klik input buka kalender
       disableMobile: true,
       maxDate: todayYmd(),
       defaultDate: iso.value || null,
