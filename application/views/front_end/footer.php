@@ -437,7 +437,7 @@
 </div>
 <script>
 // jQuery:
-$('#kontakModalfront').appendTo('body');
+// $('#kontakModalfront').appendTo('body');
 
 // Vanilla:
 document.addEventListener('DOMContentLoaded', () => {

@@ -101,65 +101,17 @@ class Admin_dashboard extends Admin_Controller
         $this->render($data);
     }
 
-  public function wall()
+ public function wall()
     {
         cek_session_akses(get_class($this)."/wall", $this->session->userdata('admin_session'));
-
-        $data["controller"]   = get_class($this);
-        $data["title"]        = "Wallboard";
-        $data["subtitle"]     = "Dashboard ↔ Monitor (auto-rotate)";
-        $data["cycle"]        = 20; // detik per slide (ubah sesuai selera)
-
-        // URL partial (konten saja, tanpa header/footer)
-        $data["dashboard_url"]= site_url('admin_dashboard/dashboard_partial');
-        $data["monitor_url"]  = site_url('admin_dashboard/monitor_partial');
-
-        // muat view rotator sebagai konten
-        $data["content"] = $this->load->view('admin_wall_rotator', $data, true);
+        $data["controller"]  = get_class($this);
+        $data["title"]       = "Wallboard";
+        $data["subtitle"]    = "Monitor & Dashboard";
+        $data["cycle"]       = 20;           // detik rotasi
+        $data["default_tab"] = "monitor";    // monitor | dashboard
+        $data["content"]     = $this->load->view('Admin_wall_tabs_view', $data, true);
         $this->render($data);
     }
-
-    /** Dashboard (partial, tanpa layout header/footer) */
-   public function dashboard_partial()
-{
-    cek_session_akses(get_class($this)."/dashboard", $this->session->userdata('admin_session'));
-    $data["controller"] = get_class($this);
-    $data["title"]      = "Dashboard Kunjungan";
-    $data["subtitle"]   = "Harian • Mingguan • Bulanan";
-
-    // isi dashboard (seperti sebelumnya)
-    $inner              = $this->load->view('Admin_dashboard_dash', $data, true);
-
-    // kalau butuh lib tambahan khusus halaman ini (mis. Highcharts), taruh via $extra_js/$extra_css atau
-    // biarkan tetap di dalam Admin_dashboard_dash (juga oke).
-    $shell = [
-        'title'     => $data["title"],
-        'content'   => $inner,
-        // contoh injeksi CSS/JS tambahan kalau mau:
-        // 'extra_css' => '<link rel="stylesheet" href="'.base_url('assets/admin/libs/flatpickr/flatpickr.min.css').'">',
-        // 'extra_js'  => '<script src="'.base_url('assets/admin/chart/highcharts.js').'"></script>',
-    ];
-    $this->load->view('_embed_shell', $shell);
-}
-
-public function monitor_partial()
-{
-    cek_session_akses(get_class($this)."/monitor", $this->session->userdata('admin_session'));
-    $data["controller"] = get_class($this);
-    $data["title"]      = "Layar Utama";
-    $data["subtitle"]   = "Daftar Booking & Sedang Berkunjung";
-
-    $inner              = $this->load->view('Admin_dashboard_monitor_view', $data, true);
-    $shell = [
-        'title'   => $data["title"],
-        'content' => $inner,
-    ];
-    $this->load->view('_embed_shell', $shell);
-}
-
-
-
-
 
 
     /**
