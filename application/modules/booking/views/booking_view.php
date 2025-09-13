@@ -68,6 +68,8 @@
     border-radius: 999px;
     padding: .25rem .5rem;
   }
+  form[novalidate] :invalid { box-shadow: none; outline: 0; }
+
 
   /* ===== Modal pendamping: z-index fix biar bisa diklik ===== */
   .modal { z-index: 2000 !important; }
@@ -94,7 +96,7 @@
     <div class="col-lg-12">
       <div class="card card-elev">
         <div class="card-body">
-          <form id="form_app" method="post" enctype="multipart/form-data">
+          <form id="form_app" method="post" enctype="multipart/form-data" novalidate>
 
             <!-- ====== Asal Instansi ====== -->
             <div class="header-title">Asal Instansi</div>
@@ -222,7 +224,7 @@
                     </div>
                     <div class="col-6">
                       <input type="text" class="form-control" id="tanggal_lahir_view" placeholder="dd/mm/yyyy" autocomplete="off" required>
-                      <input type="hidden" id="tanggal_lahir" name="tanggal_lahir" required>
+                      <input type="hidden" id="tanggal_lahir" name="tanggal_lahir">
                       <div class="invalid-feedback">Tanggal lahir wajib diisi.</div>
                     </div>
                   </div>
@@ -240,8 +242,10 @@
               <div class="col-md-6">
                 <div class="form-group mb-2">
                   <label for="no_hp" class="form-label label-required">No. HP</label>
-                  <input type="text" id="no_hp" name="no_hp" class="form-control" placeholder="08xxxxxxxxxx"
-                         inputmode="numeric" minlength="10" maxlength="13" required>
+                  <input type="text" id="no_hp" name="no_hp" class="form-control"
+                  placeholder="08xxxxxxxxxx" inputmode="numeric"
+                  minlength="10" maxlength="13" pattern="0\d{9,12}" title="Mulai 0, total 10–13 digit" required>
+
                   <small class="help-hint">Gunakan nomor aktif untuk menerima WhatsApp konfirmasi.</small>
                 </div>
               </div>
@@ -339,8 +343,10 @@
               <div class="col-md-6">
                 <div class="form-group mb-2">
                   <label for="jam" class="form-label label-required">Jam Kunjungan</label>
-                  <input type="time" id="jam" name="jam" class="form-control" disabled required>
-                  <small id="jam-info" class="form-text text-muted"></small>
+                  <!-- <input type="time" id="jam" name="jam" class="form-control" disabled required> -->
+                  <input type="time" id="jam" name="jam" class="form-control" step="300" disabled required>
+
+                  <small id="jam-info" class="form-text text-danger"></small>
                 </div>
               </div>
             </div>
@@ -878,10 +884,74 @@ window.killMasks = function () {
     const d = new Date(ymd+'T00:00:00'); const i = d.getDay();
     return (window.OP_HOURS && OP_HOURS.days && OP_HOURS.days[String(i)]) || null;
   }
+
+(function(){
+  const form = document.getElementById('form_app');
+  if (!form) return;
+
+  // Ambil teks label untuk field
+  const getLabel = (el) => {
+    if (el.id){
+      const lbl = form.querySelector(`label[for="${el.id}"]`);
+      if (lbl) return lbl.textContent.replace('*','').trim();
+    }
+    return (el.getAttribute('placeholder') || el.name || 'Field').trim();
+  };
+
+  // Ubah reason -> pesan Indonesia
+  const idMessage = (el) => {
+    const v = el.validity;
+    if (v.valueMissing)   return 'Wajib diisi';
+    if (v.typeMismatch)   return (el.type==='email') ? 'Format email tidak valid'
+                           : (el.type==='url') ? 'URL tidak valid'
+                           : 'Format tidak valid';
+    if (v.patternMismatch)return el.title || 'Format tidak sesuai';
+    if (v.tooShort)       return `Minimal ${el.minLength} karakter`;
+    if (v.tooLong)        return `Maksimal ${el.maxLength} karakter`;
+    if (v.rangeUnderflow) return `Minimal ${el.min}`;
+    if (v.rangeOverflow)  return `Maksimal ${el.max}`;
+    if (v.stepMismatch)   return 'Nilai tidak sesuai kelipatan';
+    if (v.badInput)       return 'Nilai tidak valid';
+    if (v.customError)    return el.validationMessage || 'Tidak valid';
+    return 'Tidak valid';
+  };
+
+  // Biar tooltip native juga Indonesia
+  const wire = (el) => {
+    const clear = () => el.setCustomValidity('');
+    const set   = () => { if (!el.validity.valid) el.setCustomValidity(idMessage(el)); };
+    el.addEventListener('invalid', set);
+    el.addEventListener('input',  clear);
+    el.addEventListener('change', clear);
+  };
+  form.querySelectorAll('input,select,textarea').forEach(wire);
+
+  // Expose helper ringkasan untuk Swal
+  window.buildInvalidListHTML = function(form){
+    const invalids = Array.from(form.querySelectorAll(':invalid'));
+    return '<ul style="text-align:left;margin:0;padding-left:1.1rem;">'
+      + invalids.slice(0, 8).map(el => `<li>${getLabel(el)}: ${idMessage(el)}</li>`).join('')
+      + (invalids.length>8 ? `<li>dst… (${invalids.length} field)</li>` : '')
+      + '</ul>';
+  };
+})();
+
 function simpan(btn){
   btn = btn || document.getElementById('btnBooking');
-  const url = "<?= site_url(strtolower($controller).'/add')?>/";
+  const url  = "<?= site_url(strtolower($controller).'/add')?>/";
+  const form = document.getElementById('form_app');
 
+  // 1) Validasi FE (tanpa UI native)
+  if (!form.checkValidity()){
+    Swal.fire({
+      title: 'Lengkapi data dulu',
+      html: window.buildInvalidListHTML(form), // sudah pakai pesan Indonesia
+      icon: 'warning'
+    });
+    return;
+  }
+
+  // 2) Konfirmasi
   Swal.fire({
     title: 'Kirim Booking?',
     html: `
@@ -901,10 +971,11 @@ function simpan(btn){
     inputPlaceholder: "Ceklis: Ya, saya setuju !!!",
     confirmButtonText: "Ya, kirim sekarang",
     cancelButtonText:  "Batal",
-    inputValidator: (result) => !result ? "Silakan ceklis persetujuan terlebih dahulu." : undefined
+    inputValidator: (r) => !r ? "Silakan ceklis persetujuan terlebih dahulu." : undefined
   }).then((res) => {
     if (!res.isConfirmed) return;
 
+    // 3) Cek tanggal & jam
     const ymd = document.getElementById('tanggal')?.value || '';
     const jam = document.getElementById('jam')?.value || '';
 
@@ -913,13 +984,13 @@ function simpan(btn){
       Swal.fire({title:'Jam belum dipilih', text:'Silakan pilih jam kunjungan.', icon:'warning'}); return;
     }
 
-    // ⬅️ KEMBALIKAN CEK JAM ISTIRAHAT (lihat poin 2)
     const conf = _confForDateStr(ymd);
     if (conf && _inBreak(conf, jam)) {
       Swal.fire({title:'Jam istirahat', text:'Silakan pilih di luar jam istirahat.', icon:'info'});
       return;
     }
 
+    // 4) Validasi pendamping (jika ada)
     try {
       if (typeof window._ensurePendampingBeforeSubmit === 'function') window._ensurePendampingBeforeSubmit();
     } catch (e) {
@@ -927,17 +998,10 @@ function simpan(btn){
       return;
     }
 
-    // ✅ Validasi HTML5 form
-    const form = document.getElementById('form_app');
-    if (!form.checkValidity()) { form.reportValidity(); return; }
-
-    // ➜ SATU KALI aja deklarasi form, lanjut bikin FormData
+    // 5) Kirim
     const formData = new FormData(form);
-
     setLoading(true, btn, { interval: 900 });
     loader();
-
-    // ... lanjut AJAX seperti sekarang
 
     $.ajax({
       url, type: "POST", data: formData,
@@ -988,6 +1052,8 @@ function simpan(btn){
     .always(function(){ setLoading(false, btn); });
   });
 }
+
+
 </script>
 
 <script>
@@ -1043,4 +1109,9 @@ $(function () {
   });
 })();
 
+</script>
+<script>
+  $('#no_hp').on('input', function(){
+    this.value = (this.value || '').replace(/\D+/g,'').slice(0,13);
+  });
 </script>
