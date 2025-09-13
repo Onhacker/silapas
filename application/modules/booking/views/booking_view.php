@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="<?php echo base_url("assets/admin/libs/flatpickr/flatpickr.min.css") ?>">
 <script src="<?php echo base_url("assets/admin/libs/flatpickr/flatpickr.min.js") ?>"></script>
 
-<!-- Locale Indonesian (inline) — aman dari 'invalid locale undefined' -->
+<!-- Locale Indonesian (inline) — cegah 'invalid locale undefined' -->
 <script>
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -26,6 +26,7 @@
 </script>
 
 <style>
+  /* ===== Tampilan umum ===== */
   .card-elev { border:0; border-radius:14px; box-shadow:0 6px 22px rgba(0,0,0,.06); }
   .header-title{ font-size:1.05rem; font-weight:700; margin:.5rem 0 1rem; }
   .form-label { font-weight: 600; }
@@ -34,6 +35,52 @@
   .btn-blue{ background:linear-gradient(90deg,#2563eb,#1d4ed8); border:0; color:#fff; }
   .btn-blue:hover{ filter:brightness(1.06); }
   .divider-soft{ height:1px; background:linear-gradient(to right,transparent,#e9ecef,transparent); margin: 1rem 0 1.25rem; }
+
+  /* ===== Tabel pendamping “manis” ===== */
+  .table-modern {
+    --tbl-bg:#ffffff;
+    --tbl-head:#f8f9fc;
+    --tbl-border:#eef2f7;
+    background: var(--tbl-bg);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(0,0,0,.06);
+  }
+  .table-modern thead th {
+    background: var(--tbl-head);
+    border-bottom: 1px solid var(--tbl-border);
+    font-weight: 700;
+    font-size: .9rem;
+    position: sticky; top: 0; z-index: 1;
+  }
+  .table-modern tbody td { vertical-align: middle; border-color: var(--tbl-border); }
+  .table-modern tbody tr:hover { background: #f9fbff; }
+  .table-modern .btn-action {
+    border: 1px solid #e3e8f0;
+    padding: .25rem .5rem;
+    border-radius: 10px;
+  }
+  .badge-soft {
+    background: #eef2ff;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: .25rem .5rem;
+  }
+
+  /* ===== Modal pendamping: z-index fix biar bisa diklik ===== */
+  .modal { z-index: 2000 !important; }
+  .modal-backdrop { z-index: 1990 !important; }
+  .modal-header { border-bottom: 0; }
+  .modal-content { border: 0; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,.18); }
+  .modal-footer { border-top: 0; }
+</style>
+<style id="modal-zforce">
+  /* angka tinggi agar menang atas easyui/window-mask/mm-blocker dkk */
+  #modalPendamping.modal            { z-index: 200000 !important; pointer-events: auto !important; }
+  .modal-backdrop                   { z-index: 199990 !important; pointer-events: none !important; }
+  .flatpickr-calendar               { z-index: 200010 !important; }  /* datepicker di dalam modal */
 </style>
 
 <div class="container-fluid">
@@ -82,7 +129,7 @@
                   <small class="help-hint">Pilih kategori terlebih dahulu untuk menampilkan daftar instansi.</small>
                 </div>
 
-                <!-- MODE MANUAL (tampil saat kategori = Lainnya) -->
+                <!-- MODE MANUAL -->
                 <div class="form-group mb-2 d-none" id="instansi_manual_wrap">
                   <label for="instansi_manual" class="form-label label-required">Nama Instansi</label>
                   <input type="text" id="instansi_manual" name="target_instansi_nama" class="form-control" placeholder="Tulis nama instansi">
@@ -115,7 +162,7 @@
                 render_options($units_tree);
                 ?>
               </select>
-              <small id="pdLimitInfo" class="text-muted"></small>
+              
             </div>
 
             <div class="divider-soft"></div>
@@ -199,70 +246,80 @@
                 </div>
               </div>
 
-              <!-- ====== Pendamping ====== -->
+              <!-- ====== Pendamping (opsional) ====== -->
               <div class="col-md-12">
-                <div class="header-title">Pendamping</div>
-
-                <div class="d-flex align-items-center gap-2 mb-2" style="gap:.5rem;">
-                  <button type="button" class="btn btn-sm btn-outline-primary" id="btnOpenPendamping">
+                <div class="header-title d-flex justify-content-between align-items-center">
+                  <span>Pendamping</span>
+                  <button type="button" class="btn btn-sm btn-blue" id="btnOpenPendamping">
                     <i class="fas fa-user-plus mr-1"></i> Tambah Pendamping
                   </button>
-                  <small id="pdLimitInfoInline" class="text-muted ml-2"></small>
                 </div>
 
-                <!-- Panel inline pendamping -->
-                <div id="pendampingWrap" class="card border mb-2 d-none">
-                  <div class="card-body p-2">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                      <strong>Daftar Pendamping</strong>
-                      <small class="text-muted">Total: <span id="pdFilled">0</span></small>
-                    </div>
-
-                    <div class="row">
-                      <div class="col-md-4">
-                        <label class="form-label mb-1">NIK Pendamping</label>
-                        <input type="text" id="pd_nik" class="form-control form-control-sm"
-                               placeholder="16 digit NIK" maxlength="16" inputmode="numeric" autocomplete="off">
-                        <small class="text-muted">Wajib 16 digit & unik.</small>
-                      </div>
-                      <div class="col-md-5">
-                        <label class="form-label mb-1">Nama Pendamping</label>
-                        <input type="text" id="pd_nama" class="form-control form-control-sm" placeholder="Nama lengkap" autocomplete="off">
-                      </div>
-                      <div class="col-md-3 d-flex align-items-end mt-2" style="gap:.5rem;">
-                        <button type="button" class="btn btn-sm btn-success" id="btnPdAdd">Tambah</button>
-                        <button type="button" class="btn btn-sm btn-warning d-none" id="btnPdSave">Simpan</button>
-                        <button type="button" class="btn btn-sm btn-secondary d-none" id="btnPdCancel">Batal</button>
-                      </div>
-                    </div>
-
-                    <hr class="my-2">
-
-                    <div class="table-responsive">
-                      <table class="table table-sm table-bordered mb-0" id="tblPendampingLocal">
-                        <thead class="thead-light">
-                          <tr>
-                            <th style="width:60px">No</th>
-                            <th style="width:180px">NIK</th>
-                            <th>Nama</th>
-                            <th style="width:150px">Aksi</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr><td colspan="4" class="text-center text-muted">Belum ada pendamping.</td></tr>
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <small id="pdHelp" class="text-muted d-block mt-2">
-                      Isi NIK & Nama lalu klik <b>Tambah</b> untuk memasukkan ke tabel.
-                    </small>
-                  </div>
+                <!-- Table wrap: disembunyikan sampai ada data -->
+                <div id="pdTableWrap" class="table-responsive d-none">
+                  <table class="table table-hover align-middle mb-0 table-modern" id="tblPendampingLocal">
+                    <thead>
+                      <tr>
+                        <th style="width:64px" class="text-center">No</th>
+                        <th style="width:220px">NIK/NIP/NRP</th>
+                        <th>Nama</th>
+                        <th style="width:160px" class="text-center">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
                 </div>
 
-                <!-- Hidden fields untuk backend -->
+                <!-- Hidden untuk backend -->
                 <input type="hidden" name="pendamping_json" id="pendamping_json" value="[]">
                 <input type="hidden" name="jumlah_pendamping" id="jumlah_pendamping" value="0">
+
+                <!-- Modal Pendamping -->
+                <div class="modal fade" id="modalPendamping" tabindex="-1" aria-labelledby="modalPendampingLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="modalPendampingLabel">Tambah Pendamping</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="form-group">
+                          <label class="form-label">NIK/NIP/NRP</label>
+                          <input
+                            type="text"
+                            id="pd_nik"
+                            class="form-control"
+                            placeholder="NIK 16 / NIP 18 atau 9 / NRP 8–9"
+                            maxlength="18"
+                            inputmode="numeric"
+                            autocomplete="off">
+                          <small class="text-muted">
+                            Boleh: <b>NIK</b> 16 digit • <b>NIP</b> 18 atau 9 digit • <b>NRP</b> 8–9 digit.
+                          </small>
+                        </div>
+
+                        <div class="form-group">
+                          <label class="form-label">Nama Pendamping</label>
+                          <input type="text" id="pd_nama" class="form-control" placeholder="Nama lengkap" autocomplete="off">
+                        </div>
+                        <div id="pdWarn" class="small text-danger d-none" role="alert" aria-live="assertive"></div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-blue" id="btnPdSubmit">Simpan</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- /Modal -->
+
+                <small id="pdInfoText" class="text-muted d-block mt-2">Jika tidak membawa pendamping, lewati bagian ini.</small>
+                <div class="small text-muted mt-1 d-flex align-items-center" style="gap:.5rem;">
+                  <span id="pdLimitInfo" class="badge-soft">Batas pendamping: tidak dibatasi.</span>
+                  <span id="pdCountBadgeWrap" class="badge-soft d-none">Total pendamping: <span id="pdFilledBadge">0</span></span>
+                </div>
               </div>
             </div>
 
@@ -349,7 +406,7 @@ window.OP_HOURS = <?= json_encode([
 ], JSON_UNESCAPED_SLASHES) ?>;
 
 /* =========================
-   UTIL
+   UTIL + LOADER
    ========================= */
 const MARGIN_CLASS = 'ml-2';
 function loader(){
@@ -378,9 +435,8 @@ function setLoading(isLoading, btn, opts){
     delete btn.dataset.loadingActive;
   }
 }
-// guard set locale only if available
 function withIdLocale(opts){
-  try { if (window.flatpickr && flatpickr.l10ns && flatpickr.l10ns.id) opts.locale = flatpickr.l10ns.id; } catch(e){}
+  try { if (window.flatpickr?.l10ns?.id) opts.locale = flatpickr.l10ns.id; } catch(e){}
   return opts;
 }
 </script>
@@ -434,10 +490,11 @@ function withIdLocale(opts){
       return;
     }
 
-    jamInput.disabled = false;
+    // --- tentukan batas awal/akhir hari itu
     let minStr = conf.open || '00:00';
     let maxStr = conf.close || '23:59';
 
+    // --- jika hari ini, dorong min ke "sekarang + lead", skip jam istirahat
     const nowMsServer = Date.now() + (window.serverOffsetMs || 0);
     const nowServer   = new Date(nowMsServer);
     if (sameYmd(d, nowServer)){
@@ -448,32 +505,54 @@ function withIdLocale(opts){
       const openMin = toMin(minStr) ?? 0;
       minStr = fromMin(Math.max(openMin, earliest));
     }
-    jamInput.min = minStr; jamInput.max = maxStr;
+
+    // --- tidak ada slot?
+    if (toMin(minStr) >= toMin(maxStr)) {
+      jamInput.disabled = true;
+      if (infoJam) infoJam.textContent = 'Tidak ada slot tersedia di hari ini.';
+      return;
+    }
+
+    // --- set batas & info
+    jamInput.disabled = false;
+    jamInput.min = minStr; 
+    jamInput.max = maxStr;
     if (infoJam) infoJam.textContent = buildInfoLine(dayIdx, conf, minStr);
   }
+
 
   const minToday = todayYmd();
 
   if (window.flatpickr && elView) {
     flatpickr(elView, withIdLocale({
-      dateFormat: 'd/m/Y',
-      allowInput: true,
-      disableMobile: true,
-      minDate: minToday,
-      onChange(selectedDates, _, inst){
-        const d = selectedDates && selectedDates[0] ? selectedDates[0] : null;
-        if (elISO) elISO.value = d ? inst.formatDate(d,'Y-m-d') : '';
-        applyForDate(d);
-      },
-      onClose(_, __, inst){
-        const typed = elView.value && inst.parseDate(elView.value, 'd/m/Y');
-        const minD  = inst.parseDate(minToday, 'Y-m-d');
-        if (typed && typed < minD) {
-          elView.value = ''; if (elISO) elISO.value = '';
-          if (window.Swal) Swal.fire({title:'Tanggal tidak valid', text:'Tidak bisa memilih tanggal sebelum hari ini.', icon:'warning'});
-        }
+    dateFormat: 'd/m/Y',
+    allowInput: true,
+    disableMobile: true,
+    minDate: minToday,
+    onChange(selectedDates, _, inst){
+      const d = selectedDates && selectedDates[0] ? selectedDates[0] : null;
+      if (elISO) elISO.value = d ? inst.formatDate(d,'Y-m-d') : '';
+      applyForDate(d);
+    },
+    onClose(_, __, inst){
+      // dukung input ketik manual
+      const typed = elView.value && inst.parseDate(elView.value, 'd/m/Y');
+      const minD  = inst.parseDate(minToday, 'Y-m-d');
+
+      if (!typed) { elISO.value = ''; return; }
+
+      // validasi minimal hari ini
+      if (typed < minD) {
+        elView.value = ''; elISO.value = '';
+        if (window.Swal) Swal.fire({title:'Tanggal tidak valid', text:'Tidak bisa memilih tanggal sebelum hari ini.', icon:'warning'});
+        return;
       }
-    }));
+
+      elISO.value = inst.formatDate(typed,'Y-m-d');
+      applyForDate(typed);
+    }
+  }));
+
   } else if (elView) {
     elView.type = 'date'; elView.setAttribute('min', minToday);
     elView.addEventListener('change', function(){
@@ -491,6 +570,8 @@ function withIdLocale(opts){
 
   if (elISO && elISO.value && elISO.value >= minToday) applyForDate(new Date(elISO.value));
 })();
+
+
 </script>
 
 <script>
@@ -536,184 +617,6 @@ function withIdLocale(opts){
 
 <script>
 /* =========================
-   PENDAMPING (INLINE, TANPA FIELD JUMLAH)
-   ========================= */
-(function(){
-  window.pendamping = Array.isArray(window.pendamping) ? window.pendamping : [];
-  let pendamping = window.pendamping;
-  let editIndex  = -1;
-  window.PD_MAX_LIMIT = null; // akan diisi saat pilih unit
-
-  const wrap     = document.getElementById('pendampingWrap');
-  const btnOpen  = document.getElementById('btnOpenPendamping');
-  const inNik    = document.getElementById('pd_nik');
-  const inNama   = document.getElementById('pd_nama');
-  const btnAdd   = document.getElementById('btnPdAdd');
-  const btnSave  = document.getElementById('btnPdSave');
-  const btnCancel= document.getElementById('btnPdCancel');
-  const tbody    = document.querySelector('#tblPendampingLocal tbody');
-  const pdHelp   = document.getElementById('pdHelp');
-  const pdFilled = document.getElementById('pdFilled');
-  const hidJson  = document.getElementById('pendamping_json');
-  const hidJumlah= document.getElementById('jumlah_pendamping');
-  const inNikPemohon = document.getElementById('id_number');
-  const pdLimitInfo = document.getElementById('pdLimitInfo');
-  const pdLimitInfoInline = document.getElementById('pdLimitInfoInline');
-
-  const onlyDigits = s => String(s||'').replace(/\D+/g,'');
-  const is16Digits = s => /^\d{16}$/.test(String(s||''));
-  function esc(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
-
-  function ensurePanelVisible(){ if (wrap && wrap.classList.contains('d-none')) wrap.classList.remove('d-none'); }
-
-  function render(){
-    hidJson.value   = JSON.stringify(pendamping);
-    hidJumlah.value = String(pendamping.length);
-    pdFilled.textContent = pendamping.length;
-
-    if (!pendamping.length){
-      tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Belum ada pendamping.</td></tr>`;
-      pdHelp.classList.remove('text-danger'); pdHelp.classList.add('text-muted');
-      pdHelp.textContent = 'Isi NIK & Nama lalu klik “Tambah” untuk memasukkan ke tabel.';
-      return;
-    }
-
-    tbody.innerHTML = pendamping.map((p,i)=>`
-      <tr>
-        <td class="text-center">${i+1}</td>
-        <td><code>${esc(p.nik)}</code></td>
-        <td>${esc(p.nama)}</td>
-        <td class="text-center">
-          <button type="button" class="btn btn-xs btn-outline-info" onclick="pdEdit(${i})" title="Edit"><i class="fas fa-edit"></i></button>
-          <button type="button" class="btn btn-xs btn-outline-danger" onclick="pdDel(${i})" title="Hapus"><i class="fas fa-trash-alt"></i></button>
-        </td>
-      </tr>
-    `).join('');
-    pdHelp.classList.remove('text-danger'); pdHelp.classList.add('text-muted');
-    pdHelp.textContent = 'Gunakan tombol Edit/Hapus untuk mengubah daftar.';
-  }
-
-  function resetRowForm(){
-    editIndex = -1;
-    inNik.value = ''; inNama.value = '';
-    btnAdd.classList.remove('d-none');
-    btnSave.classList.add('d-none');
-    btnCancel.classList.add('d-none');
-    inNik.focus();
-  }
-
-  btnOpen && btnOpen.addEventListener('click', ()=>{ ensurePanelVisible(); resetRowForm(); });
-
-  inNik && inNik.addEventListener('input', ()=>{ inNik.value = onlyDigits(inNik.value).slice(0,16); });
-
-  btnAdd && btnAdd.addEventListener('click', ()=>{
-    const nik  = onlyDigits(inNik.value);
-    const nama = String(inNama.value||'').trim();
-
-    if (!is16Digits(nik)) { alert('NIK pendamping wajib 16 digit.'); inNik.focus(); return; }
-    if (!nama)           { alert('Nama pendamping wajib diisi.'); inNama.focus(); return; }
-
-    if (inNikPemohon && onlyDigits(inNikPemohon.value) === nik){
-      alert('NIK pendamping tidak boleh sama dengan NIK tamu.'); inNik.focus(); return;
-    }
-    if (pendamping.some(p=>p.nik===nik)){
-      alert('NIK pendamping sudah ada di daftar.'); inNik.focus(); return;
-    }
-    if (window.PD_MAX_LIMIT !== null && pendamping.length >= window.PD_MAX_LIMIT){
-      alert('Jumlah pendamping sudah mencapai batas maksimum unit ini.'); return;
-    }
-
-    pendamping.push({nik, nama});
-    ensurePanelVisible();
-    resetRowForm();
-    render();
-  });
-
-  window.pdEdit = function(i){
-    if (i<0 || i>=pendamping.length) return;
-    ensurePanelVisible();
-    editIndex = i;
-    inNik.value  = pendamping[i].nik;
-    inNama.value = pendamping[i].nama;
-    btnAdd.classList.add('d-none'); btnSave.classList.remove('d-none'); btnCancel.classList.remove('d-none');
-    inNik.focus();
-  };
-
-  window.pdDel = async function(i){
-    if (i < 0 || i >= pendamping.length) return;
-    const nama = (pendamping[i] && (pendamping[i].nama || ''));
-    let ok = true;
-    if (typeof Swal !== 'undefined') {
-      const r = await Swal.fire({
-        title: 'Hapus pendamping?', text: nama ? `Nama: ${nama}` : 'Data ini akan dihapus.',
-        icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, hapus', cancelButtonText: 'Batal',
-        reverseButtons: true, focusCancel: true
-      });
-      ok = r.isConfirmed;
-    } else {
-      ok = confirm(`Hapus pendamping ${nama ? '('+nama+')' : ''}?`);
-    }
-    if (!ok) return;
-
-    pendamping.splice(i, 1);
-    if (editIndex === i) resetRowForm();
-    else if (editIndex > i) editIndex--;
-    render();
-  };
-
-  btnSave && btnSave.addEventListener('click', ()=>{
-    if (editIndex < 0) return;
-    const nik  = onlyDigits(inNik.value);
-    const nama = String(inNama.value||'').trim();
-
-    if (!is16Digits(nik)) { alert('NIK pendamping wajib 16 digit.'); inNik.focus(); return; }
-    if (!nama)           { alert('Nama pendamping wajib diisi.'); inNama.focus(); return; }
-    if (inNikPemohon && onlyDigits(inNikPemohon.value) === nik){ alert('NIK pendamping tidak boleh sama dengan NIK tamu.'); inNik.focus(); return; }
-    if (pendamping.some((p,idx)=> idx!==editIndex && p.nik===nik)){ alert('NIK pendamping sudah ada di daftar.'); inNik.focus(); return; }
-
-    pendamping[editIndex] = {nik, nama};
-    resetRowForm();
-    render();
-  });
-
-  btnCancel && btnCancel.addEventListener('click', resetRowForm);
-
-  // Hook submit
-  window._ensurePendampingBeforeSubmit = function(){
-    hidJson.value   = JSON.stringify(pendamping);
-    hidJumlah.value = String(pendamping.length);
-    if (window.PD_MAX_LIMIT !== null && pendamping.length > window.PD_MAX_LIMIT) {
-      throw new Error(`Jumlah pendamping melebihi batas (${pendamping.length}/${window.PD_MAX_LIMIT}).`);
-    }
-    if (pendamping.some(p => !/^\d{16}$/.test(p.nik) || !p.nama?.trim())) {
-      throw new Error('Lengkapi NIK (16 digit) dan Nama semua pendamping.');
-    }
-  };
-
-  // Render awal
-  render();
-
-  // Ambil batas pendamping per-unit saat unit_tujuan berubah
-  $('#unit_tujuan').on('change', function(){
-    const unitId = $(this).val();
-    if(!unitId){ window.PD_MAX_LIMIT = null; setLimitInfo(); return; }
-    $.getJSON('<?= site_url("booking/get_limit_pendamping"); ?>', { id: unitId }, function(res){
-      window.PD_MAX_LIMIT = (typeof res.max === 'number') ? res.max : null;
-      setLimitInfo();
-    }).fail(function(){ window.PD_MAX_LIMIT = null; setLimitInfo(); });
-  });
-
-  function setLimitInfo(){
-    const txt = (window.PD_MAX_LIMIT === null) ? 'Batas pendamping: tidak dibatasi.' : `Batas pendamping: maks. ${window.PD_MAX_LIMIT} orang.`;
-    if (pdLimitInfo) pdLimitInfo.textContent = txt;
-    if (pdLimitInfoInline) pdLimitInfoInline.textContent = txt;
-  }
-  setLimitInfo();
-})();
-</script>
-
-<script>
-/* =========================
    KATEGORI → INSTANSI (AJAX)
    ========================= */
 $(function(){
@@ -730,7 +633,9 @@ $(function(){
     $('#instansi_manual_wrap').toggleClass('d-none', !isManual);
     $('#instansi').prop('required', !isManual);
     $('#instansi_manual').prop('required', isManual);
+    if (isManual){ $('#instansi').val(''); } else { $('#instansi_manual').val(''); }
   }
+
 
   $('#kategori').on('change', function(){
     const jenis = this.value;
@@ -751,9 +656,228 @@ $(function(){
 </script>
 
 <script>
+/* ==============================================
+   KILLER MASKER GLOBAL (biar modal gak ketutup)
+   ============================================== */
+window.killMasks = function () {
+  $('.window-mask, .messager-mask, .datagrid-mask, .easyui-mask, .mm-wrapper__blocker')
+    .css('pointer-events','none').hide();
+};
+</script>
+
+<script>
 /* =========================
-   SUBMIT / BOOKING (SINGLE SOURCE OF TRUTH)
+   PENDAMPING (MODAL + tabel muncul otomatis saat ada data)
    ========================= */
+(function(){
+  window.pendamping = Array.isArray(window.pendamping) ? window.pendamping : [];
+  let pendamping = window.pendamping;
+  let editIndex  = -1;
+  window.PD_MAX_LIMIT = null;
+
+  // Elemen
+  const btnOpen  = document.getElementById('btnOpenPendamping');
+  const pdTableWrap = document.getElementById('pdTableWrap');
+  const tblBody  = document.querySelector('#tblPendampingLocal tbody');
+  const hidJson  = document.getElementById('pendamping_json');
+  const hidJumlah= document.getElementById('jumlah_pendamping');
+  const pdCountWrap = document.getElementById('pdCountBadgeWrap');
+  const pdFilledBadge = document.getElementById('pdFilledBadge');
+  const pdInfoText = document.getElementById('pdInfoText');
+  const pdLimitInfo = document.getElementById('pdLimitInfo');
+
+  // Modal
+  const $modal = $('#modalPendamping');
+  const elNik  = document.getElementById('pd_nik');
+  const elNama = document.getElementById('pd_nama');
+  const btnSubmit = document.getElementById('btnPdSubmit');
+  const lblModal  = document.getElementById('modalPendampingLabel');
+  const pdWarn    = document.getElementById('pdWarn');
+  const inNikPemohon = document.getElementById('id_number');
+
+  // Utils
+  const onlyDigits = s => String(s||'').replace(/\D+/g,'');
+  const esc = s => String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  const rxId = /^(?:\d{8,9}|\d{16}|\d{18})$/; // NRP 8–9, NIK 16, NIP 18/9
+  const isValidId = s => rxId.test(String(s||''));
+
+  // Open modal (mode add/edit)
+  function openModal(mode='add', idx=-1){
+    editIndex = (mode==='edit') ? idx : -1;
+    lblModal.textContent = (mode==='edit') ? 'Edit Pendamping' : 'Tambah Pendamping';
+    btnSubmit.textContent = 'Simpan';
+    pdWarn.classList.add('d-none'); pdWarn.textContent = '';
+
+    if (mode==='edit' && pendamping[idx]){
+      elNik.value  = pendamping[idx].nik;
+      elNama.value = pendamping[idx].nama;
+    } else {
+      elNik.value = ''; elNama.value = '';
+    }
+
+    window.killMasks && window.killMasks();
+    setTimeout(()=> elNik.focus(), 80);
+    $modal.modal('show');
+  }
+
+  function showWarn(msg){ pdWarn.textContent = msg; pdWarn.classList.remove('d-none'); }
+
+  function submitModal(){
+    const nik  = onlyDigits(elNik.value);
+    const nama = String(elNama.value||'').trim();
+    const nikPemohon = onlyDigits(inNikPemohon?.value || '');
+
+    pdWarn.classList.add('d-none'); pdWarn.textContent = '';
+
+    if (!isValidId(nik))  return showWarn('ID tidak valid. Gunakan NIK 16 / NIP 18 atau 9 / NRP 8–9 digit.');
+    if (!nama)            return showWarn('Nama pendamping wajib diisi.');
+    if (nikPemohon && nikPemohon === nik) return showWarn('ID pendamping tidak boleh sama dengan ID tamu.');
+
+    const exists = pendamping.findIndex((p, i) => p.nik === nik && i !== editIndex);
+    if (exists !== -1) return showWarn('ID pendamping sudah ada di daftar.');
+
+    if (editIndex === -1 && window.PD_MAX_LIMIT !== null && pendamping.length >= window.PD_MAX_LIMIT){
+      return showWarn('Jumlah pendamping sudah mencapai batas maksimum unit ini.');
+    }
+
+    if (editIndex === -1) pendamping.push({nik, nama});
+    else pendamping[editIndex] = {nik, nama};
+
+    render();
+    $modal.modal('hide');
+  }
+
+  // Render: toggle table bila ada data
+  function render(){
+    hidJson.value   = JSON.stringify(pendamping);
+    hidJumlah.value = String(pendamping.length);
+
+    // Badge jumlah
+    if (pendamping.length > 0){
+      pdCountWrap.classList.remove('d-none');
+      pdFilledBadge.textContent = pendamping.length;
+    } else {
+      pdCountWrap.classList.add('d-none');
+    }
+
+    // Tabel
+    if (pendamping.length === 0){
+      pdTableWrap.classList.add('d-none');
+      tblBody.innerHTML = '';
+      pdInfoText.textContent = 'Jika tidak membawa pendamping, lewati bagian ini.';
+      return;
+    } else {
+      pdTableWrap.classList.remove('d-none');
+      pdInfoText.textContent = 'Gunakan tombol Edit/Hapus untuk mengubah daftar.';
+    }
+
+    tblBody.innerHTML = pendamping.map((p,i)=>`
+      <tr>
+        <td class="text-center">${i+1}</td>
+        <td><code>${esc(p.nik)}</code></td>
+        <td>${esc(p.nama)}</td>
+        <td class="text-center" style="white-space:nowrap; gap:.25rem;">
+          <button type="button" class="btn btn-sm btn-warning btn-action" onclick="pdEdit(${i})" title="Edit">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button type="button" class="btn btn-sm btn-danger btn-action" onclick="pdDel(${i})" title="Hapus">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Global actions untuk tombol di row
+  window.pdEdit = function(i){ if (i<0 || i>=pendamping.length) return; openModal('edit', i); };
+  window.pdDel = async function(i){
+    if (i < 0 || i >= pendamping.length) return;
+    const nama = (pendamping[i] && (pendamping[i].nama || ''));
+    let ok = true;
+    if (typeof Swal !== 'undefined') {
+      const r = await Swal.fire({
+        title: 'Hapus pendamping?', text: nama ? `Nama: ${nama}` : 'Data ini akan dihapus.',
+        icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, hapus', cancelButtonText: 'Batal',
+        reverseButtons: true, focusCancel: true
+      });
+      ok = r.isConfirmed;
+    } else {
+      ok = confirm(`Hapus pendamping ${nama ? '('+nama+')' : ''}?`);
+    }
+    if (!ok) return;
+    pendamping.splice(i, 1);
+    render();
+  };
+
+  // Event: input ID hanya angka, max 18 (duplikat handler dihapus)
+  document.getElementById('pd_nik').addEventListener('input', function(){
+    this.value = (this.value||'').replace(/\D+/g,'').slice(0,18);
+  });
+  // Enter untuk simpan
+  document.getElementById('pd_nama').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); submitModal(); }});
+  document.getElementById('btnPdSubmit').addEventListener('click', submitModal);
+
+  // Tombol buka modal
+  document.getElementById('btnOpenPendamping').addEventListener('click', ()=>{
+    if (window.PD_MAX_LIMIT !== null && pendamping.length >= window.PD_MAX_LIMIT){
+      Swal.fire({title:'Batas tercapai', text:'Jumlah pendamping sudah mencapai batas maksimum unit ini.', icon:'info'});
+      return;
+    }
+    window.killMasks && window.killMasks();
+    openModal('add', -1);
+  });
+
+  // Batas pendamping per-unit
+  $('#unit_tujuan').on('change', function(){
+    const unitId = $(this).val();
+    if(!unitId){ window.PD_MAX_LIMIT = null; refreshLimitInfo(); return; }
+    $.getJSON('<?= site_url("booking/get_limit_pendamping"); ?>', { id: unitId }, function(res){
+      window.PD_MAX_LIMIT = (typeof res.max === 'number') ? res.max : null;
+      refreshLimitInfo();
+      if (window.PD_MAX_LIMIT !== null && pendamping.length > window.PD_MAX_LIMIT){
+        Swal.fire({title:'Melebihi Batas', text:`Jumlah pendamping (${pendamping.length}) melebihi batas (${window.PD_MAX_LIMIT}). Hapus sebagian.`, icon:'warning'});
+      }
+    }).fail(function(){ window.PD_MAX_LIMIT = null; refreshLimitInfo(); });
+  });
+
+  function refreshLimitInfo(){
+    const txt = (window.PD_MAX_LIMIT === null) ? 'Batas pendamping: tidak dibatasi.' : `Batas pendamping: maks. ${window.PD_MAX_LIMIT} orang.`;
+    if (pdLimitInfo) pdLimitInfo.textContent = txt;
+  }
+
+  // Hook submit dipanggil dari simpan()
+  window._ensurePendampingBeforeSubmit = function(){
+    hidJson.value   = JSON.stringify(pendamping);
+    hidJumlah.value = String(pendamping.length);
+
+    if (window.PD_MAX_LIMIT !== null && pendamping.length > window.PD_MAX_LIMIT) {
+      throw new Error(`Jumlah pendamping melebihi batas (${pendamping.length}/${window.PD_MAX_LIMIT}).`);
+    }
+    if (pendamping.some(p => !isValidId(p.nik) || !p.nama?.trim())) {
+      throw new Error('Lengkapi ID (NIK 16 / NIP 18 atau 9 / NRP 8–9 digit) dan Nama semua pendamping.');
+    }
+  };
+
+  // Inisialisasi
+  refreshLimitInfo();
+  render();
+})();
+</script>
+
+<script>
+/* =========================
+   SUBMIT / BOOKING
+   ========================= */
+   function _inBreak(conf, hhmm){
+    const toMin = s => ((+s.split(':')[0])*60 + (+s.split(':')[1]));
+    if(!conf || !conf.break_start || !conf.break_end) return false;
+    const v = toMin(hhmm), bs = toMin(conf.break_start), be = toMin(conf.break_end);
+    return bs < be && v >= bs && v < be;
+  }
+  function _confForDateStr(ymd){
+    const d = new Date(ymd+'T00:00:00'); const i = d.getDay();
+    return (window.OP_HOURS && OP_HOURS.days && OP_HOURS.days[String(i)]) || null;
+  }
 function simpan(btn){
   btn = btn || document.getElementById('btnBooking');
   const url = "<?= site_url(strtolower($controller).'/add')?>/";
@@ -771,10 +895,7 @@ function simpan(btn){
     allowOutsideClick: false,
     reverseButtons: true,
     buttonsStyling: true,
-    customClass: {
-      confirmButton: "btn btn-primary",
-      cancelButton:  "btn btn-warning"
-    },
+    customClass: { confirmButton: "btn btn-primary", cancelButton: "btn btn-warning" },
     input: "checkbox",
     inputValue: 0,
     inputPlaceholder: "Ceklis: Ya, saya setuju !!!",
@@ -784,7 +905,21 @@ function simpan(btn){
   }).then((res) => {
     if (!res.isConfirmed) return;
 
-    // Validasi/sinkron pendamping
+    const ymd = document.getElementById('tanggal')?.value || '';
+    const jam = document.getElementById('jam')?.value || '';
+
+    if (!ymd) { Swal.fire({title:'Tanggal belum valid', text:'Silakan pilih tanggal dari datepicker.', icon:'warning'}); return; }
+    if (!jam || document.getElementById('jam').disabled) {
+      Swal.fire({title:'Jam belum dipilih', text:'Silakan pilih jam kunjungan.', icon:'warning'}); return;
+    }
+
+    // ⬅️ KEMBALIKAN CEK JAM ISTIRAHAT (lihat poin 2)
+    const conf = _confForDateStr(ymd);
+    if (conf && _inBreak(conf, jam)) {
+      Swal.fire({title:'Jam istirahat', text:'Silakan pilih di luar jam istirahat.', icon:'info'});
+      return;
+    }
+
     try {
       if (typeof window._ensurePendampingBeforeSubmit === 'function') window._ensurePendampingBeforeSubmit();
     } catch (e) {
@@ -792,11 +927,17 @@ function simpan(btn){
       return;
     }
 
+    // ✅ Validasi HTML5 form
     const form = document.getElementById('form_app');
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+
+    // ➜ SATU KALI aja deklarasi form, lanjut bikin FormData
     const formData = new FormData(form);
 
     setLoading(true, btn, { interval: 900 });
     loader();
+
+    // ... lanjut AJAX seperti sekarang
 
     $.ajax({
       url, type: "POST", data: formData,
@@ -815,7 +956,6 @@ function simpan(btn){
         });
         return;
       }
-
       if (obj.redirect_url) { window.location.assign(obj.redirect_url); return; }
 
       const htmlInfo = (obj.pesan || "") + "<br><br>" +
@@ -848,4 +988,59 @@ function simpan(btn){
     .always(function(){ setLoading(false, btn); });
   });
 }
+</script>
+
+<script>
+/* =======================================================
+   PERBAIKAN POSISI MODAL & MASK saat show/shown/hide
+   (tanpa handler klik & tanpa filter input dobel)
+   ======================================================= */
+$(function () {
+  var $m = $('#modalPendamping');
+  if ($m.length) $m.appendTo('body'); // hindari parent yang punya transform/z-index
+
+  $('#modalPendamping')
+    .on('show.bs.modal', function(){
+      window.killMasks && window.killMasks();
+    })
+    .on('shown.bs.modal', function(){
+      window.killMasks && window.killMasks();
+      // tutup swal kalau ada
+      if ($('.swal2-container:visible').length) { try { Swal.close(); } catch(e){} }
+      // enable & fokus input
+      $('#pd_nik').prop({ readonly:false, disabled:false });
+      $('#pd_nama').prop({ readonly:false, disabled:false });
+      setTimeout(function(){ $('#pd_nik').trigger('focus'); }, 30);
+
+      // beberapa lib suka spawn masker lagi; bersihkan sebentar
+      var tries = 0, iv = setInterval(function(){
+        window.killMasks && window.killMasks();
+        if (++tries > 15) clearInterval(iv); // ~1.8 detik
+      }, 120);
+      $(this).data('maskIv', iv);
+    })
+    .on('hide.bs.modal', function(){
+      var iv = $(this).data('maskIv');
+      if (iv) clearInterval(iv);
+    });
+});
+
+
+(function(){
+  const form = document.getElementById('form_app');
+  const KEY='booking_draft_v1';
+  // restore
+  try { const d=JSON.parse(localStorage.getItem(KEY)||'{}');
+    ['nama_tamu','id_number','alamat','tempat_lahir','tanggal_lahir','keperluan','unit_tujuan'].forEach(id=>{
+      if(d[id] && document.getElementById(id)) document.getElementById(id).value = d[id];
+    });
+  } catch(e){}
+  // simpan
+  form.addEventListener('input', ()=>{
+    const m={}; ['nama_tamu','id_number','alamat','tempat_lahir','tanggal_lahir','keperluan','unit_tujuan']
+      .forEach(id=> m[id] = (document.getElementById(id)?.value||''));
+    localStorage.setItem(KEY, JSON.stringify(m));
+  });
+})();
+
 </script>
