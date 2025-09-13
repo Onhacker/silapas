@@ -253,29 +253,66 @@ private function _gate_error($msg)
                 }
                 $seen = [];
                 foreach ($arr as $i => $p) {
-                    $nik  = preg_replace('/\D+/', '', (string)($p['nik'] ?? ''));
-                    $nama = trim((string)($p['nama'] ?? ''));
-                    if ($nik === '' && $nama === '') continue;
+                    // ... di dalam loop foreach ($pendamping as $i => $p) { ... }
 
-                    if (!preg_match('/^\d{16}$/', $nik)) {
-                        return $this->output->set_content_type('application/json')
-                            ->set_output(json_encode(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"NIK pendamping #".($i+1)." harus 16 digit."]));
+                    $rawId = (string)($p['nik'] ?? '');              // FE kirim di key 'nik' (isi bisa NIK/NIP/NRP)
+                    $id    = preg_replace('/\D+/', '', $rawId);      // ambil hanya digit
+                    $nama  = trim((string)($p['nama'] ?? ''));
+
+                    // Jika kedua-duanya kosong → lewati baris
+                    if ($id === '' && $nama === '') {
+                        continue;
                     }
+
+                    // 1) Nama wajib
                     if ($nama === '') {
                         return $this->output->set_content_type('application/json')
-                            ->set_output(json_encode(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"Nama pendamping #".($i+1)." wajib diisi."]));
+                            ->set_output(json_encode([
+                                "success"=>false,
+                                "title"  =>"Validasi Pendamping",
+                                "pesan"  =>"Nama pendamping #".($i+1)." wajib diisi."
+                            ]));
                     }
-                    if ($nik === $nik_tamu) {
+
+                    // 2) Format ID mengikuti FE: NRP 8–9 / NIK 16 / NIP 18 atau 9
+                    if ($id === '' || !preg_match('/^(?:\d{8,9}|\d{16}|\d{18})$/', $id)) {
                         return $this->output->set_content_type('application/json')
-                            ->set_output(json_encode(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"NIK pendamping #".($i+1)." tidak boleh sama dengan NIK tamu."]));
+                            ->set_output(json_encode([
+                                "success"=>false,
+                                "title"  =>"Validasi Pendamping",
+                                "pesan"  =>"ID pendamping #".($i+1)." tidak valid. Isi salah satu: NIK 16 digit, NIP 18/9 digit, atau NRP 8–9 digit."
+                            ]));
                     }
-                    if (isset($seen[$nik])) {
+
+                    // 3) Tidak boleh sama dengan ID/NIK tamu
+                    $nik_tamu_digits = preg_replace('/\D+/', '', (string)$nik_tamu);
+                    if ($nik_tamu_digits && $id === $nik_tamu_digits) {
                         return $this->output->set_content_type('application/json')
-                            ->set_output(json_encode(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"NIK pendamping #".($i+1)." duplikat."]));
+                            ->set_output(json_encode([
+                                "success"=>false,
+                                "title"  =>"Validasi Pendamping",
+                                "pesan"  =>"ID pendamping #".($i+1)." tidak boleh sama dengan ID tamu."
+                            ]));
                     }
-                    $seen[$nik] = true;
-                    $pendampingRows[] = ['nik'=>$nik,'nama'=>$nama]; // kode_booking diisi saat insert
-                }
+
+                    // 4) Cek duplikat dalam daftar pendamping
+                    if (isset($seen[$id])) {
+                        return $this->output->set_content_type('application/json')
+                            ->set_output(json_encode([
+                                "success"=>false,
+                                "title"  =>"Validasi Pendamping",
+                                "pesan"  =>"ID pendamping #".($i+1)." duplikat."
+                            ]));
+                    }
+                    $seen[$id] = true;
+
+                    // 5) Simpan row (tetap pakai kolom 'nik' untuk kompatibilitas BE)
+                    $pendampingRows[] = [
+                        'nik'  => $id,
+                        'nama' => $nama,
+                        // 'kode_booking' diisi saat insert
+                    ];
+
             }
             if ($diminta > 0 && count($pendampingRows) !== $diminta) {
                 return $this->output->set_content_type('application/json')
