@@ -1026,55 +1026,51 @@ private function normalize_date_mysql(?string $s): ?string {
 private function _validate_jadwal($tanggal, $jam_raw)
 {
     $errors  = [];
-    $tanggal = trim((string) $tanggal);
-    $jam_raw = trim((string) $jam_raw);
+    $tanggal = trim((string)$tanggal);
+    $jam_raw = trim((string)$jam_raw);
     $jam     = null;
 
-    // --- Ambil pengaturan (prioritas fm -> om) ---
-    $web = null;
+    // --- Ambil pengaturan website (diasumsikan selalu ada) ---
     if (isset($this->fm) && method_exists($this->fm, 'web_me')) {
         $web = $this->fm->web_me();
     } elseif (isset($this->om) && method_exists($this->om, 'web_me')) {
         $web = $this->om->web_me();
+    } else {
+        // Fallback hard-fail bila tak ada provider
+        return [false, null, null, '<br> * Konfigurasi website tidak ditemukan.'];
     }
 
-    // Zona waktu dari DB (fallback ke default PHP)
-    $tzName = ($web && !empty($web->waktu)) ? (string) $web->waktu : date_default_timezone_get();
+    // Zona waktu dari DB (fallback ke default PHP bila tidak valid)
+    $tzName = !empty($web->waktu) ? (string)$web->waktu : date_default_timezone_get();
     try {
         $tz = new DateTimeZone($tzName);
     } catch (\Exception $e) {
         $tz = new DateTimeZone(date_default_timezone_get());
     }
 
-    // Lead time (samakan dengan form: 0..1440)
-    $min_lead_minutes = 0;
-    if ($web && isset($web->min_lead_minutes)) {
-        $min_lead_minutes = (int) $web->min_lead_minutes;
-    }
+    // Lead time (0..1440, sama dengan front-end)
+    $min_lead_minutes = (int)($web->min_lead_minutes ?? 0);
     $min_lead_minutes = max(0, min(1440, $min_lead_minutes));
 
-    // --- Validasi tanggal ---
+    // --- Validasi tanggal (format & tidak boleh mundur) ---
     $dt = DateTime::createFromFormat('Y-m-d', $tanggal, $tz);
     if (!$dt || $dt->format('Y-m-d') !== $tanggal) {
         $errors[] = '* Tanggal tidak valid (format harus YYYY-MM-DD).';
     } else {
-        // "Hari ini" & waktu sekarang dalam TZ database
-        $nowTz  = new DateTimeImmutable('now', $tz);
-        $today  = $nowTz->format('Y-m-d');
-        $nowMin = ((int) $nowTz->format('H')) * 60 + ((int) $nowTz->format('i'));
-
-        if (strtotime($tanggal) < strtotime($today)) {
+        $nowTz = new DateTimeImmutable('now', $tz);
+        $today = $nowTz->format('Y-m-d');
+        // Bandingkan string 'Y-m-d' (aman secara leksikografis)
+        if ($tanggal < $today) {
             $errors[] = '* Tanggal tidak boleh mundur (minimal hari ini).';
         }
 
-        // 0=Min..6=Sab di TZ database
-        $hari = (int) $dt->format('w');
+        $hari = (int)$dt->format('w'); // 0=Min..6=Sab
 
-        // --- Validasi jam ---
+        // --- Validasi jam (HH:MM) ---
         if ($jam_raw === '') {
             $errors[] = '* Jam harus diisi.';
         } else {
-            // Normalisasi input user: "16.30" -> "16:30", buang spasi
+            // Normalisasi input user: "16.30" -> "16:30", hilangkan spasi
             $jam_norm = str_replace('.', ':', $jam_raw);
             $jam_norm = preg_replace('/\s+/', '', $jam_norm);
 
@@ -1082,54 +1078,42 @@ private function _validate_jadwal($tanggal, $jam_raw)
                 $errors[] = '* Format jam tidak valid (pakai HH:MM, contoh 16:55).';
             } else {
                 list($hh, $mm) = explode(':', $jam_norm);
-                $hh     = (int) $hh;
-                $mm     = (int) $mm;
-                $jam    = sprintf('%02d:%02d', $hh, $mm);
-                $menit  = $hh * 60 + $mm;
+                $hh    = (int)$hh;
+                $mm    = (int)$mm;
+                $jam   = sprintf('%02d:%02d', $hh, $mm);
+                $menit = $hh * 60 + $mm;
 
                 // === Jam operasional dinamis (per-hari + istirahat) ===
-
-                // Parser HH:MM (terima "H:MM" atau "HH.MM" dari DB)
                 $normHHMM = function ($v) {
-                    $v = trim((string) $v);
+                    $v = trim((string)$v);
                     if ($v === '') return null;
                     $v = str_replace('.', ':', $v);
                     if (!preg_match('/^(\d{1,2}):([0-5]\d)$/', $v, $m)) return null;
-                    $h = max(0, min(23, (int) $m[1]));
-                    $i = (int) $m[2];
+                    $h = max(0, min(23, (int)$m[1]));
+                    $i = (int)$m[2];
                     return sprintf('%02d:%02d', $h, $i);
                 };
                 $toMin = function ($hhmm) {
                     if ($hhmm === null) return null;
-                    list($h, $i) = array_map('intval', explode(':', $hhmm));
+                    [$h, $i] = array_map('intval', explode(':', $hhmm));
                     return $h * 60 + $i;
                 };
 
-                // Default jika DB kosong
-                // $def = [
-                //     'mon' => ['open' => '08:00', 'break_start' => '12:00', 'break_end' => '13:00', 'close' => '15:00', 'closed' => 0],
-                //     'tue' => ['open' => '08:00', 'break_start' => '12:00', 'break_end' => '13:00', 'close' => '15:00', 'closed' => 0],
-                //     'wed' => ['open' => '08:00', 'break_start' => '12:00', 'break_end' => '13:00', 'close' => '15:00', 'closed' => 0],
-                //     'thu' => ['open' => '08:00', 'break_start' => '12:00', 'break_end' => '13:00', 'close' => '15:00', 'closed' => 0],
-                //     'fri' => ['open' => '08:00', 'break_start' => '11:30', 'break_end' => '13:00', 'close' => '14:00', 'closed' => 0],
-                //     'sat' => ['open' => '08:00', 'break_start' => '',      'break_end' => '',      'close' => '11:30', 'closed' => 0],
-                //     'sun' => ['open' => '',       'break_start' => '',      'break_end' => '',      'close' => '',      'closed' => 1],
-                // ];
-
                 // Map 0..6 -> key harian
                 $kmap = ['0' => 'sun', '1' => 'mon', '2' => 'tue', '3' => 'wed', '4' => 'thu', '5' => 'fri', '6' => 'sat'];
-                $k    = $kmap[(string) $hari];
+                $k    = $kmap[(string)$hari];
 
-                // Ambil konfigurasi dari $web (kalau ada), lalu normalisasi ke "HH:MM"
+                // Ambil konfigurasi dari DB (diasumsikan properti ada)
                 $cfg = [
-                    'open'        => $normHHMM($web->{"op_{$k}_open"}        ),
-                    'break_start' => $normHHMM($web->{"op_{$k}_break_start"} ),
-                    'break_end'   => $normHHMM($web->{"op_{$k}_break_end"}   ),
-                    'close'       => $normHHMM($web->{"op_{$k}_close"}       ),
-                    'closed'      => (int) ($web->{"op_{$k}_closed"}         ),
+                    'open'        => $normHHMM($web->{"op_{$k}_open"}),
+                    'break_start' => $normHHMM($web->{"op_{$k}_break_start"}),
+                    'break_end'   => $normHHMM($web->{"op_{$k}_break_end"}),
+                    'close'       => $normHHMM($web->{"op_{$k}_close"}),
+                    'closed'      => (int)$web->{"op_{$k}_closed"},
                 ];
 
-                if ($cfg['closed']) {
+                // Anggap "libur" bila closed=1 atau jam buka/tutup kosong
+                if ($cfg['closed'] || !$cfg['open'] || !$cfg['close']) {
                     $errors[] = '* Hari ' . $this->_nama_hari_id($hari) . ' libur, tidak bisa booking.';
                 } else {
                     $min = $toMin($cfg['open']);
@@ -1137,17 +1121,22 @@ private function _validate_jadwal($tanggal, $jam_raw)
                     $bs  = $toMin($cfg['break_start']);
                     $be  = $toMin($cfg['break_end']);
 
+                    // Validasi dasar jam operasional
                     if ($min === null || $max === null || $min >= $max) {
-                        $errors[] = '* Jam operasional hari ' . $this->_nama_hari_id($hari) . ' belum valid (buka/tutup).';
+                        // Secara praktis treat as libur (daripada pesan "jam belum valid")
+                        $errors[] = '* Hari ' . $this->_nama_hari_id($hari) . ' libur, tidak bisa booking.';
                     } else {
-                        $inBreak = ($bs !== null && $be !== null && $bs < $be && $menit >= $bs && $menit < $be);
+                        $hasBreak = ($bs !== null && $be !== null && $bs < $be);
+                        $inBreak  = ($hasBreak && $menit >= $bs && $menit < $be);
 
+                        // === Jika TANGGAL = HARI INI (TZ database) ===
                         if ($tanggal === $today) {
                             // earliest = max(buka, (sekarang + lead))
+                            $nowMin = ((int)$nowTz->format('H')) * 60 + ((int)$nowTz->format('i'));
                             $earliest = max($min, $nowMin + $min_lead_minutes);
 
                             // Jika earliest jatuh di sela istirahat → geser ke akhir istirahat
-                            if ($bs !== null && $be !== null && $bs < $be && $earliest >= $bs && $earliest < $be) {
+                            if ($hasBreak && $earliest >= $bs && $earliest < $be) {
                                 $earliest = $be;
                             }
 
@@ -1157,7 +1146,9 @@ private function _validate_jadwal($tanggal, $jam_raw)
                                 if ($menit < $earliest) {
                                     $minLabel = sprintf('%02d:%02d', intdiv($earliest, 60), $earliest % 60);
                                     $msg = '* Untuk hari ini, jam minimal adalah ' . $minLabel;
-                                    if ($min_lead_minutes) $msg .= ' (termasuk jeda ' . $min_lead_minutes . ' menit).';
+                                    if ($min_lead_minutes) {
+                                        $msg .= ' (termasuk jeda ' . $min_lead_minutes . ' menit).';
+                                    }
                                     $errors[] = $msg;
                                 }
                                 if ($menit > $max) {
@@ -1171,7 +1162,7 @@ private function _validate_jadwal($tanggal, $jam_raw)
                                 }
                             }
                         } else {
-                            // Bukan hari ini → cek range & (opsional) break
+                            // === TANGGAL ≠ HARI INI ===
                             if ($menit < $min || $menit > $max) {
                                 $minLabel = sprintf('%02d:%02d', intdiv($min, 60), $min % 60);
                                 $maxLabel = sprintf('%02d:%02d', intdiv($max, 60), $max % 60);

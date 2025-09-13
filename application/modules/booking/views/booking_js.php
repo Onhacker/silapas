@@ -368,11 +368,11 @@ function loader() {
 <script>
 (function(){
   // ====== Elemen ======
-  const elView  = document.getElementById('tanggal_view') || document.getElementById('tanggal'); // kalau belum ada tanggal_view, pakai tanggal
+  const elView  = document.getElementById('tanggal_view') || document.getElementById('tanggal'); // jika tidak pakai tanggal_view, dia akan pakai #tanggal (native)
   const elISO   = document.getElementById('tanggal');       // hidden YYYY-MM-DD (atau input aslinya kalau belum pakai hidden)
   const jamInput = document.getElementById('jam');
   const infoJam  = document.getElementById('jam-info');
-  const infoTgl  = document.getElementById('tanggal-info'); // <- perbaikan ID
+  const infoTgl  = document.getElementById('tanggal-info');
 
   // ====== Util ======
   const HARI_ID = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
@@ -405,7 +405,7 @@ function loader() {
   function sameYmd(a,b){ return a&&b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
 
   function applyForDate(d){
-    // Reset state
+    // reset
     jamInput.value = '';
     jamInput.disabled = true;
     jamInput.removeAttribute('min');
@@ -418,11 +418,9 @@ function loader() {
     const dayIdx = d.getDay();                   // 0=Min..6=Sab
     const conf   = OP_HOURS?.days?.[String(dayIdx)];
 
-    // Minggu/libur
     if (!conf || conf.closed) {
       if (infoTgl) infoTgl.textContent = `Hari ${HARI_ID[dayIdx]} libur, silakan pilih hari lain.`;
       if (window.Swal) Swal.fire({title:'Info', html:`Hari ${HARI_ID[dayIdx]} libur, silakan pilih hari lain.`, icon:'info'});
-      // kosongkan hidden biar tidak terkirim
       if (elISO && elISO !== elView) elISO.value = '';
       if (elView && elView.id === 'tanggal') elView.value = '';
       return;
@@ -433,135 +431,87 @@ function loader() {
     let minStr = conf.open || '00:00';
     let maxStr = conf.close || '23:59';
 
-    // Lead time untuk HARI INI (pakai jam server offset bila ada)
+    // Lead time utk HARI INI
     const nowMsServer = Date.now() + (window.serverOffsetMs || 0);
     const nowServer   = new Date(nowMsServer);
     if (sameYmd(d, nowServer)) {
       const lead = Math.max(0, Math.min(1440, +(OP_HOURS?.lead ?? 0)));
       let earliest = nowServer.getHours()*60 + nowServer.getMinutes() + lead;
 
-      // Jika earliest nabrak istirahat, geser ke akhir istirahat
+      // jika earliest di sela istirahat → geser ke akhir istirahat
       const bs = toMin(conf.break_start), be = toMin(conf.break_end);
       if (bs!==null && be!==null && bs<be && earliest>=bs && earliest<be) earliest = be;
 
-      // Ambil yang terbesar antara jam buka & earliest
+      // ambil terbesar: buka vs earliest
       const openMin = toMin(minStr) ?? 0;
       minStr = fromMin(Math.max(openMin, earliest));
     }
 
-    // Pasang batas ke input
     jamInput.min = minStr;
     jamInput.max = maxStr;
 
-    // Info kecil di bawah input jam
     if (infoJam) infoJam.textContent = buildInfoLine(dayIdx, conf, minStr);
   }
 
-  // ====== Inisialisasi datepicker ======
+  // ====== Inisialisasi datepicker (DISABLE tanggal sebelumnya) ======
+  const minToday = todayYmd(); // YYYY-MM-DD, patokan min
+
   if (window.flatpickr && elView && elView.id !== 'tanggal') {
     // Mode 2 input: tanggal_view (dd/mm/yyyy) + hidden tanggal (yyyy-mm-dd)
     flatpickr(elView, {
       locale: flatpickr.l10ns.id,
-      dateFormat: 'd/m/Y',
+      dateFormat: 'd/m/Y',        // tampilan
       allowInput: true,
       disableMobile: true,
-      minDate: todayYmd(),
-      disable: [date => date.getDay() === 0], // disable Minggu di kalender
+      minDate: minToday,          // <<— MATIIN tanggal sebelumnya
+      // opsional: disable Minggu
+      // disable: [date => date.getDay() === 0],
+
       onChange: function(selectedDates, _, inst){
         const d = selectedDates && selectedDates[0] ? selectedDates[0] : null;
-        // sinkron hidden (yyyy-mm-dd)
         if (elISO) elISO.value = d ? inst.formatDate(d,'Y-m-d') : '';
         applyForDate(d);
+      },
+      onClose: function(_, __, inst){
+        // Jika user ngetik manual: validasi ulang & tolak tanggal < hari ini
+        const typed = elView.value && inst.parseDate(elView.value, 'd/m/Y');
+        const minD  = inst.parseDate(minToday, 'Y-m-d');
+        if (typed && typed < minD) {
+          elView.value = '';
+          if (elISO) elISO.value = '';
+          if (window.Swal) Swal.fire({title:'Tanggal tidak valid', text:'Tidak bisa memilih tanggal sebelum hari ini.', icon:'warning'});
+        }
       }
     });
   } else {
-    // Fallback: pakai <input type="date" id="tanggal">
-    if (elView) elView.setAttribute('min', todayYmd());
+    // Fallback: native <input type="date"> — set min & hard-guard
+    if (elView) elView.setAttribute('min', minToday);
     elView?.addEventListener('change', function(){
+      // Tolak manual input < min
+      if (this.value && this.value < minToday) {
+        this.value = '';
+        if (infoTgl) infoTgl.textContent = 'Tidak bisa memilih tanggal sebelum hari ini.';
+        if (window.Swal) Swal.fire({title:'Tanggal tidak valid', text:'Tidak bisa memilih tanggal sebelum hari ini.', icon:'warning'});
+        return;
+      }
       const d = this.value ? new Date(this.value) : null;
-      // Kalau kamu tetap ingin tampil dd/mm/yyyy, tampilkan ke info saja (input native tetap yyyy-mm-dd)
       applyForDate(d);
     });
   }
 
-  // Jalankan sekali (kalau sudah ada nilai awal)
+  // Jika sudah ada nilai awal, terapkan aturan (mis. ketika kembali ke form)
   if (elISO && elISO.value) {
-    applyForDate(new Date(elISO.value));
+    // Jika default value lebih kecil dari hari ini, kosongkan
+    if (elISO.value < minToday) {
+      elISO.value = '';
+      if (elView && elView.id === 'tanggal') elView.value = '';
+    } else {
+      applyForDate(new Date(elISO.value));
+    }
   }
 })();
 </script>
 
-<script>
-  // ====== Label file custom ======
-  (function(){
-    var st = document.getElementById('surat_tugas');
-    if (st) {
-      st.addEventListener('change', function(e){
-        var f = e.target.files && e.target.files[0] ? e.target.files[0].name : 'Pilih file...';
-        var lbl = document.querySelector('label[for="surat_tugas"].custom-file-label');
-        if (lbl) lbl.textContent = f;
-      });
-    }
-  })();
-
-  // ====== Mode instansi: Select vs Manual (Lainnya) ======
-  (function(){
-    var kat   = document.getElementById('kategori');
-    var selW  = document.getElementById('instansi_select_wrap');
-    var sel   = document.getElementById('instansi');
-    var manW  = document.getElementById('instansi_manual_wrap');
-    var man   = document.getElementById('instansi_manual');
-
-    function useSelectMode(){
-      selW.classList.remove('d-none');
-      sel.removeAttribute('disabled');
-      sel.setAttribute('required','required');
-
-      manW.classList.add('d-none');
-      man.setAttribute('disabled','disabled');
-      man.removeAttribute('required');
-      man.value = '';
-    }
-
-    function useManualMode(){
-      manW.classList.remove('d-none');
-      man.removeAttribute('disabled');
-      man.setAttribute('required','required');
-
-      selW.classList.add('d-none');
-      sel.setAttribute('disabled','disabled');
-      sel.removeAttribute('required');
-      sel.value = '';
-    }
-
-    kat.addEventListener('change', function(){
-      var v = this.value || '';
-      if (v === 'lainnya'){
-        useManualMode();
-      } else if (v){
-        useSelectMode();
-        // TODO: AJAX load daftar instansi berdasarkan kategori `v`
-        sel.innerHTML = '<option value="">-- Pilih Instansi --</option>';
-      } else {
-        sel.value=''; sel.setAttribute('disabled','disabled'); sel.removeAttribute('required');
-        man.value=''; man.setAttribute('disabled','disabled'); man.removeAttribute('required');
-        selW.classList.remove('d-none'); manW.classList.add('d-none');
-      }
-    });
-
-    // trigger awal
-    kat.dispatchEvent(new Event('change'));
-  })();
-
-  // ====== Batasi input angka untuk NIK & HP ======
-  ['nik','no_hp'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(!el) return;
-    el.addEventListener('input', function(){
-      this.value = this.value.replace(/[^\d]/g,'');
-    });
-  });
-</script>
 
 <script>
 /**
@@ -902,3 +852,47 @@ function simpan(){
 }
 </script>
 
+<script>
+(function(){
+  const view = document.getElementById('tanggal_lahir_view');
+  const iso  = document.getElementById('tanggal_lahir');
+  if (!view || !iso) return;
+
+  function pad(n){ return (n<10?'0':'')+n; }
+  function todayYmd(){
+    const base = Date.now() + (window.serverOffsetMs || 0); // pakai offset server jika tersedia
+    const d = new Date(base);
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  if (window.flatpickr) {
+    flatpickr(view, {
+      locale: flatpickr.l10ns.id,
+      dateFormat: 'd/m/Y',     // tampilan
+      allowInput: true,
+      disableMobile: true,     // paksa UI flatpickr di mobile
+      maxDate: todayYmd(),     // tidak boleh di masa depan
+      defaultDate: iso.value || null, // kalau hidden sudah punya nilai awal (Y-m-d)
+
+      onChange: function(selectedDates, _, inst){
+        const d = selectedDates && selectedDates[0] ? selectedDates[0] : null;
+        iso.value = d ? inst.formatDate(d, 'Y-m-d') : '';
+      },
+      onReady: function(_, __, inst){
+        // Jika hidden sudah terisi (Y-m-d), sinkron tampilan dd/mm/Y
+        if (iso.value) {
+          const parsed = inst.parseDate(iso.value, 'Y-m-d');
+          if (parsed) view.value = inst.formatDate(parsed, 'd/m/Y');
+        }
+      }
+    });
+  } else {
+    // Fallback: pakai native date (format tampil bisa beda-beda per device)
+    view.type = 'date';
+    view.setAttribute('max', todayYmd());
+    view.addEventListener('change', function(){
+      iso.value = this.value || '';
+    });
+  }
+})();
+</script>
