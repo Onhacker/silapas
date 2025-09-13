@@ -1,3 +1,17 @@
+<script>
+(function(){
+  var isEmbed = /[?&]embed=1/.test(location.search) || (window.top !== window.self);
+  if (isEmbed){
+    var s = document.createElement('style');
+    s.textContent = `
+      .page-title-box{display:none!important}
+      .container-fluid{padding-top:8px;}
+    `;
+    document.head.appendChild(s);
+  }
+})();
+</script>
+
 <style>
   .board-card{border:1px solid #eef0f3;border-radius:14px}
   .board-head{border-bottom:1px dashed #e5e7eb}
