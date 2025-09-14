@@ -86,6 +86,8 @@ public function update()
         'waktu'            => $post['waktu'] ?? 'Asia/Makassar',
         'type'             => $post['type'] ?? '',
         'credits'          => $post['credits'] ?? '',
+        'batas_edit'          => $post['batas_edit'] ?? '',
+        'batas_hari'          => $post['batas_hari'] ?? '',
         'min_lead_minutes' => $minLead,
         'early_min'        => $earlyMin,
         'late_min'         => $lateMin,

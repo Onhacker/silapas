@@ -141,7 +141,27 @@
                   echo form_dropdown("waktu",$arr_waktu,$waktu,'id="waktu" class="form-control"');
                 ?>
               </div>
-              <div class="form-group col-md-4">
+              <div class="form-group col-md-3">
+                <label class="text-primary" for="batas_edit">Batas Maksimal Ubah Booking</label>
+                <input type="number" class="form-control" id="batas_edit" name="batas_edit"
+                min="0" max="5" step="1"
+                value="<?= isset($record->batas_edit)?(int)$record->batas_edit:1; ?>">
+                <small class="text-danger">
+                  Pengunjung diperbolehkan Merubah Bookingan sebanyak X Kali
+                </small>
+              </div>
+              <div class="form-group col-md-3">
+                <label class="text-primary" for="batas_hari">Batas Jumlah hari Maksimal Ubah Booking</label>
+                <input type="number" class="form-control" id="batas_hari" name="batas_hari"
+                min="0" max="5" step="1"
+                value="<?= isset($record->batas_hari)?(int)$record->batas_hari:2; ?>">
+                <small class="text-danger">
+                  Pengunjung diperbolehkan Merubah Bookingan maksimal X Hari sebelum hari kunjungan. Set 0 untuk antisipasi edit jika bookingan dan kunjungan di hari yang sama
+                </small>
+              </div>
+
+
+              <div class="form-group col-md-3">
                   <label class="text-primary" for="min_lead_minutes">Jeda Minimum Booking (menit)</label>
                   <input type="number" class="form-control" id="min_lead_minutes" name="min_lead_minutes"
                   min="0" max="1440" step="1"
@@ -153,7 +173,7 @@
                 </small>
             </div>
 
-            <div class="form-group col-md-4">
+            <div class="form-group col-md-3">
               <label class="text-primary" for="early_min">Batas Datang Lebih Awal (menit)</label>
               <input type="number" class="form-control" id="early_min" name="early_min"
               min="0" max="1440" step="1"
@@ -161,10 +181,10 @@
               <small class="text-danger">
                 Pengunjung diperbolehkan check-in maksimal <b>X</b> menit sebelum jam kunjungan terjadwal.
                 (Contoh: isi 10 → boleh checkin 10 menit lebih awal dari jam kunjungan terjadwal.)
-            </small>
-        </div>
+              </small>
+            </div>
 
-        <div class="form-group col-md-4">
+        <div class="form-group col-md-3">
               <label class="text-primary" for="late_min">Batas Keterlambatan (menit)</label>
               <input type="number" class="form-control" id="late_min" name="late_min"
               min="0" max="1440" step="1"

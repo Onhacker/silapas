@@ -12,6 +12,18 @@ class Booking extends MX_Controller {
         $this->load->model('M_booking','mb');
     }
 
+    /* ===== Small guard for dev/debug endpoints ===== */
+    private function _ensure_dev_or_key(): void {
+        $okEnv = (defined('ENVIRONMENT') && ENVIRONMENT === 'development');
+        $key   = trim((string)$this->input->get('key', true));
+        $cfg   = getenv('ADMIN_TASK_KEY') ?: 'changeme';
+        $okKey = ($key !== '' && hash_equals($cfg, $key));
+        if (!$okEnv && !$okKey) {
+            show_404();
+            exit;
+        }
+    }
+
     public function index()
     {
         $data["controller"] = get_class($this);
@@ -26,65 +38,64 @@ class Booking extends MX_Controller {
     }
 
     public function download_gate()
-{
-    $t = trim((string)$this->input->get('t', true));
-    $k = trim((string)$this->input->get('k', true));
+    {
+        $t = trim((string)$this->input->get('t', true));
+        $k = trim((string)$this->input->get('k', true));
 
-    // Validasi minimal
-    if ($t === '' || $k === '') return $this->_gate_error('Link tidak valid.');
+        // Validasi minimal
+        if ($t === '' || $k === '') return $this->_gate_error('Link tidak valid.');
 
-    $row = $this->db->get_where('booking_tamu', [
-        'kode_booking' => $k,
-        'access_token' => $t
-    ])->row();
+        $row = $this->db->get_where('booking_tamu', [
+            'kode_booking' => $k,
+            'access_token' => $t
+        ])->row();
 
-    if (!$row)                         return $this->_gate_error('Link tidak valid.');
-    if ((int)$row->token_revoked === 1)return $this->_gate_error('Token dicabut.');
-    if (!empty($row->checkout_at))     return $this->_gate_error('Sudah checkout.');
-    if (isset($row->status) && $row->status === 'expired') {
-        return $this->_gate_error('Status sudah tidak berlaku (expired).');
+        if (!$row)                         return $this->_gate_error('Link tidak valid.');
+        if ((int)$row->token_revoked === 1)return $this->_gate_error('Token dicabut.');
+        if (!empty($row->checkout_at))     return $this->_gate_error('Sudah checkout.');
+        if (isset($row->status) && $row->status === 'expired') {
+            return $this->_gate_error('Status sudah tidak berlaku (expired).');
+        }
+
+        $dl = site_url('booking/print_pdf/'.rawurlencode($k)).'?t='.urlencode($t).'&dl=1';
+        $to = site_url('booking/booked?t='.urlencode($t)); 
+
+        $data = [
+            'controller' => get_class($this),
+            'title'      => 'Mengunduh tiket…',
+            'deskripsi'  => 'Menyiapkan unduhan…',
+            'prev'       => base_url("assets/images/booking.png"),
+            'dl'         => $dl,
+            'to'         => $to,
+            'rec'        => $this->fm->web_me(),
+        ];
+
+        // 200 OK tapi tetap noindex + no-cache
+        $this->output
+            ->set_header('X-Robots-Tag: noindex, nofollow, noarchive')
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+            ->set_header('Pragma: no-cache');
+
+        $this->load->view('download_gate', $data);
     }
 
-    $dl = site_url('booking/print_pdf/'.rawurlencode($k)).'?t='.urlencode($t).'&dl=1';
-    $to = site_url('booking/booked?t='.urlencode($t)); 
+    private function _gate_error($msg)
+    {
+        $this->output
+            ->set_status_header(410, 'Gone') // di halaman ERROR boleh 410
+            ->set_header('X-Robots-Tag: noindex, nofollow, noarchive')
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+            ->set_header('Pragma: no-cache');
 
-    $data = [
-        'controller' => get_class($this),
-        'title'      => 'Mengunduh tiket…',
-        'deskripsi'  => 'Menyiapkan unduhan…',
-        'prev'       => base_url("assets/images/booking.png"),
-        'dl'         => $dl,
-        'to'         => $to,
-        'rec'        => $this->fm->web_me(),
-    ];
-
-    // 200 OK tapi tetap noindex + no-cache
-    $this->output
-        ->set_header('X-Robots-Tag: noindex, nofollow, noarchive')
-        ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
-        ->set_header('Pragma: no-cache');
-
-    $this->load->view('download_gate', $data);
-}
-
-private function _gate_error($msg)
-{
-    $this->output
-        ->set_status_header(410, 'Gone') // di halaman ERROR boleh 410
-        ->set_header('X-Robots-Tag: noindex, nofollow, noarchive')
-        ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
-        ->set_header('Pragma: no-cache');
-
-    $data = [
-        'controller' => get_class($this),
-        'title'      => 'Link Tidak Berlaku',
-        'deskripsi'  => $msg,
-        'prev'       => base_url("assets/images/booking.png"),
-        'rec'        => $this->fm->web_me(),
-    ];
-    $this->load->view('booking_error', $data);
-}
-
+        $data = [
+            'controller' => get_class($this),
+            'title'      => 'Link Tidak Berlaku',
+            'deskripsi'  => $msg,
+            'prev'       => base_url("assets/images/booking.png"),
+            'rec'        => $this->fm->web_me(),
+        ];
+        $this->load->view('booking_error', $data);
+    }
 
     public function booked()
     {
@@ -102,13 +113,18 @@ private function _gate_error($msg)
             $wkt = date('d-m-Y H:i', strtotime($booking->checkout_at));
             return $this->_booked_error("Link tidak berlaku. Anda telah checkout pada {$wkt}.");
         }
-        // Jika status sudah expired → link tidak berlaku
         if (isset($booking->status) && $booking->status === 'expired') {
             $wkt = !empty($booking->expired_at)
-            ? date('d-m-Y H:i', strtotime($booking->expired_at))
-            : ($booking->tanggal.' '.$booking->jam);
+                ? date('d-m-Y H:i', strtotime($booking->expired_at))
+                : ($booking->tanggal.' '.$booking->jam);
             return $this->_booked_error("Link tidak berlaku. Status: Tidak Hadir (Expired) pada {$wkt}.");
         }
+
+        // Noindex + no-cache untuk halaman detail berbasis token
+        $this->output
+            ->set_header('X-Robots-Tag: noindex, nofollow, noarchive')
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+            ->set_header('Pragma: no-cache');
 
         $data = [
             "controller" => get_class($this),
@@ -118,17 +134,25 @@ private function _gate_error($msg)
             "rec"        => $this->fm->web_me(),
             "prev"       => base_url("assets/images/booking.png"),
         ];
+        list($batas_edit, $batas_hari) = $this->_get_edit_limits();
+        $data['batas_edit'] = $batas_edit;
+        $data['batas_hari'] = $batas_hari;
+        // $web = $this->db->select('batas_edit,batas_hari')->get('identitas')->row();
+        // $data['batas_edit'] = isset($web->batas_edit) ? (int)$web->batas_edit : 1;
+        // $data['batas_hari'] = isset($web->batas_hari) ? (int)$web->batas_hari : 2;
+
+
         $this->load->view('booking_detail', $data);
     }
 
     private function _booked_error($msg)
     {
-        // 410 lebih tepat untuk link sudah tidak berlaku; 404 juga boleh.
         $this->output
-        ->set_status_header(410, 'Gone') // atau 404
-        ->set_header('X-Robots-Tag: noindex, nofollow, noarchive')
-        ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
-        ->set_header('Pragma: no-cache');
+            ->set_status_header(410, 'Gone') // atau 404
+            ->set_header('X-Robots-Tag: noindex, nofollow, noarchive')
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+            ->set_header('Pragma: no-cache');
+
         $data = [
             "controller" => get_class($this),
             "rec"        => $this->fm->web_me(),
@@ -143,128 +167,121 @@ private function _gate_error($msg)
      *  SUBMIT BOOKING (AJAX)
      *  ========================= */
     public function add()
-        {
-            $data = $this->input->post(NULL, TRUE);
-            $this->load->library('form_validation');
+    {
+        $data = $this->input->post(NULL, TRUE);
+        $this->load->library('form_validation');
 
-            // -- inisialisasi supaya selalu ada
-            $surat_tugas = null;
-            $foto        = null;
+        // -- inisialisasi supaya selalu ada
+        $surat_tugas = null;
+        $foto        = null;
 
-            $this->_set_rules();
-            if ($this->form_validation->run() === FALSE) {
+        $this->_set_rules();
+        if ($this->form_validation->run() === FALSE) {
+            return $this->output->set_content_type('application/json')
+                ->set_output(json_encode([
+                    "success"=>false, "title"=>"Validasi Gagal", "pesan"=>validation_errors()
+                ]));
+        }
+
+        // 1) Validasi tanggal & jam
+        [$ok, $tanggal, $jam, $err] = $this->_validate_jadwal($data['tanggal'], $data['jam']);
+        if (!$ok) {
+            return $this->output->set_content_type('application/json')
+                ->set_output(json_encode(["success"=>false,"title"=>"Validasi Gagal","pesan"=>$err]));
+        }
+
+        // 2) Cek batas pendamping per unit
+        $unit_id    = (int)$data['unit_tujuan'];
+        $dimintaRaw = $this->input->post('jumlah_pendamping', true);
+        $diminta    = ($dimintaRaw === '' || $dimintaRaw === null) ? 0 : (int)$dimintaRaw;
+
+        [$ok, $unit_nama, $err] = $this->_validate_pendamping($unit_id, $diminta);
+        if (!$ok) {
+            return $this->output->set_content_type('application/json')
+                ->set_output(json_encode(["success"=>false,"title"=>"Melebihi Batas Pendamping","pesan"=>$err]));
+        }
+        // 2.b) Cek kuota harian (pre-check cepat)
+        [$okQuota, $sisa, $terpakai, $kuota, $errQ] = $this->_validate_kuota_harian($unit_id, $tanggal, false);
+        if (!$okQuota) {
+            return $this->output->set_content_type('application/json')
+                ->set_output(json_encode(["success"=>false,"title"=>"Kuota Penuh","pesan"=>$errQ]));
+        }
+
+        // 3) Instansi asal
+        $kategori   = strtolower((string)$this->input->post('kategori', true));
+        $instansiId = (int)$this->input->post('instansi_id', true);
+        if ($kategori === 'lainnya') {
+            $instansiNama = trim((string)$this->input->post('target_instansi_nama', true));
+            if ($instansiNama === '' || mb_strlen($instansiNama) < 3) {
                 return $this->output->set_content_type('application/json')
-                    ->set_output(json_encode([
-                        "success"=>false, "title"=>"Validasi Gagal", "pesan"=>validation_errors()
-                    ]));
+                    ->set_output(json_encode(["success"=>false,"title"=>"Validasi Gagal","pesan"=>"Nama instansi (Lainnya) minimal 3 karakter."]));
             }
-
-            // 1) Validasi tanggal & jam
-            [$ok, $tanggal, $jam, $err] = $this->_validate_jadwal($data['tanggal'], $data['jam']);
+            $instansiId = null;
+        } else {
+            [$ok, $instansiNama, $err] = $this->_resolve_instansi_asal($kategori, $instansiId);
             if (!$ok) {
                 return $this->output->set_content_type('application/json')
                     ->set_output(json_encode(["success"=>false,"title"=>"Validasi Gagal","pesan"=>$err]));
             }
+        }
 
-            // 2) Cek batas pendamping per unit
-            $unit_id    = (int)$data['unit_tujuan'];
-            $dimintaRaw = $this->input->post('jumlah_pendamping', true);
-            $diminta    = ($dimintaRaw === '' || $dimintaRaw === null) ? 0 : (int)$dimintaRaw;
+        // 4) Token akses
+        $access_token = bin2hex(random_bytes(24));
 
-            [$ok, $unit_nama, $err] = $this->_validate_pendamping($unit_id, $diminta);
-            if (!$ok) {
+        // 5) Upload opsional
+        $no_file = function(string $field){
+            return empty($_FILES[$field]) ||
+                   (isset($_FILES[$field]['error']) && $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) ||
+                   (isset($_FILES[$field]['name']) && $_FILES[$field]['name'] === '');
+        };
+
+        if (!$no_file('surat_tugas')) {
+            $tmp = $this->_upload('surat_tugas', './uploads/surat_tugas/', 'pdf|jpg|jpeg|png', 2048, 'surat_tugas');
+            if ($tmp === null) {
+                $msg = $this->get_last_upload_error();
+                if ($msg && stripos($msg, 'did not select a file') === false) {
+                    return $this->output->set_content_type('application/json')
+                        ->set_output(json_encode(["success"=>false,"title"=>"Upload Gagal","pesan"=>$msg ?: "Surat tugas melebihi 2MB."]));
+                }
+            } else { $surat_tugas = $tmp; }
+        }
+
+        if (!$no_file('foto')) {
+            $tmp = $this->_upload('foto', './uploads/foto/', 'jpg|jpeg|png', 1536, 'foto');
+            if ($tmp === null) {
+                $msg = $this->get_last_upload_error();
+                if ($msg && stripos($msg, 'did not select a file') === false) {
+                    return $this->output->set_content_type('application/json')
+                        ->set_output(json_encode(["success"=>false,"title"=>"Upload Gagal","pesan"=>$msg ?: "Foto melebihi 1.5MB."]));
+                }
+            } else { $foto = $tmp; }
+        }
+
+        // 5.x) default nama petugas instansi dari unit_tujuan
+        $nama_petugas_instansi = null;
+        $unit = $this->db->select('nama_pejabat, nama_unit')
+            ->from('unit_tujuan')->where('id', $unit_id)->limit(1)->get()->row();
+        if ($unit && !empty($unit->nama_pejabat)) $nama_petugas_instansi = trim($unit->nama_pejabat);
+
+        // ------- DATA PENDAMPING (validasi JSON) -------
+        $pendampingRows  = [];
+        $pendamping_json = $this->input->post('pendamping_json', true);
+        $nik_tamu        = preg_replace('/\D+/', '', (string)$this->input->post('nik', true));
+
+        if ($pendamping_json !== null && $pendamping_json !== '') {
+            $arr = json_decode($pendamping_json, true);
+            if (!is_array($arr)) {
                 return $this->output->set_content_type('application/json')
-                    ->set_output(json_encode(["success"=>false,"title"=>"Melebihi Batas Pendamping","pesan"=>$err]));
+                    ->set_output(json_encode(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"Format data pendamping tidak valid."]));
             }
-            // 2.b) Cek kuota harian (pre-check cepat)
-            [$okQuota, $sisa, $terpakai, $kuota, $errQ] = $this->_validate_kuota_harian($unit_id, $tanggal, false);
-            if (!$okQuota) {
-                return $this->output->set_content_type('application/json')
-                ->set_output(json_encode(["success"=>false,"title"=>"Kuota Penuh","pesan"=>$errQ]));
-            }
-
-
-            // 3) Instansi asal
-            $kategori   = strtolower((string)$this->input->post('kategori', true));
-            $instansiId = (int)$this->input->post('instansi_id', true);
-            if ($kategori === 'lainnya') {
-                $instansiNama = trim((string)$this->input->post('target_instansi_nama', true));
-                if ($instansiNama === '' || mb_strlen($instansiNama) < 3) {
-                    return $this->output->set_content_type('application/json')
-                        ->set_output(json_encode(["success"=>false,"title"=>"Validasi Gagal","pesan"=>"Nama instansi (Lainnya) minimal 3 karakter."]));
-                }
-                $instansiId = null;
-            } else {
-                [$ok, $instansiNama, $err] = $this->_resolve_instansi_asal($kategori, $instansiId);
-                if (!$ok) {
-                    return $this->output->set_content_type('application/json')
-                        ->set_output(json_encode(["success"=>false,"title"=>"Validasi Gagal","pesan"=>$err]));
-                }
-            }
-
-            // 4) Token akses
-            $access_token = bin2hex(random_bytes(24));
-
-            // 5) Upload opsional
-            $no_file = function(string $field){
-                return empty($_FILES[$field]) ||
-                       (isset($_FILES[$field]['error']) && $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) ||
-                       (isset($_FILES[$field]['name']) && $_FILES[$field]['name'] === '');
-            };
-
-            if (!$no_file('surat_tugas')) {
-                $tmp = $this->_upload('surat_tugas', './uploads/surat_tugas/', 'pdf|jpg|jpeg|png', 2048, 'surat_tugas');
-                if ($tmp === null) {
-                    $msg = $this->get_last_upload_error();
-                    if ($msg && stripos($msg, 'did not select a file') === false) {
-                        return $this->output->set_content_type('application/json')
-                            ->set_output(json_encode(["success"=>false,"title"=>"Upload Gagal","pesan"=>$msg ?: "Surat tugas melebihi 2MB."]));
-                    }
-                } else { $surat_tugas = $tmp; }
-            }
-
-            if (!$no_file('foto')) {
-                $tmp = $this->_upload('foto', './uploads/foto/', 'jpg|jpeg|png', 1536, 'foto');
-                if ($tmp === null) {
-                    $msg = $this->get_last_upload_error();
-                    if ($msg && stripos($msg, 'did not select a file') === false) {
-                        return $this->output->set_content_type('application/json')
-                            ->set_output(json_encode(["success"=>false,"title"=>"Upload Gagal","pesan"=>$msg ?: "Foto melebihi 1.5MB."]));
-                    }
-                } else { $foto = $tmp; }
-            }
-
-            // 5.x) default nama petugas instansi dari unit_tujuan
-            $nama_petugas_instansi = null;
-            $unit = $this->db->select('nama_pejabat, nama_unit')
-                             ->from('unit_tujuan')->where('id', $unit_id)->limit(1)->get()->row();
-            if ($unit && !empty($unit->nama_pejabat)) $nama_petugas_instansi = trim($unit->nama_pejabat);
-
-            // ------- DATA PENDAMPING (validasi JSON) -------
-            $pendampingRows  = [];
-            $pendamping_json = $this->input->post('pendamping_json', true);
-            $nik_tamu        = preg_replace('/\D+/', '', (string)$this->input->post('nik', true));
-
-            if ($pendamping_json !== null && $pendamping_json !== '') {
-                $arr = json_decode($pendamping_json, true);
-                if (!is_array($arr)) {
-                    return $this->output->set_content_type('application/json')
-                        ->set_output(json_encode(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"Format data pendamping tidak valid."]));
-                }
-                $seen = [];
-                foreach ($arr as $i => $p) {
-                    // ... di dalam loop foreach ($pendamping as $i => $p) { ... }
-
+            $seen = [];
+            foreach ($arr as $i => $p) {
                 $rawId = (string)($p['nik'] ?? '');              // FE kirim di key 'nik' (isi bisa NIK/NIP/NRP)
                 $id    = preg_replace('/\D+/', '', $rawId);      // ambil hanya digit
                 $nama  = trim((string)($p['nama'] ?? ''));
 
-                // Jika kedua-duanya kosong → lewati baris
-                if ($id === '' && $nama === '') {
-                    continue;
-                }
+                if ($id === '' && $nama === '') continue;
 
-                // 1) Nama wajib
                 if ($nama === '') {
                     return $this->output->set_content_type('application/json')
                         ->set_output(json_encode([
@@ -274,7 +291,7 @@ private function _gate_error($msg)
                         ]));
                 }
 
-                // 2) Format ID mengikuti FE: NRP 8–9 / NIK 16 / NIP 18 atau 9
+                // NRP 8–9 / NIK 16 / NIP 18 atau 9
                 if ($id === '' || !preg_match('/^(?:\d{8,9}|\d{16}|\d{18})$/', $id)) {
                     return $this->output->set_content_type('application/json')
                         ->set_output(json_encode([
@@ -284,7 +301,6 @@ private function _gate_error($msg)
                         ]));
                 }
 
-                // 3) Tidak boleh sama dengan ID/NIK tamu
                 $nik_tamu_digits = preg_replace('/\D+/', '', (string)$nik_tamu);
                 if ($nik_tamu_digits && $id === $nik_tamu_digits) {
                     return $this->output->set_content_type('application/json')
@@ -295,7 +311,6 @@ private function _gate_error($msg)
                         ]));
                 }
 
-                // 4) Cek duplikat dalam daftar pendamping
                 if (isset($seen[$id])) {
                     return $this->output->set_content_type('application/json')
                         ->set_output(json_encode([
@@ -306,134 +321,126 @@ private function _gate_error($msg)
                 }
                 $seen[$id] = true;
 
-                // 5) Simpan row (tetap pakai kolom 'nik' untuk kompatibilitas BE)
                 $pendampingRows[] = [
                     'nik'  => $id,
                     'nama' => $nama,
-                    // 'kode_booking' diisi saat insert
                 ];
-
-                }
             }
-            if ($diminta > 0 && count($pendampingRows) !== $diminta) {
-                return $this->output->set_content_type('application/json')
-                    ->set_output(json_encode([
-                        "success"=>false,"title"=>"Validasi Pendamping",
-                        "pesan"=>"Jumlah pendamping yang diisi (".count($pendampingRows).") tidak sama dengan jumlah pendamping ($diminta)."
-                    ]));
-            }
-            // ------- END PENDAMPING -------
-
-            // ===== INSERT dengan proteksi duplikasi kode_booking =====
-            $insert_base = [
-                "nama_tamu"             => $data['nama_tamu'],
-                "jabatan"               => $data['jabatan'],
-                "nik"                   => $data['nik'],
-                "no_hp"                 => $data['no_hp'],
-                "instansi"              => $data['instansi'] ?? null,
-                "unit_tujuan"           => $unit_id,
-                "target_kategori"       => $kategori,
-                "target_instansi_id"    => $instansiId,
-                "target_instansi_nama"  => $instansiNama,
-                "nama_petugas_instansi" => $nama_petugas_instansi,
-                "keperluan"             => $data['keperluan'] ?? null,
-                "surat_tugas"           => $surat_tugas,
-                "jumlah_pendamping"     => $diminta,
-                "tanggal"               => $tanggal,
-                "jam"                   => $jam,
-                "foto"                  => $foto,
-                "tanggal_lahir"         => $this->normalize_date_mysql($data['tanggal_lahir'] ?? ''),
-                "tempat_lahir"          => $data["tempat_lahir"] ?? null,
-                "alamat"                => $data["alamat"] ?? null,
-                "status"                => "approved",
-                "access_token"          => $access_token,
-                "token_issued_at"       => date('Y-m-d H:i:s'),
-                "token_revoked"         => 0
-            ];
-
-            $MAX_TRY = 7;
-            $lastErr = null;
-            for ($try=1; $try<=$MAX_TRY; $try++) {
-
-                $kode_booking = $this->_make_kode_booking(); // pastikan ada UNIQUE index di kolom ini
-                $insert = $insert_base;
-                $insert["kode_booking"] = $kode_booking;
-
-                $this->db->trans_begin();
-                // Re-check kuota di dalam transaksi + lock baris unit (FOR UPDATE)
-                [$okQuota2, $sisa2, $terpakai2, $kuota2, $errQ2] = $this->_validate_kuota_harian($unit_id, $tanggal, true);
-                if (!$okQuota2) {
-                    $this->db->trans_rollback();
-                    return $this->output->set_content_type('application/json')
-                    ->set_output(json_encode(["success"=>false,"title"=>"Kuota Penuh","pesan"=>$errQ2]));
-                }
-
-
-                $okMain = $this->db->insert("booking_tamu", $insert);
-                if (!$okMain) {
-                    $err = $this->db->error(); // ['code'=>..., 'message'=>...]
-                    $this->db->trans_rollback();
-
-                    // 1062 → duplikat kode_booking → ulangi generate
-                    if ((int)$err['code'] === 1062 && stripos($err['message'], 'kode_booking') !== false) {
-                        $lastErr = $err;
-                        continue;
-                    }
-
-                    // error lain → stop
-                    return $this->output->set_content_type('application/json')
-                        ->set_output(json_encode([
-                            "success"=>false,"title"=>"Gagal Menyimpan",
-                            "pesan"=>"Terjadi kendala saat menyimpan data booking. [DB-{$err['code']}]"
-                        ]));
-                }
-
-                // Insert pendamping (jika ada)
-                if (!empty($pendampingRows)) {
-                    $values = [];
-                    foreach ($pendampingRows as $r) {
-                        $values[] = $this->db->escape($kode_booking).','.$this->db->escape($r['nik']).','.$this->db->escape($r['nama']);
-                    }
-                    $sql = "INSERT INTO booking_pendamping (kode_booking, nik, nama) VALUES ".
-                           '('.implode('),(', $values).') '.
-                           "ON DUPLICATE KEY UPDATE nama = VALUES(nama)";
-                    $okPend = $this->db->query($sql);
-                    if (!$okPend) {
-                        $err = $this->db->error();
-                        $this->db->trans_rollback();
-                        return $this->output->set_content_type('application/json')
-                            ->set_output(json_encode([
-                                "success"=>false,"title"=>"Gagal Menyimpan Pendamping",
-                                "pesan"=>"Silakan ulangi pengisian pendamping. [DB-{$err['code']}]"
-                            ]));
-                    }
-                }
-
-                $this->db->trans_commit();
-
-                // Berhasil!
-                $qr_url       = $this->_make_qr($kode_booking);
-                $redirect_url = site_url('booking/booked?t='.urlencode($access_token));
-
-                return $this->output->set_content_type('application/json')
-                    ->set_output(json_encode([
-                        "success"      => true,
-                        "title"        => "Booking Berhasil",
-                        "pesan"        => "Kunjungan berhasil didaftarkan.<br>Kode Booking: <b>".$kode_booking."</b>",
-                        "kode_booking" => $kode_booking,
-                        "qr_url"       => $qr_url,
-                        "redirect_url" => $redirect_url
-                    ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
-            }
-
-            // Sampai sini artinya 7x percobaan masih bentrok (hampir mustahil)
+        }
+        if ($diminta > 0 && count($pendampingRows) !== $diminta) {
             return $this->output->set_content_type('application/json')
                 ->set_output(json_encode([
-                    "success"=>false,"title"=>"Gagal",
-                    "pesan"=>"Gagal membuat kode booking unik. Silakan coba lagi."
+                    "success"=>false,"title"=>"Validasi Pendamping",
+                    "pesan"=>"Jumlah pendamping yang diisi (".count($pendampingRows).") tidak sama dengan jumlah pendamping ($diminta)."
                 ]));
         }
+        // ------- END PENDAMPING -------
 
+        // ===== INSERT dengan proteksi duplikasi kode_booking =====
+        $insert_base = [
+            "nama_tamu"             => $data['nama_tamu'],
+            "jabatan"               => $data['jabatan'],
+            "nik"                   => $data['nik'],
+            "no_hp"                 => $data['no_hp'],
+            "instansi"              => $data['instansi'] ?? null,
+            "unit_tujuan"           => $unit_id,
+            "target_kategori"       => $kategori,
+            "target_instansi_id"    => $instansiId,
+            "target_instansi_nama"  => $instansiNama,
+            "nama_petugas_instansi" => $nama_petugas_instansi,
+            "keperluan"             => $data['keperluan'] ?? null,
+            "surat_tugas"           => $surat_tugas,
+            "jumlah_pendamping"     => $diminta,
+            "tanggal"               => $tanggal,
+            "jam"                   => $jam,
+            "foto"                  => $foto,
+            "tanggal_lahir"         => $this->normalize_date_mysql($data['tanggal_lahir'] ?? ''),
+            "tempat_lahir"          => $data["tempat_lahir"] ?? null,
+            "status"                => "approved", // atur sesuai kebijakanmu
+            "access_token"          => $access_token,
+            "token_issued_at"       => date('Y-m-d H:i:s'),
+            "token_revoked"         => 0
+        ];
+
+        $MAX_TRY = 7;
+        $lastErr = null;
+        for ($try=1; $try<=$MAX_TRY; $try++) {
+
+            $kode_booking = $this->_make_kode_booking(); // pastikan ada UNIQUE index di kolom ini
+            $insert = $insert_base;
+            $insert["kode_booking"] = $kode_booking;
+
+            $this->db->trans_begin();
+            // Re-check kuota di dalam transaksi + lock baris unit (FOR UPDATE)
+            [$okQuota2, $sisa2, $terpakai2, $kuota2, $errQ2] = $this->_validate_kuota_harian($unit_id, $tanggal, true);
+            if (!$okQuota2) {
+                $this->db->trans_rollback();
+                return $this->output->set_content_type('application/json')
+                    ->set_output(json_encode(["success"=>false,"title"=>"Kuota Penuh","pesan"=>$errQ2]));
+            }
+
+            $okMain = $this->db->insert("booking_tamu", $insert);
+            if (!$okMain) {
+                $err = $this->db->error();
+                $this->db->trans_rollback();
+
+                if ((int)$err['code'] === 1062 && stripos($err['message'], 'kode_booking') !== false) {
+                    $lastErr = $err;
+                    continue;
+                }
+
+                return $this->output->set_content_type('application/json')
+                    ->set_output(json_encode([
+                        "success"=>false,"title"=>"Gagal Menyimpan",
+                        "pesan"=>"Terjadi kendala saat menyimpan data booking. [DB-{$err['code']}]"
+                    ]));
+            }
+
+            // Insert pendamping (jika ada)
+            if (!empty($pendampingRows)) {
+                $values = [];
+                foreach ($pendampingRows as $r) {
+                    $values[] = $this->db->escape($kode_booking).','.$this->db->escape($r['nik']).','.$this->db->escape($r['nama']);
+                }
+                $sql = "INSERT INTO booking_pendamping (kode_booking, nik, nama) VALUES ".
+                       '('.implode('),(', $values).') '.
+                       "ON DUPLICATE KEY UPDATE nama = VALUES(nama)";
+                $okPend = $this->db->query($sql);
+                if (!$okPend) {
+                    $err = $this->db->error();
+                    $this->db->trans_rollback();
+                    return $this->output->set_content_type('application/json')
+                        ->set_output(json_encode([
+                            "success"=>false,"title"=>"Gagal Menyimpan Pendamping",
+                            "pesan"=>"Silakan ulangi pengisian pendamping. [DB-{$err['code']}]"
+                        ]));
+                }
+            }
+
+            $this->db->trans_commit();
+
+            // Berhasil!
+            $qr_url       = $this->_make_qr($kode_booking);
+            $redirect_url = site_url('booking/booked?t='.urlencode($access_token));
+
+            return $this->output->set_content_type('application/json')
+                ->set_output(json_encode([
+                    "success"      => true,
+                    "title"        => "Booking Berhasil",
+                    "pesan"        => "Kunjungan berhasil didaftarkan.<br>Kode Booking: <b>".$kode_booking."</b>",
+                    "kode_booking" => $kode_booking,
+                    "qr_url"       => $qr_url,
+                    "redirect_url" => $redirect_url
+                ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+        }
+
+        // Sampai sini artinya 7x percobaan masih bentrok (hampir mustahil)
+        return $this->output->set_content_type('application/json')
+            ->set_output(json_encode([
+                "success"=>false,"title"=>"Gagal",
+                "pesan"=>"Gagal membuat kode booking unik. Silakan coba lagi."
+            ]));
+    }
 
     /** =========================
      *  API Pendamping (opsional)
@@ -447,22 +454,25 @@ private function _gate_error($msg)
             ->set_output(json_encode(["ok"=>true,"data"=>$rows]));
     }
 
-    // POST: kode_booking, nik(16), nama
+    // POST: kode_booking, nik(8-9/16/18), nama, t(access_token) [wajib]
     public function pendamping_add(){
-        $kode = trim($this->input->post('kode_booking', true));
-        $nik  = preg_replace('/\D/','', (string)$this->input->post('nik', true));
-        $nama = trim((string)$this->input->post('nama', true));
+        $kode  = trim((string)$this->input->post('kode_booking', true));
+        $nik   = preg_replace('/\D/','', (string)$this->input->post('nik', true));
+        $nama  = trim((string)$this->input->post('nama', true));
+        $token = trim((string)$this->input->post('t', true));
 
-        if ($kode==='' || !preg_match('/^\d{16}$/', $nik) || $nama==='') {
+        if ($kode==='' || $nama===''
+            || !preg_match('/^(?:\d{8,9}|\d{16}|\d{18})$/', $nik)
+            || $token==='') {
             return $this->output->set_content_type('application/json')
                 ->set_output(json_encode(["ok"=>false,"msg"=>"Data tidak lengkap/valid."]));
         }
 
         $exists = $this->db->select('kode_booking')->limit(1)
-            ->get_where('booking_tamu', ['kode_booking'=>$kode])->row();
+            ->get_where('booking_tamu', ['kode_booking'=>$kode,'access_token'=>$token,'token_revoked'=>0])->row();
         if (!$exists) {
             return $this->output->set_content_type('application/json')
-                ->set_output(json_encode(["ok"=>false,"msg"=>"Booking tidak ditemukan."]));
+                ->set_output(json_encode(["ok"=>false,"msg"=>"Unauthorized atau booking tidak ditemukan."]));
         }
 
         $sql = "INSERT INTO booking_pendamping (kode_booking, nik, nama)
@@ -474,13 +484,29 @@ private function _gate_error($msg)
             ->set_output(json_encode(["ok"=>true,"msg"=>"Pendamping disimpan."]));
     }
 
-    // POST: id_pendamping
+    // POST: id_pendamping, t(access_token) [wajib]
     public function pendamping_delete(){
-        $id = (int)$this->input->post('id_pendamping', true);
-        if ($id<=0) {
+        $id    = (int)$this->input->post('id_pendamping', true);
+        $token = trim((string)$this->input->post('t', true));
+        if ($id<=0 || $token==='') {
             return $this->output->set_content_type('application/json')
-                ->set_output(json_encode(["ok"=>false,"msg"=>"ID tidak valid."]));
+                ->set_output(json_encode(["ok"=>false,"msg"=>"Data tidak lengkap."]));
         }
+
+        // Pastikan id milik booking dengan token ini
+        $kode = $this->db->select('b.kode_booking')
+            ->from('booking_tamu b')
+            ->join('booking_pendamping p','p.kode_booking=b.kode_booking','inner')
+            ->where('p.id_pendamping', $id)
+            ->where('b.access_token', $token)
+            ->where('b.token_revoked', 0)
+            ->limit(1)->get()->row('kode_booking');
+
+        if (!$kode) {
+            return $this->output->set_content_type('application/json')
+                ->set_output(json_encode(["ok"=>false,"msg"=>"Unauthorized."]));
+        }
+
         $this->db->delete('booking_pendamping', ['id_pendamping'=>$id]);
         return $this->output->set_content_type('application/json')
             ->set_output(json_encode(["ok"=>true,"deleted"=>$this->db->affected_rows()>0]));
@@ -489,39 +515,29 @@ private function _gate_error($msg)
     /** =========================
      *  WA & Util
      *  ========================= */
-    // helper: parse berbagai format jadi Y-m-d
-private function normalize_date_mysql(?string $s): ?string {
-    if (!$s) return null;
-    $s = trim($s);
-    // Samakan delimiter
-    $s = str_replace(['/', '.', ' '], '-', $s);
 
-    $formats = [
-        'Y-m-d',   // 2025-10-04 (HTML5 date input)
-        'd-m-Y',   // 04-10-2025
-        'm-d-Y',   // 10-04-2025 (kalau memang dipakai)
-        'd-m-y',   // 04-10-25
-    ];
+    private function normalize_date_mysql(?string $s): ?string {
+        if (!$s) return null;
+        $s = trim($s);
+        $s = str_replace(['/', '.', ' '], '-', $s);
 
-    foreach ($formats as $fmt) {
-        $dt = DateTime::createFromFormat($fmt, $s);
-        // Pastikan presisi format (tidak “auto-correct”)
-        $errors = DateTime::getLastErrors();
-        if ($dt && empty($errors['warning_count']) && empty($errors['error_count'])) {
-            // Confirm kembali sama persis (menghindari 04-13-2025 dst)
-            if ($dt->format($fmt) === $s) {
-                return $dt->format('Y-m-d');
+        $formats = ['Y-m-d','d-m-Y','m-d-Y','d-m-y'];
+
+        foreach ($formats as $fmt) {
+            $dt = DateTime::createFromFormat($fmt, $s);
+            $errors = DateTime::getLastErrors();
+            if ($dt && empty($errors['warning_count']) && empty($errors['error_count'])) {
+                if ($dt->format($fmt) === $s) {
+                    return $dt->format('Y-m-d');
+                }
             }
         }
+        return null;
     }
-    return null; // gagal parse
-}
-    
+
     public function dev_quick_booking()
     {
-        // if (ENVIRONMENT !== 'development') show_404();
-        // $ip = $this->input->ip_address();
-        // if (!in_array($ip, ['127.0.0.1','::1'])) show_404();
+        $this->_ensure_dev_or_key();
 
         // ambil unit_tujuan valid
         $unit = (int)($this->db->select('id')->order_by('id','ASC')->limit(1)->get('unit_tujuan')->row('id') ?? 1);
@@ -541,20 +557,19 @@ private function normalize_date_mysql(?string $s): ?string {
             'tanggal'              => date('Y-m-d'),
             'jam'                  => date('H:i', time()+3600),
             'token_revoked'        => 0,
-            'create_date'           => date('Y-m-d H:i:s'),
+            'create_date'          => date('Y-m-d H:i:s'),
         ];
         $this->db->insert('booking_tamu', $data);
 
         $urls = [
             'detail' => site_url('booking/booked?t='.urlencode($token)),
             'pdf'    => site_url('booking/print_pdf/'.rawurlencode($kode)).'?t='.urlencode($token).'&dl=1',
-            'wa'     => site_url('booking/wa_notify?t='.urlencode($token).'&debug=1&force=1'),
+            'wa'     => site_url('booking/wa_notify?t='.urlencode($token).'&debug=1&key='.urlencode(getenv('ADMIN_TASK_KEY') ?: 'changeme').'&force=1'),
         ];
 
         $this->output->set_content_type('application/json')
-        ->set_output(json_encode(['ok'=>true,'booking'=>$data,'urls'=>$urls], JSON_UNESCAPED_SLASHES));
+            ->set_output(json_encode(['ok'=>true,'booking'=>$data,'urls'=>$urls], JSON_UNESCAPED_SLASHES));
     }
-
 
     public function wa_notify()
     {
@@ -563,6 +578,8 @@ private function normalize_date_mysql(?string $s): ?string {
         $debug = (int)$this->input->get('debug', TRUE) === 1;
         $force = (int)$this->input->get('force', TRUE) === 1;  // paksa kirim (abaikan stamp)
         $log   = [];
+
+        if ($debug) { $this->_ensure_dev_or_key(); }
 
         // Ambil booking by token atau kode
         if ($token !== '') {
@@ -575,13 +592,13 @@ private function normalize_date_mysql(?string $s): ?string {
 
         if (!$b) {
             if ($debug) {
-                $last = $this->db->select('kode_booking, access_token, created_at', false)
-                                  ->order_by('id','DESC')->limit(5)->get('booking_tamu')->result_array();
+                $last = $this->db->select('kode_booking, tanggal, jam', false)
+                    ->order_by('id','DESC')->limit(5)->get('booking_tamu')->result_array();
                 return $this->json_exit([
-                    'ok'=>false,
-                    'err'=>'not found',
-                    'hint'=>'pakai ?t=access_token atau ?k=kode_booking',
-                    'peek_last'=>$last
+                    'ok'        => false,
+                    'err'       => 'not found',
+                    'hint'      => 'pakai ?t=access_token atau ?k=kode_booking',
+                    'peek_last' => $last
                 ], 404);
             }
             return $this->json_exit(['ok'=>false,'err'=>'not found'], 404);
@@ -599,7 +616,6 @@ private function normalize_date_mysql(?string $s): ?string {
         $unit_pejabat_db  = $unit_row->nama_pejabat ?? '';
         $parent_id        = $unit_row->parent_id    ?? null;
 
-        // nomor WA unit tujuan (ambil langsung dari row; kalau kosong, fallback _get_unit_contact)
         $hp_unit = $this->_extract_phone_from_row($unit_row);
         if (!$hp_unit) {
             list($hp_unit_fb, $nm_fb, $pej_fb) = $this->_get_unit_contact((int)$b->unit_tujuan);
@@ -612,21 +628,15 @@ private function normalize_date_mysql(?string $s): ?string {
 
         $qr_url   = base_url('uploads/qr/qr_'.$b->kode_booking.'.png');
         $redir    = site_url('booking/booked?t='.urlencode($b->access_token));
-        // $pdf_url  = site_url('booking/print_pdf/'.rawurlencode($b->kode_booking)).'?t='.urlencode($b->access_token);
-        // $query   = http_build_query(['t' => $b->access_token, 'dl' => 1]);
-        // $pdf_url = site_url('booking/print_pdf/'.rawurlencode($b->kode_booking)).'?'.$query;
-
-        $pdf_url = site_url('booking/download_gate').'?k='.rawurlencode($b->kode_booking).'&t='.urlencode($b->access_token);
-
-
+        $pdf_url  = site_url('booking/download_gate').'?k='.rawurlencode($b->kode_booking).'&t='.urlencode($b->access_token);
         $instansi = $b->target_instansi_nama ?: ($b->instansi ?: '-');
 
-        // ===== 1) Kirim ke TAMU (sekali saja, kecuali force) =====
+        // ===== 1) Kirim ke TAMU =====
         $can_stamp_user = $this->db->field_exists('wa_sent_at', 'booking_tamu');
         $already_user   = $can_stamp_user && !empty($b->wa_sent_at);
         if ($force || !$already_user) {
             $ok_user = $this->_send_wa_konfirmasi($b->no_hp, [
-                'access_token'           => $b->access_token,   // <— TAMBAH INI
+                'access_token'           => $b->access_token,
                 'nama'                   => $b->nama_tamu,
                 'nama_petugas_instansi'  => $b->nama_petugas_instansi,
                 'kode'                   => $b->kode_booking,
@@ -644,13 +654,13 @@ private function normalize_date_mysql(?string $s): ?string {
                 if ($token !== '') { $this->db->where('access_token', $token); }
                 else               { $this->db->where('kode_booking', $b->kode_booking); }
                 $this->db->where('wa_sent_at IS NULL', NULL, FALSE)
-                         ->update('booking_tamu', ['wa_sent_at' => date('Y-m-d H:i:s')]);
+                    ->update('booking_tamu', ['wa_sent_at' => date('Y-m-d H:i:s')]);
             }
         } else {
             $log[] = ['send_user'=>'skipped: already stamped'];
         }
 
-        // ===== 2) Kirim ke UNIT TUJUAN (ID) =====
+        // ===== 2) Kirim ke UNIT TUJUAN =====
         if (!empty($hp_unit)) {
             $can_stamp_unit = $this->db->field_exists('wa_unit_sent_at', 'booking_tamu');
             $already_unit   = $can_stamp_unit && !empty($b->wa_unit_sent_at);
@@ -659,10 +669,10 @@ private function normalize_date_mysql(?string $s): ?string {
                     'kode'            => $b->kode_booking,
                     'nama'            => $b->nama_tamu,
                     'instansi_asal'   => $instansi,
-                    'hp_tamu'         => $b->no_hp,  
-                    'unit_nama'       => $unit_nama_db,      // Kepada Yth.
-                    'unit_pejabat'    => $unit_pejabat_db,   // Kepada Yth.
-                    'child_unit_nama' => $unit_nama_db,      // tampil di detail
+                    'hp_tamu'         => $b->no_hp,
+                    'unit_nama'       => $unit_nama_db,
+                    'unit_pejabat'    => $unit_pejabat_db,
+                    'child_unit_nama' => $unit_nama_db,
                     'tanggal'         => $b->tanggal,
                     'jam'             => $b->jam,
                     'pendamping'      => (int)$b->jumlah_pendamping,
@@ -676,7 +686,7 @@ private function normalize_date_mysql(?string $s): ?string {
                     if ($token !== '') { $this->db->where('access_token', $token); }
                     else               { $this->db->where('kode_booking', $b->kode_booking); }
                     $this->db->where('wa_unit_sent_at IS NULL', NULL, FALSE)
-                             ->update('booking_tamu', ['wa_unit_sent_at' => date('Y-m-d H:i:s')]);
+                        ->update('booking_tamu', ['wa_unit_sent_at' => date('Y-m-d H:i:s')]);
                 }
             } else {
                 $log[] = ['send_unit'=>'skipped: already stamped'];
@@ -705,7 +715,6 @@ private function normalize_date_mysql(?string $s): ?string {
                 $can_stamp_parent = $this->db->field_exists('wa_parent_sent_at', 'booking_tamu');
                 $already_parent   = $can_stamp_parent && !empty($b->wa_parent_sent_at);
 
-                // kirim walau nomornya sama dengan unit tujuan (bisa set ke false jika mau skip)
                 $allow_duplicate_cc = true;
                 $same_number = isset($hp_unit) &&
                     (preg_replace('/\D+/','',$hp_unit) === preg_replace('/\D+/','',$hp_parent));
@@ -714,11 +723,11 @@ private function normalize_date_mysql(?string $s): ?string {
                     $ok_cc = $this->_send_wa_info_unit($hp_parent, [
                         'kode'            => $b->kode_booking,
                         'nama'            => $b->nama_tamu,
-                        'hp_tamu'         => $b->no_hp,  
+                        'hp_tamu'         => $b->no_hp,
                         'instansi_asal'   => $instansi,
-                        'unit_nama'       => $parent_row->nama_unit ?? '-',     // Kepada Yth. (parent)
+                        'unit_nama'       => $parent_row->nama_unit ?? '-',
                         'unit_pejabat'    => $parent_row->nama_pejabat ?? '',
-                        'child_unit_nama' => $unit_nama_db,                      // unit tujuan asli (anak)
+                        'child_unit_nama' => $unit_nama_db,
                         'tanggal'         => $b->tanggal,
                         'jam'             => $b->jam,
                         'pendamping'      => (int)$b->jumlah_pendamping,
@@ -733,7 +742,7 @@ private function normalize_date_mysql(?string $s): ?string {
                         if ($token !== '') { $this->db->where('access_token', $token); }
                         else               { $this->db->where('kode_booking', $b->kode_booking); }
                         $this->db->where('wa_parent_sent_at IS NULL', NULL, FALSE)
-                                 ->update('booking_tamu', ['wa_parent_sent_at' => date('Y-m-d H:i:s')]);
+                            ->update('booking_tamu', ['wa_parent_sent_at' => date('Y-m-d H:i:s')]);
                     }
                 } else {
                     $log[] = ['send_parent'=>'skipped: already stamped or same-number'];
@@ -758,7 +767,6 @@ private function normalize_date_mysql(?string $s): ?string {
         $u = $this->db->get_where('unit_tujuan', ['id'=>$unit_id])->row();
         if (!$u) return [null,null,null];
 
-        // coba berbagai nama kolom nomor
         $hp = null;
         foreach (['no_hp','wa','whatsapp','wa_number','no_wa','no_whatsapp','hp','telepon','telp','phone'] as $col) {
             if (isset($u->$col) && trim($u->$col) !== '') { $hp = $u->$col; break; }
@@ -855,7 +863,6 @@ private function normalize_date_mysql(?string $s): ?string {
         $this->form_validation->set_rules('alamat','Alamat','required|trim');
         $this->form_validation->set_rules('tanggal_lahir','Tanggal Lahir','required|trim');
 
-        // NIK 16 digit
         // NIK 16 | NIP 18/9 | NRP 8–9 digit
         $this->form_validation->set_rules(
             'nik',
@@ -863,7 +870,6 @@ private function normalize_date_mysql(?string $s): ?string {
             'required|trim|regex_match[/^(?:\d{16}|\d{18}|\d{8,9})$/]',
             ['regex_match' => '* %s harus: NIK 16 digit, NIP 18/9 digit, atau NRP 8–9 digit (angka saja)']
         );
-
 
         // No HP 10–13 digit
         $this->form_validation->set_rules(
@@ -912,406 +918,234 @@ private function normalize_date_mysql(?string $s): ?string {
         $this->form_validation->set_error_delimiters('<br> ', ' ');
     }
 
-//     private function _validate_jadwal($tanggal, $jam_raw){
-//         $errors   = [];
-//         $tanggal  = trim((string)$tanggal);
-//         $jam_raw  = trim((string)$jam_raw);
-//         $jam      = null;
+    private function _validate_jadwal($tanggal, $jam_raw)
+    {
+        $errors  = [];
+        $tanggal = trim((string)$tanggal);
+        $jam_raw = trim((string)$jam_raw);
+        $jam     = null;
 
-//     // --- Ambil lead time dari pengaturan website ---
-//     // Prioritas: $this->fm->web_me(), fallback ke $this->om->web_me()
-//         $web = null;
-//         if (isset($this->fm) && method_exists($this->fm, 'web_me')) {
-//             $web = $this->fm->web_me();
-//         } elseif (isset($this->om) && method_exists($this->om, 'web_me')) {
-//             $web = $this->om->web_me();
-//         }
-//         $min_lead_minutes = 0;
-//         if ($web && isset($web->min_lead_minutes)) {
-//             $min_lead_minutes = (int)$web->min_lead_minutes;
-//         // jaga-jaga agar tidak nilai aneh
-//             if ($min_lead_minutes < 0) $min_lead_minutes = 0;
-//         if ($min_lead_minutes > 240) $min_lead_minutes = 240; // batas 4 jam (opsional)
-//     }
-
-//     // --- Validasi tanggal ---
-//     $dt = DateTime::createFromFormat('Y-m-d', $tanggal);
-//     if (!$dt || $dt->format('Y-m-d') !== $tanggal) {
-//         $errors[] = '* Tanggal tidak valid (format harus YYYY-MM-DD).';
-//     } else {
-//         $today = date('Y-m-d');
-//         if (strtotime($tanggal) < strtotime($today)) {
-//             $errors[] = '* Tanggal tidak boleh mundur (minimal hari ini).';
-//         }
-
-//         $hari = (int) date('w', strtotime($tanggal)); // 0=Min, 1=Sen, ...
-//         if ($hari === 0) {
-//             $errors[] = '* Hari Minggu libur, tidak bisa booking.';
-//         }
-
-//         // --- Validasi jam ---
-//         if ($jam_raw === '') {
-//             $errors[] = '* Jam harus diisi.';
-//         } else {
-//             // normalisasi "16.30" -> "16:30"
-//             $jam_norm = str_replace('.', ':', $jam_raw);
-//             $jam_norm = preg_replace('/\s+/', '', $jam_norm);
-
-//             if (!preg_match('/^(?:[01]?\d|2[0-3]):[0-5]\d$/', $jam_norm)) {
-//                 $errors[] = '* Format jam tidak valid (pakai HH:MM, contoh 16:55).';
-//             } else {
-//                 list($hh, $mm) = explode(':', $jam_norm);
-//                 $hh = (int)$hh; $mm = (int)$mm;
-//                 $jam = sprintf('%02d:%02d', $hh, $mm);
-//                 $menit = $hh * 60 + $mm;
-
-//                 // Jam operasional
-//                 // === Jam operasional dinamis (per-hari + istirahat) ===
-//                 $toMin = function($hhmm){
-//                     if (!$hhmm || !preg_match('/^\d{2}:\d{2}$/', $hhmm)) return null;
-//                     [$h,$m] = array_map('intval', explode(':', $hhmm));
-//                     return $h*60 + $m;
-//                 };
-
-//                 // default jika belum diset di DB
-//                 $def = [
-//                   'mon'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
-//                   'tue'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
-//                   'wed'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
-//                   'thu'=>['open'=>'08:00','break_start'=>'12:00','break_end'=>'13:00','close'=>'15:00','closed'=>0],
-//                   'fri'=>['open'=>'08:00','break_start'=>'11:30','break_end'=>'13:00','close'=>'14:00','closed'=>0],
-//                   'sat'=>['open'=>'08:00','break_start'=>'','break_end'=>'','close'=>'11:30','closed'=>0],
-//                   'sun'=>['open'=>'','break_start'=>'','break_end'=>'','close'=>'','closed'=>1],
-//                 ];
-
-//                 // ambil dari $web (settings), fallback ke default
-//                 $kmap = ['1'=>'mon','2'=>'tue','3'=>'wed','4'=>'thu','5'=>'fri','6'=>'sat','0'=>'sun'];
-//                 $k = $kmap[(string)$hari];
-
-//                 $cfg = [
-//                   'open'        => isset($web->{"op_{$k}_open"})        ? $web->{"op_{$k}_open"}        : $def[$k]['open'],
-//                   'break_start' => isset($web->{"op_{$k}_break_start"}) ? $web->{"op_{$k}_break_start"} : $def[$k]['break_start'],
-//                   'break_end'   => isset($web->{"op_{$k}_break_end"})   ? $web->{"op_{$k}_break_end"}   : $def[$k]['break_end'],
-//                   'close'       => isset($web->{"op_{$k}_close"})       ? $web->{"op_{$k}_close"}       : $def[$k]['close'],
-//                   'closed'      => isset($web->{"op_{$k}_closed"})      ? (int)$web->{"op_{$k}_closed"} : $def[$k]['closed'],
-//                 ];
-
-//                 if ($cfg['closed']) {
-//                     $errors[] = '* Hari '.$this->_nama_hari_id($hari).' libur, tidak bisa booking.';
-//                 } else {
-//                     $min = $toMin($cfg['open']);
-//                     $max = $toMin($cfg['close']);
-//                     $bs  = $toMin($cfg['break_start']);
-//                     $be  = $toMin($cfg['break_end']);
-
-//                     if ($min===null || $max===null || $min >= $max) {
-//                         $errors[] = '* Jam operasional hari '.$this->_nama_hari_id($hari).' belum valid (buka/tutup).';
-//                     } else {
-//                         // validasi jam yang dipilih (menit sudah dihitung di atas)
-//                         $inBreak = ($bs!==null && $be!==null && $bs < $be && $menit >= $bs && $menit < $be);
-
-//                         if ($tanggal === $today) {
-//                             // earliest = max(buka, sekarang + lead). Jika earliest jatuh di sela istirahat, geser ke akhir istirahat.
-//                             $nowMin    = ((int)date('H')) * 60 + ((int)date('i')) + $min_lead_minutes;
-//                             $earliest  = max($min, $nowMin);
-//                             if ($bs!==null && $be!==null && $bs < $be && $earliest >= $bs && $earliest < $be) {
-//                                 $earliest = $be;
-//                             }
-//                             if ($earliest > $max) {
-//                                 $errors[] = '* Jadwal operasional hari ini sudah berakhir.';
-//                             } else {
-//                                 if ($menit < $earliest) {
-//                                     $minLabel = sprintf('%02d:%02d', intdiv($earliest,60), $earliest%60);
-//                                     $errors[] = '* Untuk hari ini, jam minimal adalah '.$minLabel
-//                                               . ($min_lead_minutes ? ' (termasuk jeda '.$min_lead_minutes.' menit).' : '.');
-//                                 }
-//                                 if ($menit > $max) {
-//                                     $maxLabel = sprintf('%02d:%02d', intdiv($max,60), $max%60);
-//                                     $errors[] = '* Jam melewati jam operasional (maksimal '.$maxLabel.').';
-//                                 }
-//                                 if ($inBreak) {
-//                                     $bsLabel = sprintf('%02d:%02d', intdiv($bs,60), $bs%60);
-//                                     $beLabel = sprintf('%02d:%02d', intdiv($be,60), $be%60);
-//                                     $errors[] = '* Jam yang dipilih berada pada waktu istirahat ('.$bsLabel.'–'.$beLabel.').';
-//                                 }
-//                             }
-//                         } else {
-//                             // bukan hari ini → cek range & break
-//                             if ($menit < $min || $menit > $max) {
-//                                 $minLabel = sprintf('%02d:%02d', intdiv($min,60), $min%60);
-//                                 $maxLabel = sprintf('%02d:%02d', intdiv($max,60), $max%60);
-//                                 $errors[] = '* Jam kunjungan tidak sesuai operasional ('.$minLabel.'–'.$maxLabel.').';
-//                             } elseif ($inBreak) {
-//                                 $bsLabel = sprintf('%02d:%02d', intdiv($bs,60), $bs%60);
-//                                 $beLabel = sprintf('%02d:%02d', intdiv($be,60), $be%60);
-//                                 $errors[] = '* Jam yang dipilih berada pada waktu istirahat ('.$bsLabel.'–'.$beLabel.').';
-//                             }
-//                         }
-//                     }
-//                 }
-//                 // === END jam operasional dinamis ===
-
-//             }
-//         }
-//     }
-
-//     if ($errors) return [false, null, null, '<br> '.implode('<br> ', $errors)];
-//     return [true, $tanggal, $jam, ''];
-// }
-
-
-
-private function _validate_jadwal($tanggal, $jam_raw)
-{
-    $errors  = [];
-    $tanggal = trim((string)$tanggal);
-    $jam_raw = trim((string)$jam_raw);
-    $jam     = null;
-
-    // --- Ambil pengaturan website (diasumsikan selalu ada) ---
-    // if (isset($this->fm) && method_exists($this->fm, 'web_me')) {
         $web = $this->fm->web_me();
-    // } elseif (isset($this->om) && method_exists($this->om, 'web_me')) {
-    //     $web = $this->om->web_me();
-    // } else {
-    //     // Fallback hard-fail bila tak ada provider
-    //     return [false, null, null, '<br> * Konfigurasi website tidak ditemukan.'];
-    // }
 
-    // Zona waktu dari DB (fallback ke default PHP bila tidak valid)
-    $tzName = !empty($web->waktu) ? (string)$web->waktu : date_default_timezone_get();
-    try {
-        $tz = new DateTimeZone($tzName);
-    } catch (\Exception $e) {
-        $tz = new DateTimeZone(date_default_timezone_get());
-    }
-
-    // Lead time (0..1440, sama dengan front-end)
-    $min_lead_minutes = (int)($web->min_lead_minutes ?? 0);
-    $min_lead_minutes = max(0, min(1440, $min_lead_minutes));
-
-    // --- Validasi tanggal (format & tidak boleh mundur) ---
-    $dt = DateTime::createFromFormat('Y-m-d', $tanggal, $tz);
-    if (!$dt || $dt->format('Y-m-d') !== $tanggal) {
-        $errors[] = '* Tanggal tidak valid (format harus YYYY-MM-DD).';
-    } else {
-        $nowTz = new DateTimeImmutable('now', $tz);
-        $today = $nowTz->format('Y-m-d');
-        // Bandingkan string 'Y-m-d' (aman secara leksikografis)
-        if ($tanggal < $today) {
-            $errors[] = '* Tanggal tidak boleh mundur (minimal hari ini).';
+        // Zona waktu dari DB (fallback ke default PHP bila tidak valid)
+        $tzName = !empty($web->waktu) ? (string)$web->waktu : date_default_timezone_get();
+        try {
+            $tz = new DateTimeZone($tzName);
+        } catch (\Exception $e) {
+            $tz = new DateTimeZone(date_default_timezone_get());
         }
 
-        $hari = (int)$dt->format('w'); // 0=Min..6=Sab
+        // Lead time (0..1440, sama dengan front-end)
+        $min_lead_minutes = (int)($web->min_lead_minutes ?? 0);
+        $min_lead_minutes = max(0, min(1440, $min_lead_minutes));
 
-        // --- Validasi jam (HH:MM) ---
-        if ($jam_raw === '') {
-            $errors[] = '* Jam harus diisi.';
+        // --- Validasi tanggal (format & tidak boleh mundur) ---
+        $dt = DateTime::createFromFormat('Y-m-d', $tanggal, $tz);
+        if (!$dt || $dt->format('Y-m-d') !== $tanggal) {
+            $errors[] = '* Tanggal tidak valid (format harus YYYY-MM-DD).';
         } else {
-            // Normalisasi input user: "16.30" -> "16:30", hilangkan spasi
-            $jam_norm = str_replace('.', ':', $jam_raw);
-            $jam_norm = preg_replace('/\s+/', '', $jam_norm);
+            $nowTz = new DateTimeImmutable('now', $tz);
+            $today = $nowTz->format('Y-m-d');
+            if ($tanggal < $today) {
+                $errors[] = '* Tanggal tidak boleh mundur (minimal hari ini).';
+            }
 
-            if (!preg_match('/^(?:[01]?\d|2[0-3]):[0-5]\d$/', $jam_norm)) {
-                $errors[] = '* Format jam tidak valid (pakai HH:MM, contoh 16:55).';
+            $hari = (int)$dt->format('w'); // 0=Min..6=Sab
+
+            // --- Validasi jam (HH:MM atau HH:MM:SS) ---
+            if ($jam_raw === '') {
+                $errors[] = '* Jam harus diisi.';
             } else {
-                list($hh, $mm) = explode(':', $jam_norm);
-                $hh    = (int)$hh;
-                $mm    = (int)$mm;
-                $jam   = sprintf('%02d:%02d', $hh, $mm);
-                $menit = $hh * 60 + $mm;
+                $jam_norm = str_replace('.', ':', $jam_raw);
+                $jam_norm = preg_replace('/\s+/', '', $jam_norm);
 
-                // === Jam operasional dinamis (per-hari + istirahat) ===
-                $normHHMM = function ($v) {
-                    $v = trim((string)$v);
-                    if ($v === '') return null;
-                    $v = str_replace('.', ':', $v);
-                    if (!preg_match('/^(\d{1,2}):([0-5]\d)$/', $v, $m)) return null;
-                    $h = max(0, min(23, (int)$m[1]));
-                    $i = (int)$m[2];
-                    return sprintf('%02d:%02d', $h, $i);
-                };
-                $toMin = function ($hhmm) {
-                    if ($hhmm === null) return null;
-                    [$h, $i] = array_map('intval', explode(':', $hhmm));
-                    return $h * 60 + $i;
-                };
+                if (preg_match('/^\d{1,2}:[0-5]\d:[0-5]\d$/', $jam_norm)) {
+                    $jam_norm = substr($jam_norm, 0, 5);
+                }
 
-                // Map 0..6 -> key harian
-                $kmap = ['0' => 'sun', '1' => 'mon', '2' => 'tue', '3' => 'wed', '4' => 'thu', '5' => 'fri', '6' => 'sat'];
-                $k    = $kmap[(string)$hari];
-
-                // Ambil konfigurasi dari DB (diasumsikan properti ada)
-                $cfg = [
-                    'open'        => $normHHMM($web->{"op_{$k}_open"}),
-                    'break_start' => $normHHMM($web->{"op_{$k}_break_start"}),
-                    'break_end'   => $normHHMM($web->{"op_{$k}_break_end"}),
-                    'close'       => $normHHMM($web->{"op_{$k}_close"}),
-                    'closed'      => (int)$web->{"op_{$k}_closed"},
-                ];
-
-                // Anggap "libur" bila closed=1 atau jam buka/tutup kosong
-                if ($cfg['closed'] || !$cfg['open'] || !$cfg['close']) {
-                    $errors[] = '* Hari ' . $this->_nama_hari_id($hari) . ' libur, tidak bisa booking.';
+                if (!preg_match('/^(?:[01]?\d|2[0-3]):[0-5]\d$/', $jam_norm)) {
+                    $errors[] = '* Format jam tidak valid (pakai HH:MM, contoh 16:55).';
                 } else {
-                    $min = $toMin($cfg['open']);
-                    $max = $toMin($cfg['close']);
-                    $bs  = $toMin($cfg['break_start']);
-                    $be  = $toMin($cfg['break_end']);
+                    list($hh, $mm) = explode(':', $jam_norm);
+                    $hh    = (int)$hh;
+                    $mm    = (int)$mm;
+                    $jam   = sprintf('%02d:%02d', $hh, $mm);
+                    $menit = $hh * 60 + $mm;
 
-                    // Validasi dasar jam operasional
-                    if ($min === null || $max === null || $min >= $max) {
-                        // Secara praktis treat as libur (daripada pesan "jam belum valid")
+                    // === Jam operasional dinamis (per-hari + istirahat) ===
+                    $normHHMM = function ($v) {
+                        $v = trim((string)$v);
+                        if ($v === '') return null;
+                        $v = str_replace('.', ':', $v);
+                        if (!preg_match('/^(\d{1,2}):([0-5]\d)$/', $v, $m)) return null;
+                        $h = max(0, min(23, (int)$m[1]));
+                        $i = (int)$m[2];
+                        return sprintf('%02d:%02d', $h, $i);
+                    };
+                    $toMin = function ($hhmm) {
+                        if ($hhmm === null) return null;
+                        [$h, $i] = array_map('intval', explode(':', $hhmm));
+                        return $h * 60 + $i;
+                    };
+
+                    $kmap = ['0' => 'sun', '1' => 'mon', '2' => 'tue', '3' => 'wed', '4' => 'thu', '5' => 'fri', '6' => 'sat'];
+                    $k    = $kmap[(string)$hari];
+
+                    $cfg = [
+                        'open'        => $normHHMM($web->{"op_{$k}_open"}),
+                        'break_start' => $normHHMM($web->{"op_{$k}_break_start"}),
+                        'break_end'   => $normHHMM($web->{"op_{$k}_break_end"}),
+                        'close'       => $normHHMM($web->{"op_{$k}_close"}),
+                        'closed'      => (int)$web->{"op_{$k}_closed"},
+                    ];
+
+                    if ($cfg['closed'] || !$cfg['open'] || !$cfg['close']) {
                         $errors[] = '* Hari ' . $this->_nama_hari_id($hari) . ' libur, tidak bisa booking.';
                     } else {
-                        $hasBreak = ($bs !== null && $be !== null && $bs < $be);
-                        $inBreak  = ($hasBreak && $menit >= $bs && $menit < $be);
+                        $min = $toMin($cfg['open']);
+                        $max = $toMin($cfg['close']);
+                        $bs  = $toMin($cfg['break_start']);
+                        $be  = $toMin($cfg['break_end']);
 
-                        // === Jika TANGGAL = HARI INI (TZ database) ===
-                        if ($tanggal === $today) {
-                            // earliest = max(buka, (sekarang + lead))
-                            $nowMin = ((int)$nowTz->format('H')) * 60 + ((int)$nowTz->format('i'));
-                            $earliest = max($min, $nowMin + $min_lead_minutes);
+                        if ($min === null || $max === null || $min >= $max) {
+                            $errors[] = '* Hari ' . $this->_nama_hari_id($hari) . ' libur, tidak bisa booking.';
+                        } else {
+                            $hasBreak = ($bs !== null && $be !== null && $bs < $be);
+                            $inBreak  = ($hasBreak && $menit >= $bs && $menit < $be);
 
-                            // Jika earliest jatuh di sela istirahat → geser ke akhir istirahat
-                            if ($hasBreak && $earliest >= $bs && $earliest < $be) {
-                                $earliest = $be;
-                            }
+                            if ($tanggal === $today) {
+                                $nowMin = ((int)$nowTz->format('H')) * 60 + ((int)$nowTz->format('i'));
+                                $earliest = max($min, $nowMin + $min_lead_minutes);
 
-                            if ($earliest > $max) {
-                                $errors[] = '* Jadwal operasional hari ini sudah berakhir.';
-                            } else {
-                                if ($menit < $earliest) {
-                                    $minLabel = sprintf('%02d:%02d', intdiv($earliest, 60), $earliest % 60);
-                                    $msg = '* Untuk hari ini, jam minimal adalah ' . $minLabel;
-                                    if ($min_lead_minutes) {
-                                        $msg .= ' (termasuk jeda ' . $min_lead_minutes . ' menit).';
+                                if ($hasBreak && $earliest >= $bs && $earliest < $be) {
+                                    $earliest = $be;
+                                }
+
+                                if ($earliest > $max) {
+                                    $errors[] = '* Jadwal operasional hari ini sudah berakhir.';
+                                } else {
+                                    if ($menit < $earliest) {
+                                        $minLabel = sprintf('%02d:%02d', intdiv($earliest, 60), $earliest % 60);
+                                        $msg = '* Untuk hari ini, jam minimal adalah ' . $minLabel;
+                                        if ($min_lead_minutes) {
+                                            $msg .= ' (termasuk jeda ' . $min_lead_minutes . ' menit).';
+                                        }
+                                        $errors[] = $msg;
                                     }
-                                    $errors[] = $msg;
+                                    if ($menit > $max) {
+                                        $maxLabel = sprintf('%02d:%02d', intdiv($max, 60), $max % 60);
+                                        $errors[] = '* Jam melewati jam operasional (maksimal ' . $maxLabel . ').';
+                                    }
+                                    if ($inBreak) {
+                                        $bsLabel = sprintf('%02d:%02d', intdiv($bs, 60), $bs % 60);
+                                        $beLabel = sprintf('%02d:%02d', intdiv($be, 60), $be % 60);
+                                        $errors[] = '* Jam yang dipilih berada pada waktu istirahat (' . $bsLabel . '–' . $beLabel . ').';
+                                    }
                                 }
-                                if ($menit > $max) {
+                            } else {
+                                if ($menit < $min || $menit > $max) {
+                                    $minLabel = sprintf('%02d:%02d', intdiv($min, 60), $min % 60);
                                     $maxLabel = sprintf('%02d:%02d', intdiv($max, 60), $max % 60);
-                                    $errors[] = '* Jam melewati jam operasional (maksimal ' . $maxLabel . ').';
-                                }
-                                if ($inBreak) {
+                                    $errors[] = '* Jam kunjungan tidak sesuai operasional (' . $minLabel . '–' . $maxLabel . ').';
+                                } elseif ($inBreak) {
                                     $bsLabel = sprintf('%02d:%02d', intdiv($bs, 60), $bs % 60);
                                     $beLabel = sprintf('%02d:%02d', intdiv($be, 60), $be % 60);
                                     $errors[] = '* Jam yang dipilih berada pada waktu istirahat (' . $bsLabel . '–' . $beLabel . ').';
                                 }
                             }
-                        } else {
-                            // === TANGGAL ≠ HARI INI ===
-                            if ($menit < $min || $menit > $max) {
-                                $minLabel = sprintf('%02d:%02d', intdiv($min, 60), $min % 60);
-                                $maxLabel = sprintf('%02d:%02d', intdiv($max, 60), $max % 60);
-                                $errors[] = '* Jam kunjungan tidak sesuai operasional (' . $minLabel . '–' . $maxLabel . ').';
-                            } elseif ($inBreak) {
-                                $bsLabel = sprintf('%02d:%02d', intdiv($bs, 60), $bs % 60);
-                                $beLabel = sprintf('%02d:%02d', intdiv($be, 60), $be % 60);
-                                $errors[] = '* Jam yang dipilih berada pada waktu istirahat (' . $bsLabel . '–' . $beLabel . ').';
-                            }
                         }
                     }
                 }
-                // === END jam operasional dinamis ===
             }
         }
+
+        if ($errors) {
+            return [false, null, null, '<br> ' . implode('<br> ', $errors)];
+        }
+        return [true, $tanggal, $jam, ''];
     }
 
-    if ($errors) {
-        return [false, null, null, '<br> ' . implode('<br> ', $errors)];
+    private function _nama_hari_id($w){
+        $m=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+        return $m[(int)$w] ?? '';
     }
-    return [true, $tanggal, $jam, ''];
-}
-
-
-
-
-private function _nama_hari_id($w){
-  $m=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-  return $m[(int)$w] ?? '';
-}
 
     private function _validate_pendamping($unit_id, $diminta){
         $row = $this->db->select('nama_unit, jumlah_pendamping')
-                        ->get_where('unit_tujuan', ['id' => (int)$unit_id])
-                        ->row();
+            ->get_where('unit_tujuan', ['id' => (int)$unit_id])
+            ->row();
         $unit_nama = $row ? $row->nama_unit : '-';
         $batas     = $row ? $row->jumlah_pendamping : null; // null = tidak dibatasi
 
         if ($batas !== null && (int)$diminta > (int)$batas) {
             $err = sprintf('Unit tujuan <b>%s</b> membatasi pendamping maksimal <b>%d</b>. Anda mengajukan <b>%d</b>.',
-                            $unit_nama, (int)$batas, (int)$diminta);
+                $unit_nama, (int)$batas, (int)$diminta);
             return [false, $unit_nama, $err];
         }
         return [true, $unit_nama, ''];
     }
 
     /**
- * Validasi kuota harian per unit.
- * Return: [ok(bool), sisa(int|null), terpakai(int), kuota(int|null), err(string)]
- * - kuota NULL/<=0 dianggap tak dibatasi.
- * - $lock=true → kunci baris unit untuk mencegah race (dipakai di dalam transaksi).
- */
-private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $lock = false): array
-{
-    // Ambil kuota & nama unit
-    if ($lock) {
-        $unit = $this->db->query(
-            'SELECT kuota_harian, nama_unit FROM unit_tujuan WHERE id = ? FOR UPDATE',
-            [$unit_id]
-        )->row();
-    } else {
-        $unit = $this->db->select('kuota_harian, nama_unit')
-                         ->get_where('unit_tujuan', ['id'=>$unit_id])->row();
+     * Validasi kuota harian per unit.
+     * Return: [ok(bool), sisa(int|null), terpakai(int), kuota(int|null), err(string)]
+     * - kuota NULL/<=0 dianggap tak dibatasi.
+     * - $lock=true → kunci baris unit untuk mencegah race (dipakai di dalam transaksi).
+     */
+    private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $lock = false): array
+    {
+        if ($lock) {
+            $unit = $this->db->query(
+                'SELECT kuota_harian, nama_unit FROM unit_tujuan WHERE id = ? FOR UPDATE',
+                [$unit_id]
+            )->row();
+        } else {
+            $unit = $this->db->select('kuota_harian, nama_unit')
+                ->get_where('unit_tujuan', ['id'=>$unit_id])->row();
+        }
+
+        if (!$unit) {
+            return [false, null, 0, null, 'Unit tujuan tidak ditemukan.'];
+        }
+
+        $kuota = isset($unit->kuota_harian) ? (int)$unit->kuota_harian : 0;
+        $kuota = $kuota > 0 ? $kuota : null; // null = tak dibatasi
+
+        $this->db->select('COUNT(1) AS jml', false)
+            ->from('booking_tamu')
+            ->where('unit_tujuan', $unit_id)
+            ->where('tanggal', $tanggal);
+
+        if ($this->db->field_exists('status', 'booking_tamu')) {
+            $this->db->where_in('status', ['pending','approved','checked_in']);
+        }
+        if ($this->db->field_exists('token_revoked', 'booking_tamu')) {
+            $this->db->where('token_revoked', 0);
+        }
+        if ($this->db->field_exists('checkout_at', 'booking_tamu')) {
+            $this->db->group_start()
+                ->where('checkout_at IS NULL', NULL, FALSE)
+                ->or_where('checkout_at', '')
+                ->group_end();
+        }
+
+        $terpakai = (int)($this->db->get()->row('jml') ?? 0);
+
+        if ($kuota === null) {
+            return [true, null, $terpakai, null, '']; // tak dibatasi
+        }
+
+        if ($terpakai >= $kuota) {
+            $tgl_view = date('d-m-Y', strtotime($tanggal));
+            $err = sprintf(
+                'Kuota harian untuk unit <b>%s</b> pada tanggal <b>%s</b> sudah penuh (kuota %d, terpakai %d).',
+                $unit->nama_unit ?? '-', $tgl_view, $kuota, $terpakai
+            );
+            return [false, 0, $terpakai, $kuota, $err];
+        }
+
+        $sisa = max(0, $kuota - $terpakai);
+        return [true, $sisa, $terpakai, $kuota, ''];
     }
-
-    if (!$unit) {
-        return [false, null, 0, null, 'Unit tujuan tidak ditemukan.'];
-    }
-
-    $kuota = isset($unit->kuota_harian) ? (int)$unit->kuota_harian : 0;
-    $kuota = $kuota > 0 ? $kuota : null; // null = tak dibatasi
-
-    // Hitung terpakai di tanggal tsb
-    $this->db->select('COUNT(1) AS jml', false)
-             ->from('booking_tamu')
-             ->where('unit_tujuan', $unit_id)
-             ->where('tanggal', $tanggal);
-
-    // Hanya hitung yang aktif/berlaku
-    if ($this->db->field_exists('status', 'booking_tamu')) {
-        $this->db->where_in('status', ['pending','approved','checked_in']);
-    }
-    if ($this->db->field_exists('token_revoked', 'booking_tamu')) {
-        $this->db->where('token_revoked', 0);
-    }
-    if ($this->db->field_exists('checkout_at', 'booking_tamu')) {
-        $this->db->group_start()
-                 ->where('checkout_at IS NULL', NULL, FALSE)
-                 ->or_where('checkout_at', '')
-                 ->group_end();
-    }
-
-    $terpakai = (int)($this->db->get()->row('jml') ?? 0);
-
-    if ($kuota === null) {
-        return [true, null, $terpakai, null, '']; // tak dibatasi
-    }
-
-    if ($terpakai >= $kuota) {
-        $tgl_view = date('d-m-Y', strtotime($tanggal));
-        $err = sprintf(
-            'Kuota harian untuk unit <b>%s</b> pada tanggal <b>%s</b> sudah penuh (kuota %d, terpakai %d).',
-            $unit->nama_unit ?? '-', $tgl_view, $kuota, $terpakai
-        );
-        return [false, 0, $terpakai, $kuota, $err];
-    }
-
-    $sisa = max(0, $kuota - $terpakai);
-    return [true, $sisa, $terpakai, $kuota, ''];
-}
-
 
     private function _resolve_instansi_asal($kategori, $instansiId){
         $map = $this->_kategori_map();
@@ -1321,8 +1155,8 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         $cfg = $map[$kategori];
 
         $this->db->select($cfg['text'].' AS nama', false)
-                 ->from($cfg['table'])
-                 ->where($cfg['id'], (int)$instansiId);
+            ->from($cfg['table'])
+            ->where($cfg['id'], (int)$instansiId);
         if ($this->db->field_exists('aktif', $cfg['table'])) {
             $this->db->where('aktif', 1);
         }
@@ -1345,7 +1179,7 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         ];
     }
 
-   private function _make_kode_booking(int $len = 6): string
+    private function _make_kode_booking(int $len = 6): string
     {
         // Hindari karakter membingungkan: I, O, 0, 1
         $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -1359,7 +1193,6 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
             return $s;
         };
 
-        // Coba beberapa kali sampai dapat yang unik
         for ($try = 0; $try < 20; $try++) {
             $code = $gen($len);
             $exists = $this->db->select('1', false)
@@ -1370,10 +1203,8 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
             if (!$exists) return $code;
         }
 
-        // Fallback: panjang +2 jika (sangat jarang) semua bentrok
         return $gen($len + 2);
     }
-
 
     public function get_last_upload_error() {
         return $this->last_upload_error;
@@ -1448,7 +1279,6 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         if ($with_logo) {
             $logo_path = FCPATH.'assets/images/logo.png';
             if (is_file($logo_path)) {
-        // false = overwrite file QR asli, true = simpan file baru dengan sufiks
                 $this->_qr_overlay_logo($dir.$file, $logo_path, 0.22, false);
             }
         }
@@ -1456,16 +1286,6 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         return base_url('uploads/qr/'.$file);
     }
 
-    /**
-     * Tempelkan logo ke tengah QR code.
-     *
-     * @param string  $qr_path      Path file QR (png/jpg)
-     * @param string  $logo_path    Path file logo (png/jpg, png transparan didukung)
-     * @param float   $scale        Skala lebar logo relatif lebar QR (0.10–0.35 disarankan)
-     * @param bool    $save_as_new  true = simpan ke file baru (pakai suffix), false = overwrite
-     * @param string  $suffix       Sufiks nama file baru jika $save_as_new = true (mis. _logo)
-     * @return string|false         Path output bila sukses, false bila gagal
-     */
     private function _qr_overlay_logo($qr_path, $logo_path, $scale = 0.22, $save_as_new = false, $suffix = '_logo')
     {
         try {
@@ -1474,7 +1294,6 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
                 return false;
             }
 
-            // --- helper buat image dari file (png/jpg) ---
             $makeImg = function($path) {
                 $info = getimagesize($path);
                 if (!$info) return [null, null];
@@ -1493,7 +1312,6 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
                 return false;
             }
 
-            // pastikan canvas truecolor + alpha untuk PNG
             imagealphablending($qr, true);
             imagesavealpha($qr, true);
             imagealphablending($logo, true);
@@ -1502,20 +1320,15 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
             $qr_w = imagesx($qr);  $qr_h = imagesy($qr);
             $lg_w = imagesx($logo);$lg_h = imagesy($logo);
 
-            // clamp scale
             $scale = max(0.10, min(0.35, (float)$scale));
 
-            // ukuran logo target (proporsional)
             $target_w = (int) round($qr_w * $scale);
             $target_h = (int) round($lg_h * ($target_w / max(1, $lg_w)));
 
-            // posisi tengah
             $dst_x = (int) round(($qr_w - $target_w) / 2);
             $dst_y = (int) round(($qr_h - $target_h) / 2);
 
-            // resize logo ke buffer agar hasil tajam
             $logo_resized = imagecreatetruecolor($target_w, $target_h);
-            // jaga transparansi
             imagealphablending($logo_resized, false);
             imagesavealpha($logo_resized, true);
             $transparent = imagecolorallocatealpha($logo_resized, 0, 0, 0, 127);
@@ -1523,18 +1336,15 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
 
             imagecopyresampled($logo_resized, $logo, 0, 0, 0, 0, $target_w, $target_h, $lg_w, $lg_h);
 
-            // tempel ke QR
             imagecopy($qr, $logo_resized, $dst_x, $dst_y, 0, 0, $target_w, $target_h);
 
-            // tentukan output path
             if ($save_as_new) {
                 $pi = pathinfo($qr_path);
-                $out = $pi['dirname'].'/'.$pi['filename'].$suffix.'.png'; // output sebagai PNG
+                $out = $pi['dirname'].'/'.$pi['filename'].$suffix.'.png';
             } else {
-                $out = $qr_path; // timpa file asli
+                $out = $qr_path;
             }
 
-            // simpan PNG dengan kualitas baik (0-9 → 6 kompromi)
             $ok = imagepng($qr, $out, 6);
             imagedestroy($qr);
             imagedestroy($logo);
@@ -1551,8 +1361,7 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         }
     }
 
-
-   public function contact_vcf()
+    public function contact_vcf()
     {
         $path = FCPATH.'uploads/contact-silaturahmi.vcf';
         if ( ! is_file($path)) { show_404(); return; }
@@ -1560,55 +1369,56 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         $this->load->helper('download');
         $filename = 'SilaturahmiMakassar.vcf';
 
-        // Paksa unduh
         force_download($filename, file_get_contents($path));
         exit;
     }
 
-
-
-
     private function _send_wa_konfirmasi($no_hp, array $d)
     {
+        // Normalisasi nomor tujuan (user)
+        if (method_exists($this,'_normalize_msisdn_id')) {
+            $no_hp = $this->_normalize_msisdn_id((string)$no_hp);
+        }
+
+        // escape ringan untuk WA markdown
+        $wa_plain = function($s){
+            $s = (string)$s;
+            return str_replace(['*','_','~','`'], ['\*','\_','\~','\`'], $s);
+        };
+
         // (A) ambil token lebih dulu
         $token = !empty($d['access_token']) ? $d['access_token'] : null;
 
-        // (B) bangun redirect_url aman
+        // (B) redirect_url aman
         $redirect_url = !empty($d['redirect_url'])
             ? $d['redirect_url']
             : ($token ? site_url('booking/booked').'?t='.urlencode($token) : site_url('booking'));
 
         // (C) data utama
-        $nama          = $d['nama']             ?? '-';
-        $keperluan     = $d['keperluan']        ?? '-';
-        $kode          = trim((string)($d['kode'] ?? ''));   // kosong = tidak buat link PDF
-        $instansi_asal = $d['instansi_asal']    ?? '-';
-        $nama_petugas_instansi = $d['nama_petugas_instansi'] ?? '-';
-        $unit_tujuan   = $d['unit_tujuan']      ?? '-';
+        $nama          = $wa_plain($d['nama'] ?? '-');
+        $keperluan     = $wa_plain($d['keperluan'] ?? '-');
+        $kode          = trim((string)($d['kode'] ?? ''));
+        $instansi_asal = $wa_plain($d['instansi_asal'] ?? '-');
+        $nama_petugas_instansi = $wa_plain($d['nama_petugas_instansi'] ?? '-');
+        $unit_tujuan   = $wa_plain($d['unit_tujuan'] ?? '-');
         $tanggal_disp  = !empty($d['tanggal']) ? date('d-m-Y', strtotime($d['tanggal'])) : '-';
-
-        // (D) rapikan jam (boleh pakai parser longgar seperti di atas jika perlu)
         $jam_disp      = isset($d['jam']) ? $d['jam'] : '-';
 
-        // (E) link PDF (hanya jika ada $kode) + sertakan token
-        // $pdf_url = site_url('booking/download_gate').'?k='.rawurlencode($kode).'&t='.urlencode($token); // gateway, bukan print_pdf langsung
-        // (E) link PDF (gateway) — HANYA kalau $kode & $token ada
         $pdf_url = $d['pdf_url'] ?? '';
         if ($pdf_url === '' && $kode !== '' && $token) {
             $pdf_url = site_url('booking/download_gate').'?k='.rawurlencode($kode).'&t='.urlencode($token);
         }
 
-
-      
-
-        // (F) web_me
         $web = $this->fm->web_me();
+        $is_update = !empty($d['is_update']);
 
-        // (G) susun & kirim pesan (tampilkan PDF hanya jika ada)
-        $pesan  = "*[Konfirmasi Booking Kunjungan]*\n\n";
+        $pesan  = $is_update ? "*[Perubahan Booking Kunjungan]*\n\n" : "*[Konfirmasi Booking Kunjungan]*\n\n";
         $pesan .= "Halo *{$nama}*,\n\n";
-        $pesan .= "Pengajuan kunjungan Anda telah *BERHASIL* didaftarkan dengan detail berikut:\n\n";
-        $pesan .= "🆔 Kode Booking : *{$kode}*\n";
+        $pesan .= $is_update
+            ? "Anda telah melakukan *perubahan* booking kunjungan dengan detail berikut:\n\n"
+            : "Pengajuan kunjungan Anda telah *BERHASIL* didaftarkan dengan detail berikut:\n\n";
+
+        $pesan .= "🆔 Kode Booking : *{$wa_plain($kode)}*\n";
         $pesan .= "👤 Nama Tamu : {$nama}\n";
         $pesan .= "🏢 Instansi Asal : {$instansi_asal}\n";
         $pesan .= "🏛️ Unit Tujuan : {$unit_tujuan}\n";
@@ -1622,7 +1432,7 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         $pesan .= "🔗 Detail booking:\n{$redirect_url}\n\n";
         $pesan .= "Tunjukkan kode booking (PDF)/Barcode pada petugas pintu masuk saat kunjungan\n\n";
         $pesan .= "📇 Simpan kontak kami agar link bisa diklik langsung\n\n";
-        $pesan .= "_Pesan ini dikirim otomatis oleh Aplikasi {$web->nama_website}._";
+        $pesan .= "_Pesan ini dikirim otomatis oleh Aplikasi ".($web->nama_website ?? 'Aplikasi')."._";
 
         if (function_exists('send_wa_single')) {
             try {
@@ -1637,7 +1447,6 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
             return false;
         }
     }
-
 
     public function get_limit_pendamping(){
         $id = (int)$this->input->get('id');
@@ -1669,7 +1478,7 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
 
         $cfg = $map[$jenis];
         $this->db->select($cfg['id'].' AS id, '.$cfg['text'].' AS text', false)
-                 ->from($cfg['table']);
+            ->from($cfg['table']);
 
         if ($this->db->field_exists('aktif', $cfg['table'])) {
             $this->db->where('aktif', 1);
@@ -1724,16 +1533,16 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
     public function do_checkin($kode_booking)
     {
         $this->db->where('kode_booking', $kode_booking)
-                 ->update('booking_tamu', ['checkin_at' => date('Y-m-d H:i:s')]);
+            ->update('booking_tamu', ['checkin_at' => date('Y-m-d H:i:s')]);
     }
 
     public function do_checkout($kode_booking)
     {
         $this->db->where('kode_booking', $kode_booking)
-                 ->update('booking_tamu', [
-                     'checkout_at'   => date('Y-m-d H:i:s'),
-                     'token_revoked' => 1
-                 ]);
+            ->update('booking_tamu', [
+                'checkout_at'   => date('Y-m-d H:i:s'),
+                'token_revoked' => 1
+            ]);
     }
 
     private function _send_wa_info_unit(string $hp_unit, array $d): bool
@@ -1743,9 +1552,8 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
             return false;
         }
 
-        // --- Normalisasi nomor tujuan (unit) ---
         if (method_exists($this, '_normalize_msisdn_id')) {
-            $hp_unit = $this->_normalize_msisdn_id($hp_unit); // pastikan 62xxxxxxxxx
+            $hp_unit = $this->_normalize_msisdn_id($hp_unit);
         } else {
             $hp_unit = preg_replace('/\D+/', '', $hp_unit ?? '');
             if ($hp_unit !== '' && $hp_unit[0] === '0') $hp_unit = '62'.substr($hp_unit,1);
@@ -1755,20 +1563,16 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
             return false;
         }
 
-        // --- web_me dengan fallback & default aman ---
         $web = null;
         if (isset($this->fm) && method_exists($this->fm, 'web_me'))       $web = $this->fm->web_me();
         elseif (isset($this->om) && method_exists($this->om, 'web_me'))   $web = $this->om->web_me();
         $app_name = $web->nama_website ?? 'Aplikasi';
 
-        // --- Helper kecil untuk aman di WA ---
         $wa_plain = function($s){
             $s = (string)$s;
-            // escape karakter markdown dasar: * _ ~ `
             return str_replace(['*','_','~','`'], ['\*','\_','\~','\`'], $s);
         };
 
-        // --- Ambil & rapikan data ---
         $kode        = trim((string)($d['kode'] ?? ''));
         $nama        = $wa_plain(trim((string)($d['nama'] ?? '-')));
         $no_hp_tamu  = trim((string)($d['hp_tamu'] ?? ''));
@@ -1779,10 +1583,8 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         $pendamping  = (int)($d['pendamping'] ?? 0);
         $keperluan   = $wa_plain(trim((string)(($d['keperluan'] ?? '-') ?: '-')));
         $redir       = trim((string)($d['redirect_url'] ?? ''));
-        // $qr_url      = trim((string)($d['qr_url'] ?? ''));
         $is_cc       = !empty($d['is_cc']);
 
-        // Tanggal (validasi format Y-m-d agar tidak jadi 1970)
         $tanggal_disp = '-';
         if (!empty($d['tanggal'])) {
             $dt = DateTime::createFromFormat('Y-m-d', (string)$d['tanggal']);
@@ -1790,33 +1592,36 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
                 $tanggal_disp = $dt->format('d-m-Y');
             }
         }
-        // Jam sederhana
-        $jam_disp      = isset($d['jam']) ? $d['jam'] : '-';
+        $jam_disp = isset($d['jam']) ? $d['jam'] : '-';
 
-        // Link WA tamu (hanya jika valid)
         $wa_link = '';
         if ($no_hp_tamu !== '') {
             $wa_digits = preg_replace('/\D+/', '', $no_hp_tamu);
             if ($wa_digits !== '') {
                 if ($wa_digits[0] === '0') $wa_digits = '62'.substr($wa_digits,1);
-                // minimal 8-10 digit setelah 62, biar tidak https://wa.me/ kosong
                 if (strlen($wa_digits) >= 10) $wa_link = 'https://wa.me/'.$wa_digits;
             }
         }
 
-        // Header
-        $header = $is_cc ? '🔁 *TEMBUSAN PEMBERITAHUAN KUNJUNGAN*' : '📣 *PEMBERITAHUAN KUNJUNGAN*';
+        $is_update = !empty($d['is_update']);
 
-        // Kepada
+        if ($is_cc) {
+            $header = $is_update ? '🔁 *TEMBUSAN PERUBAHAN KUNJUNGAN*' : '🔁 *TEMBUSAN PEMBERITAHUAN KUNJUNGAN*';
+        } else {
+            $header = $is_update ? '📣 *PEMBERITAHUAN PERUBAHAN KUNJUNGAN*' : '📣 *PEMBERITAHUAN KUNJUNGAN*';
+        }
+
         $kepada = "Kepada Yth.\n";
         $kepada .= ($unit_pej !== '') ? ('*'.$unit_pej.'* — *'.$unit_nama.'*') : ('*'.$unit_nama.'*');
 
-        // Susun pesan
         $lines = [];
         $lines[] = $header;
         $lines[] = '';
         $lines[] = $kepada;
         $lines[] = '━━━━━━━━━━━━━━━━━━━━';
+        if ($is_update) {
+            $lines[] = 'Terdapat *perubahan* data booking kunjungan. Berikut detail terbaru:';
+        }
         $lines[] = '🆔 Kode Booking : *'.($kode !== '' ? $wa_plain($kode) : '-').'*';
         $lines[] = '👤 Tamu : '.$nama;
         if ($wa_link) $lines[] = '🟢 WhatsApp : '.$wa_link;
@@ -1826,7 +1631,6 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         $lines[] = '⏰ Jam : '.$jam_disp;
         $lines[] = '👥 Pendamping : '.$pendamping.' orang';
         $lines[] = '📝 Keperluan : '.$keperluan;
-        // if ($qr_url !== '') { $lines[] = '🧾 QR           : '.$qr_url; }
         if ($redir  !== '') {
             $lines[] = '';
             $lines[] = '🔗 Detail kunjungan:';
@@ -1844,7 +1648,6 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
             return false;
         }
     }
-
 
     // ==== DOKUMENTASI: list & upload (opsional) ====
 
@@ -1982,13 +1785,13 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         if ($ext === 'png') { imagealphablending($dst, false); imagesavealpha($dst, true); }
         imagecopyresampled($dst, $src, 0, 0, 0, 0, $nw, $nh, $w, $h);
 
-        $dir = FCPATH.'uploads/foto/';
+        $dir = FCPATH.'uploads/dokumentasi/'; // konsisten dengan dokumentasi_list
         if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
             imagedestroy($src); imagedestroy($dst);
             return $this->json_exit(["ok"=>false, "msg"=>"Gagal membuat folder upload"], 500);
         }
         $safeKode = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $kode);
-        $fname   = 'dok_'.$safeKode.'_'.date('Ymd_His').'_'.substr(md5(uniqid('',true)),0,6).'.'.$ext;
+        $fname   = 'doc_'.$safeKode.'_'.date('Ymd_His').'_'.substr(md5(uniqid('',true)),0,6).'.'.$ext;
         $fullTmp = $dir.'.tmp_'.$fname;
         $full    = $dir.$fname;
 
@@ -1998,21 +1801,645 @@ private function _validate_kuota_harian(int $unit_id, string $tanggal, bool $loc
         @chmod($fullTmp, 0644);
         if (!@rename($fullTmp, $full)) { @unlink($fullTmp); return $this->json_exit(["ok"=>false,"msg"=>"Gagal memindahkan berkas"],500); }
 
-        if ($this->db->field_exists('foto', 'booking_tamu')) {
-            $old = $row['foto'] ?? null;
-            $this->db->where('kode_booking', $kode)->update('booking_tamu', ['foto'=>$fname]);
-            if ($old && $old !== $fname) {
-                $oldPath = $dir.$old;
-                if (is_file($oldPath)) @unlink($oldPath);
-            }
+        // Jika tabel dokumentasi ada, simpan metadata
+        if ($this->db->table_exists('booking_dokumentasi')) {
+            $this->db->insert('booking_dokumentasi', [
+                'kode_booking' => $kode,
+                'filename'     => $fname,
+                'uploaded_at'  => date('Y-m-d H:i:s'),
+            ]);
         }
 
         return $this->json_exit([
             "ok"  => true,
             "msg" => "Foto tersimpan",
-            "url" => base_url('uploads/foto/'.$fname),
+            "url" => base_url('uploads/dokumentasi/'.$fname),
             "file"=> $fname,
             "meta"=> ["w"=>$nw, "h"=>$nh]
         ]);
     }
+
+    /* =========================
+     *  EDIT (form ubah)
+     *  ========================= */
+    public function edit($kode_booking = null)
+    {
+        $t = trim((string)$this->input->get('t', TRUE)); // access_token (WAJIB)
+        $k = $kode_booking ?: trim((string)$this->input->get('k', TRUE));
+
+        if ($t === '') { return $this->_booked_error("Link tidak valid."); }
+
+        // Cari berdasarkan token; jika ada kode_booking, pastikan cocok
+        $this->db->from('booking_tamu')->where('access_token', $t);
+        if ($k !== '') $this->db->where('kode_booking', $k);
+        $booking = $this->db->limit(1)->get()->row();
+
+        // pastikan booking ada dahulu sebelum _check_edit_lock()
+        if (!$booking) return $this->_booked_error("Link tidak valid.");
+
+        list($okEdit, $msgEdit) = $this->_check_edit_lock($booking);
+        if (!$okEdit) {
+            return $this->_booked_error($msgEdit);
+        }
+
+        if ((int)$booking->token_revoked === 1) return $this->_booked_error("Link sudah tidak berlaku (token dicabut).");
+        if (!empty($booking->checkout_at)) {
+            $wkt = date('d-m-Y H:i', strtotime($booking->checkout_at));
+            return $this->_booked_error("Link tidak berlaku. Anda telah checkout pada {$wkt}.");
+        }
+        if (isset($booking->status) && $booking->status === 'expired') {
+            $wkt = !empty($booking->expired_at)
+                ? date('d-m-Y H:i', strtotime($booking->expired_at))
+                : ($booking->tanggal.' '.$booking->jam);
+            return $this->_booked_error("Link tidak berlaku. Status: Tidak Hadir (Expired) pada {$wkt}.");
+        }
+
+        $data = [
+            "controller" => get_class($this),
+            "title"      => "Ubah Booking",
+            "deskripsi"  => "Perbarui data booking Anda.",
+            "booking"    => $booking,
+            "rec"        => $this->fm->web_me(),
+            "units_tree" => $this->mb->get_tree(),
+            "prev"       => base_url("assets/images/booking.png"),
+        ];
+
+        // Noindex + no-cache
+        $this->output
+            ->set_header('X-Robots-Tag: noindex, nofollow, noarchive')
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+            ->set_header('Pragma: no-cache');
+            list($batas_edit, $batas_hari) = $this->_get_edit_limits();
+            $data['batas_edit'] = $batas_edit;
+            $data['batas_hari'] = $batas_hari;
+
+        $this->load->view('booking_edit', $data);
+    }
+
+    /* =========================
+     *  UPDATE (proses ubah via AJAX POST)
+     *  ========================= */
+    public function update()
+    {
+        $kode  = trim((string)$this->input->post('kode_booking', true));
+        $token = trim((string)$this->input->post('access_token', true));
+
+        if ($kode === '' || $token === '') {
+            return $this->_json(["success"=>false,"title"=>"Tidak Valid","pesan"=>"Data kunci tidak lengkap."], 422);
+        }
+
+        $booking = $this->db->get_where('booking_tamu', [
+            'kode_booking' => $kode,
+            'access_token' => $token
+        ])->row();
+
+        if (!$booking) {
+            return $this->_json(["success"=>false,"title"=>"Tidak Ditemukan","pesan"=>"Link tidak valid."], 404);
+        }
+
+        list($okEdit, $msgEdit) = $this->_check_edit_lock($booking);
+        if (!$okEdit) {
+            return $this->_json(["success"=>false,"title"=>"Tidak Diizinkan","pesan"=>$msgEdit], 403);
+        }
+
+        if ((int)$booking->token_revoked === 1) {
+            return $this->_json(["success"=>false,"title"=>"Tidak Berlaku","pesan"=>"Token dicabut."], 410);
+        }
+        if (!empty($booking->checkout_at)) {
+            $wkt = date('d-m-Y H:i', strtotime($booking->checkout_at));
+            return $this->_json(["success"=>false,"title"=>"Tidak Berlaku","pesan"=>"Anda telah checkout pada {$wkt}."], 410);
+        }
+        if (isset($booking->status) && $booking->status === 'expired') {
+            $wkt = !empty($booking->expired_at)
+                ? date('d-m-Y H:i', strtotime($booking->expired_at))
+                : ($booking->tanggal.' '.$booking->jam);
+            return $this->_json(["success"=>false,"title"=>"Tidak Berlaku","pesan"=>"Status expired pada {$wkt}."], 410);
+        }
+
+        $data = $this->input->post(NULL, TRUE);
+        $this->load->library('form_validation');
+        $this->_set_rules();
+
+        if ($this->form_validation->run() === FALSE) {
+            return $this->_json([
+                "success"=>false, "title"=>"Validasi Gagal",
+                "pesan"=>validation_errors()
+            ]);
+        }
+
+        // 1) Validasi tanggal & jam
+        [$okJ, $tanggal, $jam, $errJ] = $this->_validate_jadwal($data['tanggal'], $data['jam']);
+        if (!$okJ) {
+            return $this->_json(["success"=>false,"title"=>"Validasi Jadwal","pesan"=>$errJ]);
+        }
+
+        // 2) Batas pendamping per unit
+        $unit_id    = (int)$data['unit_tujuan'];
+        $dimintaRaw = $this->input->post('jumlah_pendamping', true);
+        $diminta    = ($dimintaRaw === '' || $dimintaRaw === null) ? 0 : (int)$dimintaRaw;
+        [$okP, $unit_nama, $errP] = $this->_validate_pendamping($unit_id, $diminta);
+        if (!$okP) {
+            return $this->_json(["success"=>false,"title"=>"Melebihi Batas Pendamping","pesan"=>$errP]);
+        }
+
+        // 3) Instansi asal
+        $kategori   = strtolower((string)$this->input->post('kategori', true));
+        $instansiId = (int)$this->input->post('instansi_id', true);
+        if ($kategori === 'lainnya') {
+            $instansiNama = trim((string)$this->input->post('target_instansi_nama', true));
+            if ($instansiNama === '' || mb_strlen($instansiNama) < 3) {
+                return $this->_json(["success"=>false,"title"=>"Validasi Gagal","pesan"=>"Nama instansi (Lainnya) minimal 3 karakter."]);
+            }
+            $instansiId = null;
+        } else {
+            [$okI, $instansiNama, $errI] = $this->_resolve_instansi_asal($kategori, $instansiId);
+            if (!$okI) {
+                return $this->_json(["success"=>false,"title"=>"Validasi Gagal","pesan"=>$errI]);
+            }
+        }
+
+        // 4) Upload opsional
+        $surat_tugas = $booking->surat_tugas ?: null;
+        $foto        = $booking->foto ?: null;
+
+        $no_file = function(string $field){
+            return empty($_FILES[$field]) ||
+                   (isset($_FILES[$field]['error']) && $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) ||
+                   (isset($_FILES[$field]['name']) && $_FILES[$field]['name'] === '');
+        };
+
+        if (!$no_file('surat_tugas')) {
+            $tmp = $this->_upload('surat_tugas', './uploads/surat_tugas/', 'pdf|jpg|jpeg|png', 2048, 'surat_tugas');
+            if ($tmp === null) {
+                $msg = $this->get_last_upload_error();
+                if ($msg && stripos($msg, 'did not select a file') === false) {
+                    return $this->_json(["success"=>false,"title"=>"Upload Gagal","pesan"=>$msg ?: "Surat tugas melebihi 2MB."]);
+                }
+            } else {
+                if ($surat_tugas && is_file(FCPATH.'uploads/surat_tugas/'.$surat_tugas)) {
+                    @unlink(FCPATH.'uploads/surat_tugas/'.$surat_tugas);
+                }
+                $surat_tugas = $tmp;
+            }
+        }
+
+        if (!$no_file('foto')) {
+            $tmp = $this->_upload('foto', './uploads/foto/', 'jpg|jpeg|png', 1536, 'foto');
+            if ($tmp === null) {
+                $msg = $this->get_last_upload_error();
+                if ($msg && stripos($msg, 'did not select a file') === false) {
+                    return $this->_json(["success"=>false,"title"=>"Upload Gagal","pesan"=>$msg ?: "Foto melebihi 1.5MB."]);
+                }
+            } else {
+                if ($foto && is_file(FCPATH.'uploads/foto/'.$foto)) {
+                    @unlink(FCPATH.'uploads/foto/'.$foto);
+                }
+                $foto = $tmp;
+            }
+        }
+
+        // 5) Nama petugas instansi default dari unit_tujuan
+        $nama_petugas_instansi = null;
+        $unit = $this->db->select('nama_pejabat, nama_unit')
+            ->from('unit_tujuan')->where('id', $unit_id)->limit(1)->get()->row();
+        if ($unit && !empty($unit->nama_pejabat)) $nama_petugas_instansi = trim($unit->nama_pejabat);
+
+        // 6) PENDAMPING (JSON)
+        $pendampingRows  = [];
+        $pendamping_json = $this->input->post('pendamping_json', true);
+        $nik_tamu        = preg_replace('/\D+/', '', (string)$this->input->post('nik', true));
+
+        if ($pendamping_json !== null && $pendamping_json !== '') {
+            $arr = json_decode($pendamping_json, true);
+            if (!is_array($arr)) {
+                return $this->_json(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"Format data pendamping tidak valid."]);
+            }
+            $seen = [];
+            foreach ($arr as $i => $p) {
+                $rawId = (string)($p['nik'] ?? '');
+                $id    = preg_replace('/\D+/', '', $rawId);
+                $nama  = trim((string)($p['nama'] ?? ''));
+
+                if ($id === '' && $nama === '') continue;
+
+                if ($nama === '') {
+                    return $this->_json(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"Nama pendamping #".($i+1)." wajib diisi."]);
+                }
+                if ($id === '' || !preg_match('/^(?:\d{8,9}|\d{16}|\d{18})$/', $id)) {
+                    return $this->_json(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"ID pendamping #".($i+1)." tidak valid. Isi salah satu: NIK 16 digit, NIP 18/9 digit, atau NRP 8–9 digit."]);
+                }
+                $nik_tamu_digits = preg_replace('/\D+/', '', (string)$nik_tamu);
+                if ($nik_tamu_digits && $id === $nik_tamu_digits) {
+                    return $this->_json(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"ID pendamping #".($i+1)." tidak boleh sama dengan ID tamu."]);
+                }
+                if (isset($seen[$id])) {
+                    return $this->_json(["success"=>false,"title"=>"Validasi Pendamping","pesan"=>"ID pendamping #".($i+1)." duplikat."]);
+                }
+                $seen[$id] = true;
+                $pendampingRows[] = ['nik' => $id, 'nama' => $nama];
+            }
+        }
+        if ($diminta > 0 && count($pendampingRows) !== $diminta) {
+            return $this->_json([
+                "success"=>false,"title"=>"Validasi Pendamping",
+                "pesan"=>"Jumlah pendamping yang diisi (".count($pendampingRows).") tidak sama dengan jumlah pendamping ($diminta)."
+            ]);
+        }
+
+        // 7) Siapkan UPDATE
+        $update = [
+            "nama_tamu"             => $data['nama_tamu'],
+            "jabatan"               => $data['jabatan'],
+            "nik"                   => $data['nik'],
+            "alamat"                => $data["alamat"] ?? null,
+            "no_hp"                 => $data['no_hp'],
+            "instansi"              => $data['instansi'] ?? null,
+            "unit_tujuan"           => $unit_id,
+            "target_kategori"       => $kategori,
+            "target_instansi_id"    => $instansiId,
+            "target_instansi_nama"  => $instansiNama,
+            "nama_petugas_instansi" => $nama_petugas_instansi,
+            "keperluan"             => $data['keperluan'] ?? null,
+            "surat_tugas"           => $surat_tugas,
+            "jumlah_pendamping"     => $diminta,
+            "tanggal"               => $tanggal,
+            "jam"                   => $jam,
+            "foto"                  => $foto,
+            "tanggal_lahir"         => $this->normalize_date_mysql($data['tanggal_lahir'] ?? ''),
+            "tempat_lahir"          => $data["tempat_lahir"] ?? null,
+            "update_date"           => date('Y-m-d H:i:s'),
+        ];
+        if ($this->db->field_exists('edit_count', 'booking_tamu')) {
+            $update['edit_count'] = (int)($booking->edit_count ?? 0) + 1;
+        }
+
+        // 8) Transaksi + cek kuota (exclude record sendiri bila pindah tanggal/unit)
+        $this->db->trans_begin();
+
+        $pindahTanggalAtauUnit = ((string)$booking->tanggal !== (string)$tanggal) || ((int)$booking->unit_tujuan !== (int)$unit_id);
+
+        if ($pindahTanggalAtauUnit) {
+            $unitRow = $this->db->query('SELECT kuota_harian, nama_unit FROM unit_tujuan WHERE id=? FOR UPDATE', [$unit_id])->row();
+            if (!$unitRow) {
+                $this->db->trans_rollback();
+                return $this->_json(["success"=>false,"title"=>"Unit Tidak Ditemukan","pesan"=>"Unit tujuan tidak ditemukan."], 404);
+            }
+            $kuota = isset($unitRow->kuota_harian) ? (int)$unitRow->kuota_harian : 0;
+            $kuota = $kuota > 0 ? $kuota : null;
+
+            $this->db->select('COUNT(1) AS jml', false)
+                ->from('booking_tamu')
+                ->where('unit_tujuan', $unit_id)
+                ->where('tanggal', $tanggal)
+                ->where('kode_booking !=', $booking->kode_booking);
+            if ($this->db->field_exists('status', 'booking_tamu')) {
+                $this->db->where_in('status', ['pending','approved','checked_in']);
+            }
+            if ($this->db->field_exists('token_revoked', 'booking_tamu')) {
+                $this->db->where('token_revoked', 0);
+            }
+            if ($this->db->field_exists('checkout_at', 'booking_tamu')) {
+                $this->db->group_start()
+                    ->where('checkout_at IS NULL', NULL, FALSE)
+                    ->or_where('checkout_at', '')
+                    ->group_end();
+            }
+            $terpakai = (int)($this->db->get()->row('jml') ?? 0);
+
+            if ($kuota !== null && $terpakai >= $kuota) {
+                $this->db->trans_rollback();
+                $tgl_view = date('d-m-Y', strtotime($tanggal));
+                return $this->_json([
+                    "success"=>false,"title"=>"Kuota Penuh",
+                    "pesan"=>"Kuota harian untuk unit <b>".htmlspecialchars($unitRow->nama_unit,ENT_QUOTES,'UTF-8')."</b> pada tanggal <b>{$tgl_view}</b> sudah penuh."
+                ]);
+            }
+        }
+
+        $this->db->where('kode_booking', $booking->kode_booking)
+                 ->where('access_token', $booking->access_token)
+                 ->update('booking_tamu', $update);
+
+        if ($this->db->affected_rows() < 0) {
+            $err = $this->db->error();
+            $this->db->trans_rollback();
+            return $this->_json(["success"=>false,"title"=>"Gagal Menyimpan","pesan"=>"Terjadi kendala saat menyimpan. [DB-{$err['code']}]"]);
+        }
+
+        $this->db->delete('booking_pendamping', ['kode_booking' => $booking->kode_booking]);
+        if (!empty($pendampingRows)) {
+            $values = [];
+            foreach ($pendampingRows as $r) {
+                $values[] = $this->db->escape($booking->kode_booking).','.$this->db->escape($r['nik']).','.$this->db->escape($r['nama']);
+            }
+            $sql = "INSERT INTO booking_pendamping (kode_booking, nik, nama) VALUES (".implode('),(', $values).")";
+            $okPend = $this->db->query($sql);
+            if (!$okPend) {
+                $err = $this->db->error();
+                $this->db->trans_rollback();
+                return $this->_json(["success"=>false,"title"=>"Gagal Menyimpan Pendamping","pesan"=>"Silakan ulangi. [DB-{$err['code']}]"]);
+            }
+        }
+
+        $this->db->trans_commit();
+
+        $fresh = $this->db->get_where('booking_tamu', [
+            'kode_booking' => $booking->kode_booking,
+            'access_token' => $booking->access_token
+        ])->row();
+
+        $critical_changed = $pindahTanggalAtauUnit
+            || ((string)$booking->jam !== (string)$jam)
+            || ((string)$booking->no_hp !== (string)$update['no_hp'])
+            || ((string)$booking->nama_tamu !== (string)$update['nama_tamu'])
+            || ((int)$booking->jumlah_pendamping !== (int)$diminta)
+            || ((string)($booking->keperluan ?? '') !== (string)($update['keperluan'] ?? ''));
+
+        $force = ((int)$this->input->post('resend_wa', true) === 1)
+              || ((int)$this->input->post('force_wa',  true) === 1);
+
+        if ($fresh && ($force || $critical_changed)) {
+            $this->_resend_wa_after_update($fresh, $force);
+        }
+
+        $redirect_url = site_url('booking/booked?t='.urlencode($booking->access_token));
+        return $this->_json([
+            "success"      => true,
+            "title"        => "Tersimpan",
+            "pesan"        => "Perubahan telah disimpan."
+                               .(!$fresh ? "" : ($force ? " (WhatsApp dikirim ulang - paksa)"
+                                               : ($critical_changed ? " (WhatsApp dikirim ulang)" : ""))),
+            "redirect_url" => $redirect_url
+        ]);
+    }
+
+    private function _resend_wa_after_update($b, bool $force = false): void
+    {
+        if (!$b) return;
+        if ((int)$b->token_revoked === 1) return;
+        if (!empty($b->checkout_at))     return;
+
+        $qr_rel = 'uploads/qr/qr_'.$b->kode_booking.'.png';
+        $qr_abs = FCPATH.$qr_rel;
+        if (!is_file($qr_abs)) { $this->_make_qr($b->kode_booking); }
+        $qr_url = base_url($qr_rel);
+
+        $redir   = site_url('booking/booked?t='.urlencode($b->access_token));
+        $pdf_url = site_url('booking/download_gate').'?k='.rawurlencode($b->kode_booking).'&t='.urlencode($b->access_token);
+
+        $instansi = $b->target_instansi_nama ?: ($b->instansi ?: '-');
+
+        // TAMU
+        $ok_user = $this->_send_wa_konfirmasi($b->no_hp, [
+            'is_update'             => true,
+            'access_token'          => $b->access_token,
+            'nama'                  => $b->nama_tamu,
+            'nama_petugas_instansi' => $b->nama_petugas_instansi,
+            'kode'                  => $b->kode_booking,
+            'instansi_asal'         => $instansi,
+            'unit_tujuan'           => $this->_safe_unit_name((int)$b->unit_tujuan) ?: '-',
+            'tanggal'               => $b->tanggal,
+            'jam'                   => $b->jam,
+            'qr_url'                => $qr_url,
+            'redirect_url'          => $redir,
+            'pdf_url'               => $pdf_url,
+            'keperluan'             => $b->keperluan ?: '-',
+        ]);
+        if ($ok_user && $this->db->field_exists('wa_sent_at','booking_tamu')) {
+            $this->db->where('kode_booking', $b->kode_booking)
+                     ->where('access_token', $b->access_token)
+                     ->where('wa_sent_at IS NULL', NULL, FALSE)
+                     ->update('booking_tamu', ['wa_sent_at' => date('Y-m-d H:i:s')]);
+        }
+
+        // UNIT TUJUAN
+        $unit_row = $this->db->select('id, nama_unit, nama_pejabat, parent_id, no_hp', false)
+                             ->get_where('unit_tujuan', ['id' => (int)$b->unit_tujuan])->row();
+        $unit_nama_db    = $unit_row->nama_unit    ?? '-';
+        $unit_pejabat_db = $unit_row->nama_pejabat ?? '';
+        $parent_id       = $unit_row->parent_id    ?? null;
+
+        $hp_unit = $this->_extract_phone_from_row($unit_row);
+        if (!$hp_unit) {
+            list($hp_unit_fb, $nm_fb, $pej_fb) = $this->_get_unit_contact((int)$b->unit_tujuan);
+            if ($hp_unit_fb) {
+                $hp_unit         = $hp_unit_fb;
+                $unit_nama_db    = $unit_nama_db ?: ($nm_fb ?: '-');
+                $unit_pejabat_db = $unit_pejabat_db ?: ($pej_fb ?: '');
+            }
+        }
+
+        if (!empty($hp_unit)) {
+            $ok_unit = $this->_send_wa_info_unit($hp_unit, [
+                'is_update'        => true,
+                'kode'             => $b->kode_booking,
+                'nama'             => $b->nama_tamu,
+                'hp_tamu'          => $b->no_hp,
+                'instansi_asal'    => $instansi,
+                'unit_nama'        => $unit_nama_db,
+                'unit_pejabat'     => $unit_pejabat_db,
+                'child_unit_nama'  => $unit_nama_db,
+                'tanggal'          => $b->tanggal,
+                'jam'              => $b->jam,
+                'pendamping'       => (int)$b->jumlah_pendamping,
+                'keperluan'        => $b->keperluan ?: '-',
+                'redirect_url'     => $redir,
+                'qr_url'           => $qr_url,
+                'is_cc'            => false,
+            ]);
+            if ($ok_unit && $this->db->field_exists('wa_unit_sent_at','booking_tamu')) {
+                $this->db->where('kode_booking', $b->kode_booking)
+                         ->where('access_token', $b->access_token)
+                         ->where('wa_unit_sent_at IS NULL', NULL, FALSE)
+                         ->update('booking_tamu', ['wa_unit_sent_at' => date('Y-m-d H:i:s')]);
+            }
+        }
+
+        // TEMBUSAN PARENT
+        if (!empty($parent_id)) {
+            $parent_row = $this->db->select('id, nama_unit, nama_pejabat, no_hp', false)
+                                   ->get_where('unit_tujuan', ['id' => (int)$parent_id])->row();
+
+            $hp_parent = $this->_extract_phone_from_row($parent_row);
+            if (!$hp_parent && $parent_row) {
+                list($hp_parent_fb, $nm_parent_fb, $pej_parent_fb) = $this->_get_unit_contact((int)$parent_row->id);
+                if ($hp_parent_fb) {
+                    $hp_parent               = $hp_parent_fb;
+                    $parent_row->nama_unit   = $parent_row->nama_unit   ?: $nm_parent_fb;
+                    $parent_row->nama_pejabat= $parent_row->nama_pejabat?: $pej_parent_fb;
+                }
+            }
+
+            if (!empty($hp_parent)) {
+                $ok_cc = $this->_send_wa_info_unit($hp_parent, [
+                    'is_update'        => true,
+                    'kode'             => $b->kode_booking,
+                    'nama'             => $b->nama_tamu,
+                    'hp_tamu'          => $b->no_hp,
+                    'instansi_asal'    => $instansi,
+                    'unit_nama'        => $parent_row->nama_unit ?? '-',
+                    'unit_pejabat'     => $parent_row->nama_pejabat ?? '',
+                    'child_unit_nama'  => $unit_nama_db,
+                    'tanggal'          => $b->tanggal,
+                    'jam'              => $b->jam,
+                    'pendamping'       => (int)$b->jumlah_pendamping,
+                    'keperluan'        => $b->keperluan ?: '-',
+                    'redirect_url'     => $redir,
+                    'qr_url'           => $qr_url,
+                    'is_cc'            => true,
+                ]);
+                if ($ok_cc && $this->db->field_exists('wa_parent_sent_at','booking_tamu')) {
+                    $this->db->where('kode_booking', $b->kode_booking)
+                             ->where('access_token', $b->access_token)
+                             ->where('wa_parent_sent_at IS NULL', NULL, FALSE)
+                             ->update('booking_tamu', ['wa_parent_sent_at' => date('Y-m-d H:i:s')]);
+                }
+            }
+        }
+    }
+
+    private function _safe_unit_name(int $unit_id): ?string
+    {
+        return $this->db->select('nama_unit')->get_where('unit_tujuan', ['id'=>$unit_id])->row('nama_unit');
+    }
+
+    private function _app_tz(): DateTimeZone {
+        $web = (isset($this->fm) && method_exists($this->fm,'web_me')) ? $this->fm->web_me() : null;
+        $tzName = !empty($web->waktu) ? (string)$web->waktu : date_default_timezone_get();
+        try { return new DateTimeZone($tzName); } catch (\Throwable $e) { return new DateTimeZone(date_default_timezone_get()); }
+    }
+
+    /** Validasi kunci: boleh edit?
+     *  - Maksimal edit = $web->batas_edit (0 = nonaktif)
+     *  - H-n = $web->batas_hari (edit hanya bila selisih >= n)
+     */
+    private function _check_edit_lock($booking): array {
+        list($batas_edit, $batas_hari) = $this->_get_edit_limits();
+
+        // 0 = fitur edit dimatikan
+        if ($batas_edit === 0) {
+            return [false, 'Fitur ubah data saat ini dinonaktifkan.'];
+        }
+
+        $cnt = (int)($booking->edit_count ?? 0);
+        if ($cnt >= $batas_edit) {
+            return [false, 'Anda sudah mencapai batas maksimal '.$batas_edit.' kali perubahan.'];
+        }
+
+        try {
+            $tz    = $this->_app_tz();
+            $today = new DateTime('today', $tz);
+            $visit = new DateTime((string)$booking->tanggal, $tz); $visit->setTime(0,0,0);
+            $days  = (int)$today->diff($visit)->format('%r%a');
+
+            if ($days < $batas_hari) {
+                return [false, 'Perubahan hanya dapat dilakukan maksimal H-'.$batas_hari.' dari tanggal kunjungan.'];
+            }
+        } catch (\Throwable $e) {
+            return [false, 'Tanggal kunjungan tidak valid untuk pembatasan H-'.$batas_hari.'.'];
+        }
+
+        return [true, ''];
+    }
+
+
+    /** Ambil limit edit dari konfigurasi web_me()
+     *  - batas_edit: maksimal jumlah perubahan (0 = nonaktif, default 1)
+     *  - batas_hari: minimal jarak hari (H-n) agar masih boleh edit (default 2)
+     */
+    private function _get_edit_limits(): array {
+        $web = $this->fm->web_me();
+
+        $batas_edit = (int)($web->batas_edit ?? 1);
+        // clamp biar aman
+        $batas_edit = max(0, min(10, $batas_edit));
+
+        $batas_hari = (int)($web->batas_hari ?? 2);
+        $batas_hari = max(0, min(30, $batas_hari));
+
+        return [$batas_edit, $batas_hari];
+    }
+
+    public function hapus()
+    {
+        // Wajib POST
+        if (strtoupper($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            return $this->_json_bad('Metode tidak diizinkan.', 405);
+        }
+
+        $token = $this->input->post('t', true);
+        $kode  = $this->input->post('kode', true);
+
+        if (!$token || !$kode) {
+            return $this->_json_bad('Parameter tidak lengkap.', 400);
+        }
+
+        // Ambil booking by token + kode
+        $booking = $this->db->get_where('booking', [
+            'access_token'  => $token,
+            'kode_booking'  => $kode
+        ])->row();
+
+        if (!$booking) {
+            return $this->_json_bad('Data tidak ditemukan atau token tidak valid.', 404);
+        }
+
+        // Boleh hapus? (lock jika sudah check-in/checked-out)
+        $st = strtolower((string)$booking->status);
+        $locked = in_array($st, ['checked_in','checked_out'], true);
+        if ($locked) {
+            return $this->_json_bad('Permohonan tidak dapat dihapus karena sudah dalam status kunjungan.', 400);
+        }
+
+        $this->db->trans_begin();
+
+        try {
+            // Hapus pendamping
+            $this->db->delete('booking_pendamping', ['kode_booking' => $booking->kode_booking]);
+
+            // Simpan path untuk dihapus setelah commit
+            $paths = [];
+            if (!empty($booking->foto)) {
+                $paths[] = FCPATH.'uploads/foto/'.basename($booking->foto);
+            }
+            if (!empty($booking->surat_tugas)) {
+                $paths[] = FCPATH.'uploads/surat_tugas/'.basename($booking->surat_tugas);
+            }
+            // QR
+            $paths[] = FCPATH.'uploads/qr/qr_'.$booking->kode_booking.'.png';
+
+            // Hapus booking
+            $this->db->delete('booking', ['id' => $booking->id]);
+
+            if ($this->db->trans_status() === false) {
+                throw new Exception('Gagal menghapus data.');
+            }
+            $this->db->trans_commit();
+
+            // Hapus file-file (di luar transaksi DB)
+            foreach ($paths as $p) {
+                if ($p && is_file($p)) { @unlink($p); }
+            }
+
+            return $this->_json_ok(['ok'=>true]);
+        } catch (Throwable $e) {
+            $this->db->trans_rollback();
+            return $this->_json_bad($e->getMessage() ?: 'Terjadi galat saat menghapus.');
+        }
+    }
+
+    // Helper JSON singkat
+    private function _json_ok($data = [], $code = 200) {
+        $this->output->set_status_header($code)
+                     ->set_content_type('application/json','utf-8')
+                     ->set_output(json_encode($data, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+    }
+    private function _json_bad($msg = 'Gagal', $code = 400) {
+        $this->output->set_status_header($code)
+                     ->set_content_type('application/json','utf-8')
+                     ->set_output(json_encode(['ok'=>false,'msg'=>$msg], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+    }
+
+
+
 }
