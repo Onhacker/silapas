@@ -316,11 +316,11 @@ body.noblur-backdrop #app {
                 <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
               <?php endif; ?>
             </dd>
-          </div>
+          <!-- </div> -->
 
               <!-- 📤 Uploader Surat Tugas -->
-            <div class="kv-row row no-gutters" id="row_surat_upload">
-              <dt class="col-sm-4 kv-label">📤 Unggah Surat Tugas</dt>
+            <!-- <div class="kv-row row no-gutters" id="row_surat_upload"> -->
+              <!-- <dt class="col-sm-4 kv-label">📤 Unggah Surat Tugas</dt> -->
               <dd class="col-sm-8">
                 <!-- gunakan yang sudah ada kalau sebelumnya sudah dibuat -->
                 <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
@@ -526,7 +526,7 @@ body.noblur-backdrop #app {
 
         <!-- Modal PDF -->
         <div class="modal fade" id="modalPDF_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
-          <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width:95%;">
+          <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content">
               <div class="modal-header py-2">
                 <h5 class="modal-title mb-0">Pratinjau PDF – <?= $kode ?></h5>
