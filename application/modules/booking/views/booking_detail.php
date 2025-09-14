@@ -53,7 +53,7 @@ body.noblur-backdrop .modal-backdrop {
   z-index: 2040 !important;
   position: fixed !important;
 }
-body.noblur-backdrop .modal { z-index: 2050 !important; }
+body.noblur-backdrop .modal { z-index: 222222 !important; }
 /* Matikan efek blur/transform di konten saat modal PDF */
 body.noblur-backdrop .content,
 body.noblur-backdrop .page-wrapper,
@@ -299,18 +299,68 @@ body.noblur-backdrop #app {
           <?php if ($durasi): ?>
             <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏳ Durasi</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($durasi, ENT_QUOTES, 'UTF-8') ?></dd></div>
           <?php endif; ?>
+            
 
-          <?php if ($surat_url): ?>
-            <div class="kv-row row no-gutters">
-              <dt class="col-sm-4 kv-label">📄 Surat Tugas</dt>
-              <dd class="col-sm-8">
-                <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
-                  <i class="mdi mdi-file-document"></i> Lihat
+                      <!-- 📄 Surat Tugas (aksi lihat/unduh) -->
+          <div class="kv-row row no-gutters">
+            <dt class="col-sm-4 kv-label">📄 Surat Tugas</dt>
+            <dd class="col-sm-8" id="surat_actions">
+              <?php if ($surat_url): ?>
+                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
+                  <i class="mdi mdi-file-pdf-box"></i> Lihat
                 </button>
-                <a class="btn btn-sm btn-outline-secondary ml-1" href="<?= $surat_url ?>" download><i class="mdi mdi-download"></i> Unduh</a>
+                <a class="btn btn-sm btn-outline-secondary ml-1" href="<?= $surat_url ?>" download>
+                  <i class="mdi mdi-download"></i> Unduh
+                </a>
+              <?php else: ?>
+                <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
+              <?php endif; ?>
+            </dd>
+          </div>
+
+              <!-- 📤 Uploader Surat Tugas -->
+            <div class="kv-row row no-gutters" id="row_surat_upload">
+              <dt class="col-sm-4 kv-label">📤 Unggah Surat Tugas</dt>
+              <dd class="col-sm-8">
+                <!-- gunakan yang sudah ada kalau sebelumnya sudah dibuat -->
+                <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
+
+                <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
+                  <input type="file" id="doc_surat" accept="application/pdf,image/*" class="d-none">
+                  <button type="button" id="btnPickSurat" class="btn btn-outline-secondary btn-sm">
+                    <i class="mdi mdi-file-upload-outline"></i> Pilih Berkas (PDF/JPG/PNG)
+                  </button>
+                  <small id="pickSuratLabel" class="text-muted">Belum ada file</small>
+                </div>
+
+                <div id="surat_preview_wrap" class="mb-2" style="display:none;">
+                  <!-- preview gambar -->
+                  <img id="surat_preview_img" alt="Preview Surat Tugas" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;display:none;">
+                  <!-- preview pdf -->
+                  <div id="surat_preview_pdf" style="display:none;border:1px solid #e5e7eb;border-radius:8px;">
+                    <div class="p-2 d-flex align-items-center justify-content-between">
+                      <span><i class="mdi mdi-file-pdf-box"></i> <strong>PDF terpilih</strong></span>
+                      <small class="text-muted">Pratinjau PDF terbatas di sebagian perangkat</small>
+                    </div>
+                    <embed id="surat_pdf_embed" type="application/pdf" width="100%" height="520px" style="border-top:1px solid #e5e7eb;">
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center" style="gap:.5rem;">
+                  <button type="button" id="btnSuratUpload" class="btn btn-blue btn-sm" disabled>
+                    <i class="mdi mdi-cloud-upload"></i> Upload
+                  </button>
+                  <button type="button" id="btnSuratReset" class="btn btn-light btn-sm" style="display:none;">
+                    <i class="mdi mdi-close-circle-outline"></i> Batal
+                  </button>
+                  <small id="surat_status" class="text-muted ms-2"></small>
+                </div>
               </dd>
             </div>
-          <?php endif; ?>
+
+           
+             
+            
 
           <!-- 🖼️ Foto -->
           <div class="kv-row row no-gutters" id="row_foto">
@@ -329,7 +379,7 @@ body.noblur-backdrop #app {
 
               <!-- Uploader Foto Dokumentasi -->
               <div class="mt-2">
-                <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
+                <!-- <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>"> -->
                 <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
                   <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
                   <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto</button>
@@ -344,6 +394,50 @@ body.noblur-backdrop #app {
               </div>
             </dd>
           </div>
+          <!-- Modal Surat Tugas (selalu ada, konten diisi JS saat perlu) -->
+         <!-- Modal Surat Tugas (selalu ada) -->
+              <div class="modal fade" id="modalSuratTugas_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header py-2">
+                      <h6 class="modal-title"><i class="mdi mdi-file-document"></i> Surat Tugas</h6>
+                      <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    </div>
+
+                    <!-- ISI MODAL: tampilkan pratinjau jika sudah ada $surat_url -->
+                    <div class="modal-body p-0" id="surat_modal_body">
+                      <?php if (!empty($surat_url)): ?>
+                        <?php if ($is_pdf): ?>
+                          <div class="embed-responsive embed-responsive-16by9">
+                            <iframe class="embed-responsive-item"
+                                    src="<?= $surat_url ?>#toolbar=1&navpanes=0&scrollbar=1"
+                                    allowfullscreen></iframe>
+                          </div>
+                        <?php elseif ($is_img): ?>
+                          <img src="<?= $surat_url ?>" class="img-fluid" alt="Surat Tugas">
+                        <?php else: ?>
+                          <div class="p-4">Format file tidak didukung untuk pratinjau. Silakan unduh.</div>
+                        <?php endif; ?>
+                      <?php else: ?>
+                        <div class="p-4 text-muted">
+                          Belum ada surat tugas. Silakan unggah dulu melalui form “📤 Unggah Surat Tugas”.
+                        </div>
+                      <?php endif; ?>
+                    </div>
+
+                    <div class="modal-footer py-2">
+                      <?php if (!empty($surat_url)): ?>
+                        <a class="btn btn-outline-secondary" href="<?= $surat_url ?>" download>
+                          <i class="mdi mdi-download"></i> Unduh
+                        </a>
+                      <?php endif; ?>
+                      <button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
 
           <!-- Modal Foto -->
           <div class="modal fade" id="modalFoto_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
@@ -463,34 +557,6 @@ body.noblur-backdrop #app {
   </div>
 </div>
 
-<!-- Modal Surat Tugas -->
-<?php if ($surat_url): ?>
-<div class="modal fade" id="modalSuratTugas_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header py-2">
-        <h6 class="modal-title"><i class="mdi mdi-file-document"></i> Surat Tugas</h6>
-        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-      </div>
-      <div class="modal-body p-0">
-        <?php if ($is_pdf): ?>
-          <div class="embed-responsive embed-responsive-16by9">
-            <iframe class="embed-responsive-item" src="<?= $surat_url ?>#toolbar=1&navpanes=0&scrollbar=1" allowfullscreen></iframe>
-          </div>
-        <?php elseif ($is_img): ?>
-          <img src="<?= $surat_url ?>" class="img-fluid" alt="Surat Tugas">
-        <?php else: ?>
-          <div class="p-4">Format file tidak didukung untuk pratinjau. Silakan unduh.</div>
-        <?php endif; ?>
-      </div>
-      <div class="modal-footer py-2">
-        <a class="btn btn-outline-secondary" href="<?= $surat_url ?>" download><i class="mdi mdi-download"></i> Unduh</a>
-        <button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
-      </div>
-    </div>
-  </div>
-</div>
-<?php endif; ?>
 
 <?php else: ?>
   <div class="text-center py-5">
@@ -500,7 +566,19 @@ body.noblur-backdrop #app {
   </div>
 <?php endif; ?>
 
+</div>
+</div>
+</div>
 <?php $this->load->view("front_end/footer.php") ?>
+<script>
+// helper tambah CSRF ke FormData
+function addCSRF(fd){
+  <?php if (config_item('csrf_protection')): ?>
+    fd.set('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
+  <?php endif; ?>
+  return fd;
+}
+</script>
 
 <script>
 // Kirim notifikasi WA sekali saat halaman dibuka
@@ -616,40 +694,49 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function doUpload() {
-    const kode = (document.getElementById('kode_booking')?.value || '').trim();
-    if (!kode) { setStatus('Kode booking kosong.', true); return; }
+  const kode = (document.getElementById('kode_booking')?.value || '').trim();
+  if (!kode) { setStatus('Kode booking kosong.', true); return; }
 
-    const rawFile = el.input?.files?.[0] || null;
-    if (!dataURL && !rawFile) { setStatus('Tidak ada gambar.', true); return; }
+  const rawFile = el.input?.files?.[0] || null;
+  if (!dataURL && !rawFile) { setStatus('Tidak ada gambar.', true); return; }
 
-    lock(true, 'Mengunggah...');
+  lock(true, 'Mengunggah...');
 
-    try {
-      const fd = new FormData();
-      fd.append('kode', kode);
+  try {
+    let fd = new FormData();
+    fd.append('kode', kode);
 
-      if (dataURL) {
-        const blob = dataURLtoBlob(dataURL);
-        const name = (rawFile?.name || 'foto.jpg').replace(/\.[^.]+$/, '.jpg');
-        fd.append('doc_photo', blob, name);
-      } else {
-        fd.append('doc_photo', rawFile, rawFile.name);
-      }
-
-      const res = await fetch('<?= site_url("booking/upload_dokumentasi") ?>', { method: 'POST', body: fd });
-      const json = await res.json();
-      if (!res.ok || !json.ok) throw new Error(json?.msg || `HTTP ${res.status}`);
-
-      toastOK('Upload berhasil');
-      setStatus('Berhasil diupload.');
-      if (json.url) { updateFotoSection(json.url); appendToGallery(json.url); }
-      resetAll();
-    } catch (e) {
-      setStatus(e.message || 'Upload gagal', true);
-    } finally {
-      lock(false);
+    if (dataURL) {
+      const blob = dataURLtoBlob(dataURL);
+      const name = (rawFile?.name || 'foto.jpg').replace(/\.[^.]+$/, '.jpg');
+      fd.append('doc_photo', blob, name);
+    } else {
+      fd.append('doc_photo', rawFile, rawFile.name);
     }
+
+    fd = addCSRF(fd); // <-- penting!
+
+    const res = await fetch('<?= site_url("booking/upload_dokumentasi") ?>', {
+      method: 'POST',
+      body: fd,
+      credentials: 'same-origin',                // kirim cookie sesi
+      headers: {'X-Requested-With':'XMLHttpRequest'}
+    });
+
+    const json = await res.json().catch(()=> ({}));
+    if (!res.ok || !json.ok) throw new Error(json?.msg || `HTTP ${res.status}`);
+
+    toastOK('Upload berhasil');
+    setStatus('Berhasil diupload.');
+    if (json.url) { updateFotoSection(json.url); appendToGallery(json.url); }
+    resetAll();
+  } catch (e) {
+    setStatus(e.message || 'Upload gagal', true);
+  } finally {
+    lock(false);
   }
+}
+
 
   function dataURLtoBlob(dUrl) {
     const arr = dUrl.split(',');
@@ -937,13 +1024,33 @@ function updateFotoSection(url) {
           Swal.fire({icon:'success', title:'Permohonan dihapus', text:'Data telah dihapus.'});
           var container = document.querySelector('.container-fluid .row.mt-3 .col-lg-12');
           if (container) {
-            container.innerHTML =
-              '<div class="text-center py-5">'
-              + '<h4 class="mb-2">Permohonan berhasil dihapus</h4>'
-              + '<p class="text-muted">Anda dapat membuat permohonan baru kapan saja.</p>'
-              + '<a href="<?= site_url('booking') ?>" class="btn btn-primary">Buat Booking Baru</a>'
-              + '</div>';
-          }
+              container.innerHTML =
+                '<div class="py-5 my-3">'
+                +   '<div class="mx-auto" style="max-width:760px">'
+                +     '<div class="text-center position-relative p-3 p-md-4"'
+                +          ' style="border-radius:20px;background:linear-gradient(135deg,#f0fdf4 0%,#ecfeff 100%);border:1px solid #e5e7eb">'
+                +       '<div class="bg-white p-4 p-md-5" style="border-radius:16px">'
+                +         '<div class="d-inline-flex align-items-center justify-content-center mb-3"'
+                +              ' style="width:90px;height:90px;border-radius:50%;'
+                +                     'background:radial-gradient(circle at 30% 30%,#dcfce7,#bbf7d0)">'
+                +           '<svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true">'
+                +             '<path d="M20 6L9 17l-5-5" fill="none" stroke="#16a34a" stroke-width="3"'
+                +                    ' stroke-linecap="round" stroke-linejoin="round"></path>'
+                +           '</svg>'
+                +         '</div>'
+                +         '<h4 class="mb-2 fw-bold">Permohonan Berhasil Dihapus</h4>'
+                +         '<p class="text-muted mb-4">Anda dapat membuat permohonan baru kapan saja.</p>'
+                +         '<div class="d-flex flex-wrap justify-content-center gap-2">'
+                +           '<a href="<?= site_url('booking') ?>" class="btn btn-primary btn-lg px-4">Buat Booking Baru</a>'
+                +           '<a href="<?= site_url() ?>" class="btn btn-outline-secondary btn-lg px-4">Kembali ke Beranda</a>'
+                +         '</div>'
+                +       '</div>'
+                +     '</div>'
+                +   '</div>'
+                + '</div>';
+            }
+
+
         })
         .catch(err=>{
           Swal.close();
@@ -954,3 +1061,117 @@ function updateFotoSection(url) {
 })();
 </script>
 
+<script>
+(function(){
+  const pickBtn   = document.getElementById('btnPickSurat');
+  const fileInput = document.getElementById('doc_surat');
+  const upBtn     = document.getElementById('btnSuratUpload');
+  const resetBtn  = document.getElementById('btnSuratReset');
+  const label     = document.getElementById('pickSuratLabel');
+  const wrapPrev  = document.getElementById('surat_preview_wrap');
+  const prevImg   = document.getElementById('surat_preview_img');
+  const prevPdfBx = document.getElementById('surat_preview_pdf');
+  const pdfEmbed  = document.getElementById('surat_pdf_embed');
+  const statusEl  = document.getElementById('surat_status');
+  const kodeElm   = document.getElementById('kode_booking');
+  const actionsDd = document.getElementById('surat_actions');
+
+  if(!pickBtn || !fileInput) return;
+
+  const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+  const URL_UPLOAD = "<?= site_url('booking/upload_surat_tugas') ?>"; // GANTI jika endpoint beda
+  const kode_booking = (kodeElm?.value || '').trim();
+  const kode_safe = "<?= isset($kode_safe) ? $kode_safe : '' ?>";
+
+  pickBtn.addEventListener('click', ()=> fileInput.click());
+
+  fileInput.addEventListener('change', ()=>{
+    const f = fileInput.files && fileInput.files[0];
+    if(!f){ label.textContent = 'Belum ada file'; return; }
+
+    // validasi sederhana
+    const okType = /^application\/pdf$|^image\//i.test(f.type);
+    if(!okType){
+      statusEl.textContent = 'Tipe berkas tidak didukung. Gunakan PDF atau Gambar.';
+      fileInput.value = ''; upBtn.disabled = true;
+      return;
+    }
+    if(f.size > MAX_SIZE){
+      statusEl.textContent = 'Ukuran berkas > 10MB. Mohon kompres terlebih dulu.';
+      fileInput.value = ''; upBtn.disabled = true;
+      return;
+    }
+
+    label.textContent = f.name;
+    upBtn.disabled = false;
+    resetBtn.style.display = 'inline-block';
+
+    // tampilkan preview
+    wrapPrev.style.display = 'block';
+    prevImg.style.display  = 'none';
+    prevPdfBx.style.display= 'none';
+
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      if(/^image\//i.test(f.type)){
+        prevImg.src = e.target.result;
+        prevImg.style.display = 'block';
+      }else{
+        pdfEmbed.src = e.target.result;
+        prevPdfBx.style.display = 'block';
+      }
+    };
+    reader.readAsDataURL(f);
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    fileInput.value = '';
+    label.textContent = 'Belum ada file';
+    upBtn.disabled = true;
+    resetBtn.style.display = 'none';
+    wrapPrev.style.display = 'none';
+    prevImg.style.display  = 'none';
+    prevPdfBx.style.display= 'none';
+    statusEl.textContent = '';
+  });
+
+ upBtn.addEventListener('click', async ()=>{
+  const f = fileInput.files && fileInput.files[0];
+  if(!f) return;
+
+  statusEl.textContent = 'Mengunggah…';
+  upBtn.disabled = true; pickBtn.disabled = true; resetBtn.disabled = true;
+
+  try{
+    let fd = new FormData();
+    fd.append('kode_booking', kode_booking);
+    fd.append('surat_tugas', f);
+
+    fd = addCSRF(fd); // <-- penting!
+
+    const res = await fetch(URL_UPLOAD, {
+      method: 'POST',
+      body: fd,
+      credentials: 'same-origin',
+      headers: {'X-Requested-With':'XMLHttpRequest'}
+    });
+
+    const data = await res.json().catch(()=> ({}));
+    if(!res.ok || !data || data.ok !== true || !data.url){
+      throw new Error(data?.msg || 'Upload gagal');
+    }
+
+    // ... (lanjutan update UI tetap sama)
+    statusEl.textContent = 'Berhasil diunggah ✓';
+    resetBtn.click();
+  }catch(err){
+    statusEl.textContent = 'Gagal mengunggah: ' + err.message;
+    upBtn.disabled = false;
+  }finally{
+    pickBtn.disabled = false;
+    resetBtn.disabled = false;
+  }
+});
+
+})();
+</script>

@@ -342,6 +342,7 @@ class Booking extends MX_Controller {
             "jabatan"               => $data['jabatan'],
             "nik"                   => $data['nik'],
             "no_hp"                 => $data['no_hp'],
+            "alamat"                => $data['alamat'],
             "instansi"              => $data['instansi'] ?? null,
             "unit_tujuan"           => $unit_id,
             "target_kategori"       => $kategori,
@@ -1262,6 +1263,70 @@ class Booking extends MX_Controller {
         return NULL;
     }
 
+    public function upload_surat_tugas()
+{
+    $this->output->set_content_type('application/json');
+
+    $kode = trim((string)$this->input->post('kode_booking', true));
+    if ($kode === '' || empty($_FILES['surat_tugas']['name'])) {
+        return $this->_json(false, 'Data tidak lengkap', 400);
+    }
+
+    // pastikan booking ada
+    $row = $this->db->get_where('booking_tamu', ['kode_booking'=>$kode])->row_array();
+    if (!$row) return $this->_json(false, 'Booking tidak ditemukan', 404);
+
+    $config = [
+        'upload_path'      => FCPATH.'uploads/surat_tugas/',
+        'allowed_types'    => 'pdf|jpg|jpeg|png|webp',
+        'max_size'         => 10240,             // KB = 10MB
+        'file_ext_tolower' => true,
+        'remove_spaces'    => true,
+        'detect_mime'      => true,
+        'overwrite'        => false,
+        'file_name'        => 'surat_'.$kode.'_'.date('Ymd_His'),
+    ];
+    if (!is_dir($config['upload_path'])) @mkdir($config['upload_path'], 0755, true);
+
+    $this->load->library('upload', $config);
+    if (!$this->upload->do_upload('surat_tugas')) {
+        return $this->_json(false, $this->upload->display_errors('', ''), 400);
+    }
+
+    $up      = $this->upload->data();                       // file_name, file_type, etc.
+    $relPath = 'uploads/surat_tugas/'.$up['file_name'];     // simpan RELATIF, lebih fleksibel
+    $url     = $up['file_name'];
+
+    // (opsional) hapus file lama agar tidak numpuk
+    if (!empty($row['surat_tugas'])) {
+        $oldPath = parse_url($row['surat_tugas'], PHP_URL_PATH) ?: $row['surat_tugas'];
+        $oldAbs  = FCPATH.ltrim($oldPath, '/');
+        if (is_file($oldAbs) && strpos($oldAbs, FCPATH.'uploads/surat_tugas/') === 0) @unlink($oldAbs);
+    }
+
+    // simpan ke DB supaya view bisa render setelah reload
+    if ($this->db->field_exists('surat_tugas', 'booking_tamu')) {
+        $this->db->where('kode_booking', $kode)->update('booking_tamu', ['surat_tugas' => $url]);
+    }
+
+    return $this->_jsonx(true, 'OK', 200, [
+        'url'       => $url,
+        'path'      => $relPath,
+        'name'      => $up['file_name'],
+        'mime'      => $up['file_type'],
+        // jika csrf_regenerate = TRUE, FE bisa pakai hash baru ini
+        'csrf_hash' => $this->security->get_csrf_hash(),
+    ]);
+}
+
+private function _jsonx($ok, $msg, $status=200, $extra=[])
+{
+    $this->output->set_status_header($status);
+    echo json_encode(array_merge(['ok'=>$ok,'msg'=>$msg], $extra));
+    return;
+}
+
+
     private function _make_qr($kode_booking, $with_logo = true)
     {
         $this->load->library('ciqrcode');
@@ -1785,7 +1850,7 @@ class Booking extends MX_Controller {
         if ($ext === 'png') { imagealphablending($dst, false); imagesavealpha($dst, true); }
         imagecopyresampled($dst, $src, 0, 0, 0, 0, $nw, $nh, $w, $h);
 
-        $dir = FCPATH.'uploads/dokumentasi/'; // konsisten dengan dokumentasi_list
+        $dir = FCPATH.'uploads/foto/'; // konsisten dengan dokumentasi_list
         if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
             imagedestroy($src); imagedestroy($dst);
             return $this->json_exit(["ok"=>false, "msg"=>"Gagal membuat folder upload"], 500);
@@ -1802,18 +1867,18 @@ class Booking extends MX_Controller {
         if (!@rename($fullTmp, $full)) { @unlink($fullTmp); return $this->json_exit(["ok"=>false,"msg"=>"Gagal memindahkan berkas"],500); }
 
         // Jika tabel dokumentasi ada, simpan metadata
-        if ($this->db->table_exists('booking_dokumentasi')) {
-            $this->db->insert('booking_dokumentasi', [
-                'kode_booking' => $kode,
-                'filename'     => $fname,
-                'uploaded_at'  => date('Y-m-d H:i:s'),
-            ]);
-        }
+        // if ($this->db->table_exists('booking_dokumentasi')) {
+        //     $this->db->insert('booking_dokumentasi', [
+        //         'kode_booking' => $kode,
+        //         'filename'     => $fname,
+        //         'uploaded_at'  => date('Y-m-d H:i:s'),
+        //     ]);
+        // }
 
         return $this->json_exit([
             "ok"  => true,
             "msg" => "Foto tersimpan",
-            "url" => base_url('uploads/dokumentasi/'.$fname),
+            "url" => base_url('uploads/foto/'.$fname),
             "file"=> $fname,
             "meta"=> ["w"=>$nw, "h"=>$nh]
         ]);
@@ -2375,7 +2440,7 @@ class Booking extends MX_Controller {
         }
 
         // Ambil booking by token + kode
-        $booking = $this->db->get_where('booking', [
+        $booking = $this->db->get_where('booking_tamu', [
             'access_token'  => $token,
             'kode_booking'  => $kode
         ])->row();
@@ -2409,7 +2474,7 @@ class Booking extends MX_Controller {
             $paths[] = FCPATH.'uploads/qr/qr_'.$booking->kode_booking.'.png';
 
             // Hapus booking
-            $this->db->delete('booking', ['id' => $booking->id]);
+            $this->db->delete('booking_tamu', ['id_booking' => $booking->id_booking]);
 
             if ($this->db->trans_status() === false) {
                 throw new Exception('Gagal menghapus data.');

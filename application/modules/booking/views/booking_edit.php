@@ -86,7 +86,7 @@ $this->load->view("front_end/head.php");
   }
 
   /* ===== Pastikan modal preview selalu di atas ===== */
-  #modalPreviewSurat, #modalPreviewFoto { z-index: 2055 !important; }
+  #modalPreviewSurat, #modalPreviewFoto { z-index: 222222 !important; }
 
   /* ===== Sembunyikan SEMUA thumbnail di form (foto lama & preview cepat) ===== */
   .thumb-live, #fotoThumbLive { display: none !important; }
@@ -464,7 +464,7 @@ $this->load->view("front_end/head.php");
 
             <!-- Modals Preview -->
             <div class="modal fade" id="modalPreviewSurat" tabindex="-1" role="dialog" aria-hidden="true">
-              <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width:95%;">
+              <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
                 <div class="modal-content">
                   <div class="modal-header py-2">
                     <h6 class="modal-title"><i class="mdi mdi-file-eye-outline"></i> Pratinjau Surat Tugas</h6>
@@ -1084,7 +1084,17 @@ function simpan_ubah(btn){
 
     const formData = new FormData(form);
     setLoading(true, btn, { interval: 900 });
-    loader();
+    const loader = loaderSteps({
+        title: 'Memproses permohonan…',
+        run: [
+      async () => { await new Promise(r=>setTimeout(r,500)); }, // Memvalidasi data…
+      async () => { await new Promise(r=>setTimeout(r,600)); }, // Cek hari & jam…
+      async ({set}) => { set('Cek kuota pendamping… (2/5)'); await new Promise(r=>setTimeout(r,500)); },
+      async () => { await new Promise(r=>setTimeout(r,600)); }, // Cek slot jadwal…
+      async () => { await new Promise(r=>setTimeout(r,800)); }, // Menyimpan…
+      async () => { await new Promise(r=>setTimeout(r,700)); }, // Kirim WhatsApp…
+      ]
+    });
 
     $.ajax({
       url, type: "POST", data: formData,
@@ -1125,25 +1135,36 @@ function simpan_ubah(btn){
 </script>
 
 <script>
-  $(function () {
-    var $mp = $('#modalPendamping');
+ $(function () {
+  var $mp = $('#modalPendamping');
 
-    // Keluarkan dari container yg mungkin punya transform/z-index tinggi
-    $mp.appendTo('body');
+  // Pastikan modal dipindah ke <body>
+  $mp.appendTo('body');
 
-    // Toggle class di body dan backdrop khusus
-    $mp.on('show.bs.modal', function () {
-      document.body.classList.add('pendamping-open');
-      setTimeout(function(){
-        $('.modal-backdrop').last().addClass('pendamping-backdrop');
-      }, 0);
-    });
-
-    $mp.on('hidden.bs.modal', function () {
-      document.body.classList.remove('pendamping-open');
-      $('.modal-backdrop.pendamping-backdrop').removeClass('pendamping-backdrop');
-    });
+  // Saat modal tampil → matikan efek blur global + styling backdrop
+  $mp.on('shown.bs.modal', function () {
+    $('body').addClass('noblur-backdrop');
+    $('.modal-backdrop').last()
+      .addClass('pendamping-backdrop')        // class khususmu
+      .css({
+        'backdrop-filter': 'none',
+        '-webkit-backdrop-filter': 'none',
+        'filter': 'none',
+        'background': 'rgba(0,0,0,.55)',
+        'z-index': 2050,
+        'position': 'fixed'
+      });
   });
+
+  // Saat modal ditutup → kembalikan normal
+  $mp.on('hidden.bs.modal', function () {
+    $('body').removeClass('noblur-backdrop');
+    $('.modal-backdrop.pendamping-backdrop')
+      .removeClass('pendamping-backdrop')
+      .attr('style',''); // reset inline style
+  });
+});
+
 </script>
 
 <!-- ====== Preview SURAT & FOTO (tanpa thumbnail di form) + anti-blur ====== -->
@@ -1264,3 +1285,188 @@ function simpan_ubah(btn){
   }
 })();
 </script>
+
+<!-- butuh SweetAlert2 -->
+<script>
+/**
+ * Loader ber-step pakai SweetAlert2
+ * @param {Object} opts
+ *  - title: judul modal
+ *  - note: subteks kecil
+ *  - steps: array label langkah
+ *  - startIndex: index langkah awal (default 0)
+ *  - allowClose: boleh ditutup manual? (default false)
+ *  - run: (opsional) array async fn, dijalankan berurutan sesuai steps
+ *         tiap fn boleh throw untuk menghentikan & menandai gagal
+ */
+function loaderSteps(opts = {}) {
+  const steps = opts.steps || [
+    'Memvalidasi data…',
+    'Cek hari & jam…',
+    'Cek kuota pendamping…',
+    'Cek slot jadwal…',
+    'Menyimpan…',
+    'Kirim WhatsApp…'
+  ];
+
+  let idx = Math.max(0, Math.min(+(opts.startIndex || 0), steps.length));
+  let failedAt = -1;
+
+  const title = opts.title || 'Proses…';
+  const note  = ('note' in opts) ? opts.note : 'Jangan tutup halaman ini';
+  const allowClose = !!opts.allowClose;
+
+  function html() {
+    // progress: jumlah langkah selesai (idx) dari total
+    const done = Math.max(0, Math.min(idx, steps.length));
+    const percent = Math.round((done / steps.length) * 100);
+
+    const items = steps.map((label, i) => {
+      const isDone = i < idx && failedAt < 0;
+      const isNow  = i === idx && failedAt < 0;
+      const isFail = failedAt === i;
+
+      let bullet = '';
+      if (isDone) bullet = '<span class="ls-tick">✓</span>';
+      else if (isFail) bullet = '<span class="ls-cross">✕</span>';
+      else if (isNow) bullet = '<span class="ls-spin"></span>';
+      else bullet = '';
+
+      const cls =
+        isFail ? 'ls-step fail' :
+        isDone ? 'ls-step done' :
+        isNow  ? 'ls-step now'  : 'ls-step todo';
+
+      return `
+        <li class="${cls}">
+          <div class="ls-bullet">${bullet}</div>
+          <div class="ls-label">${label}</div>
+        </li>
+      `;
+    }).join('');
+
+    return `
+      <style>
+        .ls-wrap{font-size:14px;text-align:left}
+        .ls-note{color:#64748b;margin:.25rem 0 .75rem}
+        .ls-progress{height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+        .ls-bar{height:100%;width:${percent}%;background:#3b82f6;transition:width .35s ease;border-radius:999px}
+        .ls-list{list-style:none;padding:0;margin:.75rem 0 0}
+        .ls-step{display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px dashed #eef2f7}
+        .ls-step:last-child{border-bottom:none}
+        .ls-bullet{width:20px;height:20px;border-radius:999px;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;flex:0 0 20px}
+        .ls-step.done .ls-bullet{background:#10b981;border-color:#10b981;color:#fff}
+        .ls-step.fail .ls-bullet{background:#ef4444;border-color:#ef4444;color:#fff}
+        .ls-step.now .ls-bullet{border-color:#60a5fa}
+        .ls-label{color:#0f172a}
+        .ls-tick{font-weight:700;font-size:12px;line-height:1}
+        .ls-cross{font-weight:700;font-size:12px;line-height:1}
+        .ls-spin{width:12px;height:12px;border-radius:999px;border:2px solid #93c5fd;border-top-color:transparent;animation:ls-rot .8s linear infinite;display:inline-block}
+        @keyframes ls-rot{to{transform:rotate(360deg)}}
+      </style>
+      <div class="ls-wrap">
+        ${note ? `<div class="ls-note">${note}</div>` : ''}
+        <div class="ls-progress"><div class="ls-bar"></div></div>
+        <ul class="ls-list">${items}</ul>
+      </div>
+    `;
+  }
+
+  // buka swal
+  Swal.fire({
+    title,
+    html: html(),
+    allowOutsideClick: false,
+    allowEscapeKey: allowClose,
+    showConfirmButton: false,
+    didOpen: () => {
+      // optional: tampilkan spinner kecil bawaan swal
+      Swal.showLoading();
+    }
+  });
+
+  function redraw() {
+    // update HTML penuh agar simpel & robust
+    Swal.update({ html: html() });
+  }
+
+  // --- API ---
+  function setStep(i, newLabel) {
+    if (typeof newLabel === 'string') steps[i] = newLabel;
+    idx = Math.max(0, Math.min(i, steps.length));
+    failedAt = -1;
+    redraw();
+  }
+
+  function next(newLabel) {
+    if (typeof newLabel === 'string' && idx < steps.length) steps[idx] = newLabel;
+    idx = Math.min(idx + 1, steps.length);
+    redraw();
+  }
+
+  function text(newLabel) {
+    if (typeof newLabel === 'string' && idx < steps.length) {
+      steps[idx] = newLabel;
+      redraw();
+    }
+  }
+
+  function fail(errorText) {
+    if (idx >= steps.length) idx = steps.length - 1;
+    if (idx < 0) idx = 0;
+    failedAt = idx;
+    if (typeof errorText === 'string' && errorText.trim()) {
+      steps[idx] = errorText;
+    }
+    redraw();
+  }
+
+  function success(finalText) {
+    if (typeof finalText === 'string' && finalText.trim()) {
+      // set label terakhir bila ada
+      if (idx < steps.length) steps[idx] = finalText;
+    }
+    idx = steps.length; // semua selesai
+    redraw();
+  }
+
+  function close() {
+    Swal.close();
+  }
+
+  // --- Mode otomatis (opsional) ---
+  // opts.run: array async functions yang dijalankan berurutan
+  async function run() {
+    if (!Array.isArray(opts.run) || !opts.run.length) return;
+    try {
+      for (let i = 0; i < opts.run.length; i++) {
+        setStep(i);               // fokus ke step i
+        const label = steps[i];   // label saat ini
+        // jalankan pekerjaan step i
+        await opts.run[i]({ step:i, label, set:text });
+        // selesai step → lanjut
+        next();                   // tandai selesai & maju
+      }
+      success();                  // semua selesai
+    } catch (err) {
+      // tandai gagal di step saat ini
+      const msg = (err && err.message) ? err.message : 'Gagal pada langkah ini.';
+      fail(msg);
+      // option: tampilkan alert kecil
+      setTimeout(() => {
+        Swal.fire({icon:'error', title:'Gagal', text:msg});
+      }, 50);
+      throw err;
+    }
+  }
+
+  // auto-run jika disediakan
+  if (Array.isArray(opts.run) && opts.run.length) {
+    // tidak menunggu di sini; panggil manual jika mau await:
+    run().catch(()=>{});
+  }
+
+  return { next, setStep, text, fail, success, close, run, steps };
+}
+</script>
+

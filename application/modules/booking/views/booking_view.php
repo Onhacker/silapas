@@ -96,7 +96,7 @@
     <div class="col-lg-12">
       <div class="card card-elev">
         <div class="card-body">
-          <form id="form_app" method="post" enctype="multipart/form-data" novalidate>
+          <form id="form_app" method="post" enctype="multipart/form-data" novalidate autocomplete="off">
 
             <!-- ====== Asal Instansi ====== -->
             <div class="header-title">Asal Instansi</div>
@@ -375,9 +375,9 @@
             </div>
 
             <div class="text-center">
-              <button type="button" class="btn btn-blue px-4" id="btnBooking" onclick="simpan()">
-                Booking Sekarang
-              </button>
+              <button type="button" class="btn btn-blue px-4" id="btnBooking" onclick="simpan()">Booking Sekarang</button>
+
+              <!-- <button id="btnBooking" class="btn btn-blue" type="button" onclick="return simpan(this)">Booking Sekarang</button> -->
             </div>
           </form>
         </div>
@@ -394,6 +394,14 @@
 <?php $this->load->view("front_end/footer.php") ?>
 
 <script>
+  $(function () {
+    const $f = $('#form_app');
+    $f.on('submit', e => e.preventDefault()); // cegah submit native
+    $f.on('keydown', 'input, select', function(e){
+      if (e.key === 'Enter' && this.tagName !== 'TEXTAREA') e.preventDefault();
+    });
+  });
+
 /* =========================
    CONFIG JAM OPERASIONAL
    ========================= */
@@ -890,7 +898,7 @@ window.killMasks = function () {
 (function(){
   const form = document.getElementById('form_app');
   if (!form) return;
-
+  $('#form_app').on('submit', function(e){ e.preventDefault(); return false; });
   // Ambil teks label untuk field
   const getLabel = (el) => {
     if (el.id){
@@ -912,7 +920,7 @@ window.killMasks = function () {
     if (v.tooLong)        return `Maksimal ${el.maxLength} karakter`;
     if (v.rangeUnderflow) return `Minimal ${el.min}`;
     if (v.rangeOverflow)  return `Maksimal ${el.max}`;
-    if (v.stepMismatch)   return 'Nilai tidak sesuai kelipatan';
+    if (v.stepMismatch)   return 'Nilai tidak sesuai kelipatan. Gunakan kelipatan 5 (contoh 10:05)';
     if (v.badInput)       return 'Nilai tidak valid';
     if (v.customError)    return el.validationMessage || 'Tidak valid';
     return 'Tidak valid';
@@ -938,123 +946,178 @@ window.killMasks = function () {
   };
 })();
 
-function simpan(btn){
+// Hard-block semua submit pada #form_app (termasuk yang dipicu plugin)
+  (function(){
+    const f = document.getElementById('form_app');
+    if (!f) return;
+
+    // Blokir event submit di fase capture (lebih dulu dari plugin lain)
+    window.addEventListener('submit', function(e){
+      if (e.target === f) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        return false;
+      }
+    }, true);
+
+    // Jika ada lib yang memanggil f.submit() langsung, patch instance-nya
+    const orig = f.submit?.bind(f);
+    f.submit = function(){
+      console.warn('Native form.submit() diblok.');
+      return false;
+    };
+
+    // Cegah Enter memicu submit
+    f.addEventListener('keydown', function(e){
+      const tag = (e.target.tagName || '').toUpperCase();
+      if (e.key === 'Enter' && tag !== 'TEXTAREA') {
+        e.preventDefault();
+      }
+    });
+  })();
+
+async function simpan(btn){
   btn = btn || document.getElementById('btnBooking');
   const url  = "<?= site_url(strtolower($controller).'/add')?>/";
   const form = document.getElementById('form_app');
 
-  // 1) Validasi FE (tanpa UI native)
+  // ---- 1) FE validation
   if (!form.checkValidity()){
-    Swal.fire({
-      title: 'Lengkapi data dulu',
-      html: window.buildInvalidListHTML(form), // sudah pakai pesan Indonesia
-      icon: 'warning'
-    });
-    return;
+    Swal.fire({ title:'Lengkapi data dulu', html: window.buildInvalidListHTML(form), icon:'warning' });
+    return false;
   }
 
-  // 2) Konfirmasi
-  Swal.fire({
+  // ---- 2) Konfirmasi
+  const ok = await Swal.fire({
     title: 'Kirim Booking?',
-    html: `
-      Saya setuju
-      <a href="<?= site_url('hal'); ?>" target="_blank" rel="noopener">Syarat &amp; Ketentuan</a>
-      dan telah membaca
-      <a href="<?= site_url('hal/privacy_policy'); ?>" target="_blank" rel="noopener">Kebijakan Privasi</a>.
-    `,
+    html: `Saya setuju <a href="<?= site_url('hal'); ?>" target="_blank" rel="noopener">S&K</a> dan <a href="<?= site_url('hal/privacy_policy'); ?>" target="_blank" rel="noopener">Kebijakan Privasi</a>.`,
     icon: "question",
     showCancelButton: true,
-    allowOutsideClick: false,
     reverseButtons: true,
-    buttonsStyling: true,
-    customClass: { confirmButton: "btn btn-primary", cancelButton: "btn btn-warning" },
     input: "checkbox",
     inputValue: 0,
     inputPlaceholder: "Ceklis: Ya, saya setuju !!!",
     confirmButtonText: "Ya, kirim sekarang",
     cancelButtonText:  "Batal",
     inputValidator: (r) => !r ? "Silakan ceklis persetujuan terlebih dahulu." : undefined
-  }).then((res) => {
-    if (!res.isConfirmed) return;
+  }).then(r => r.isConfirmed);
+  if (!ok) return false;
 
-    // 3) Cek tanggal & jam
-    const ymd = document.getElementById('tanggal')?.value || '';
-    const jam = document.getElementById('jam')?.value || '';
+  // ---- 3) Cek tanggal & jam
+  const ymd = document.getElementById('tanggal')?.value || '';
+  const jam = document.getElementById('jam')?.value || '';
+  if (!ymd) { Swal.fire({title:'Tanggal belum valid', text:'Silakan pilih tanggal dari datepicker.', icon:'warning'}); return false; }
+  if (!jam || document.getElementById('jam').disabled) { Swal.fire({title:'Jam belum dipilih', text:'Silakan pilih jam kunjungan.', icon:'warning'}); return false; }
+  const conf = _confForDateStr(ymd);
+  if (conf && _inBreak(conf, jam)) { Swal.fire({title:'Jam istirahat', text:'Silakan pilih di luar jam istirahat.', icon:'info'}); return false; }
 
-    if (!ymd) { Swal.fire({title:'Tanggal belum valid', text:'Silakan pilih tanggal dari datepicker.', icon:'warning'}); return; }
-    if (!jam || document.getElementById('jam').disabled) {
-      Swal.fire({title:'Jam belum dipilih', text:'Silakan pilih jam kunjungan.', icon:'warning'}); return;
+  // ---- 4) Validasi pendamping
+  try { if (typeof window._ensurePendampingBeforeSubmit === 'function') window._ensurePendampingBeforeSubmit(); }
+  catch (e) { Swal.fire({ title:'Validasi Gagal', text: e.message || 'Cek kembali data pendamping.', icon:'error' }); return false; }
+
+  // ---- 5) Loader step (timing) + AJAX paralel
+  const formData = new FormData(form);
+  setLoading(true, btn, { interval: 900 });
+
+  // a) buka loader-step
+  const steps = [
+    'Memvalidasi data…',
+    'Cek hari & jam…',
+    'Cek kuota pendamping…',
+    'Cek slot jadwal…',
+    'Generate QR Code…',
+    'Menyimpan…',
+    'Persiapan Kirim Notifikasi…'
+
+  ];
+  const perStep = [500, 600, 500, 600,700, 800, 700]; // ms per step (silakan ubah)
+  const sleep = (ms)=> new Promise(r=>setTimeout(r, ms));
+  const loader = loaderSteps({ title:'Memproses permohonan…', steps });
+
+  // b) jalankan step berdasarkan timing (independen dari AJAX)
+  const loaderPromise = (async () => {
+    for (let i=0; i<steps.length; i++){
+      loader.setStep(i);
+      await sleep(perStep[i] || 600);
+      loader.next();
     }
+    // jangan close di sini—biar bagian sukses/fail yang nutup
+  })();
 
-    const conf = _confForDateStr(ymd);
-    if (conf && _inBreak(conf, jam)) {
-      Swal.fire({title:'Jam istirahat', text:'Silakan pilih di luar jam istirahat.', icon:'info'});
-      return;
-    }
+  // c) siapkan helper swal redirect countdown
+  function swalAutoRedirect({ ms=2500, to="#", title="Berhasil", html="Mengarahkan dalam <b></b> detik…" } = {}) {
+    let timerInterval;
+    Swal.fire({
+      title, html, timer: ms, timerProgressBar: true,
+      allowOutsideClick: false, allowEscapeKey: false, reverseButtons: true,
+      showConfirmButton: false, showCancelButton: false,
+      confirmButtonText: "Pergi sekarang", cancelButtonText: "Batal",
+      didOpen: () => {
+        Swal.showLoading();
+        const b = Swal.getHtmlContainer().querySelector("b");
+        const tick = () => { const left = Swal.getTimerLeft(); if (left != null && b) b.textContent = Math.ceil(left/1000); };
+        tick(); timerInterval = setInterval(tick, 100);
+      },
+      willClose: () => { clearInterval(timerInterval); }
+    }).then((res) => {
+      if (res.isConfirmed || res.dismiss === Swal.DismissReason.timer) window.location.assign(to);
+      else Swal.fire({ title: "Dibatalkan", icon: "info", timer: 1200, showConfirmButton: false });
+    });
+  }
 
-    // 4) Validasi pendamping (jika ada)
-    try {
-      if (typeof window._ensurePendampingBeforeSubmit === 'function') window._ensurePendampingBeforeSubmit();
-    } catch (e) {
-      Swal.fire({ title:'Validasi Gagal', text: e.message || 'Cek kembali data pendamping.', icon:'error' });
-      return;
-    }
-
-    // 5) Kirim
-    const formData = new FormData(form);
-    setLoading(true, btn, { interval: 900 });
-    loader();
-
-    $.ajax({
-      url, type: "POST", data: formData,
-      processData: false, contentType: false, dataType: "json"
-    })
-    .done(function(obj){
-      if(!obj || obj.success === false){
-        Swal.fire({
-          title: obj?.title || "Validasi Gagal",
-          icon: "error",
-          html: obj?.pesan || "Terjadi kesalahan.",
-          allowOutsideClick: false,
-          buttonsStyling: false,
-          customClass: { confirmButton: "btn btn-danger" },
-          confirmButtonText: "OK"
-        });
-        return;
-      }
-      if (obj.redirect_url) { window.location.assign(obj.redirect_url); return; }
-
-      const htmlInfo = (obj.pesan || "") + "<br><br>" +
-        "<b>QR Code:</b><br>" +
-        "<img src='" + obj.qr_url + "' alt='QR Code' style='width:150px;height:150px;'>";
-
+  // d) AJAX paralel
+  $.ajax({
+    url, type: "POST", data: formData, processData: false, contentType: false, dataType: "json"
+  })
+  .done(async function(obj){
+    if(!obj || obj.success === false){
+      // gagal → tandai fail, tutup loader, tampilkan error (tanpa auto-close)
+      loader.fail('Gagal menyimpan');
+      loader.close();
       Swal.fire({
-        title: obj.title || "Booking Berhasil",
-        html: htmlInfo,
-        icon: "success",
-        allowOutsideClick: false,
-        buttonsStyling: false,
-        customClass: { confirmButton: "btn btn-success" },
-        confirmButtonText: "Selesai"
-      });
-
-      if (typeof $ !== 'undefined' && $("#full-width-modal").length) $("#full-width-modal").modal("hide");
-      if (typeof reload_table === 'function') reload_table();
-    })
-    .fail(function(xhr, status, error){
-      Swal.fire({
-        title: "Error",
-        text: "Terjadi kesalahan pada server: " + (error || status),
+        title: obj?.title || "Validasi Gagal",
         icon: "error",
-        buttonsStyling: false,
-        customClass: { confirmButton: "btn btn-danger" },
+        html: obj?.pesan || "Terjadi kesalahan.",
+        allowOutsideClick: false,
         confirmButtonText: "OK"
       });
-    })
-    .always(function(){ setLoading(false, btn); });
-  });
-}
+      return;
+    }
 
+    // sukses → tunggu step selesai dulu baru redirect countdown
+    await loaderPromise;                  // pastikan semua step tampil
+    loader.success('Selesai');            // mark selesai
+    setTimeout(() => {                    // beri jeda biar step terakhir terlihat
+      loader.close();
+      const to = obj.redirect_url;
+      const pesan = 'Tunggu Sebentar yaa...';
+      swalAutoRedirect({
+        ms: 2500,
+        to,
+        title: obj.title || "Booking Berhasil",
+        html: pesan + 'Mengarahkan dalam <b></b> detik…'
+      });
+      // jika perlu QR cepat, tambahkan di html di atas:
+      // + (obj.qr_url ? "<br><img src='"+obj.qr_url+"' alt='QR' width='150' height='150'>" : "")
+    }, 350);
+  })
+  .fail(function(xhr, status, error){
+    loader.fail('Gagal menyimpan');
+    loader.close();
+    Swal.fire({
+      title: "Error",
+      text: "Terjadi kesalahan pada server: " + (error || status),
+      icon: "error",
+      confirmButtonText: "OK"
+    });
+  })
+  .always(function(){
+    setLoading(false, btn);
+  });
+
+  return false;
+}
 
 </script>
 
@@ -1094,26 +1157,212 @@ $(function () {
 });
 
 
-(function(){
-  const form = document.getElementById('form_app');
-  const KEY='booking_draft_v1';
-  // restore
-  try { const d=JSON.parse(localStorage.getItem(KEY)||'{}');
-    ['nama_tamu','id_number','alamat','tempat_lahir','tanggal_lahir','keperluan','unit_tujuan'].forEach(id=>{
-      if(d[id] && document.getElementById(id)) document.getElementById(id).value = d[id];
-    });
-  } catch(e){}
-  // simpan
-  form.addEventListener('input', ()=>{
-    const m={}; ['nama_tamu','id_number','alamat','tempat_lahir','tanggal_lahir','keperluan','unit_tujuan']
-      .forEach(id=> m[id] = (document.getElementById(id)?.value||''));
-    localStorage.setItem(KEY, JSON.stringify(m));
-  });
-})();
+// (function(){
+//   const form = document.getElementById('form_app');
+//   const KEY='booking_draft_v1';
+//   // restore
+//   try { const d=JSON.parse(localStorage.getItem(KEY)||'{}');
+//     ['nama_tamu','id_number','alamat','tempat_lahir','tanggal_lahir','keperluan','unit_tujuan'].forEach(id=>{
+//       if(d[id] && document.getElementById(id)) document.getElementById(id).value = d[id];
+//     });
+//   } catch(e){}
+//   // simpan
+//   form.addEventListener('input', ()=>{
+//     const m={}; ['nama_tamu','id_number','alamat','tempat_lahir','tanggal_lahir','keperluan','unit_tujuan']
+//       .forEach(id=> m[id] = (document.getElementById(id)?.value||''));
+//     localStorage.setItem(KEY, JSON.stringify(m));
+//   });
+// })();
 
 </script>
 <script>
   $('#no_hp').on('input', function(){
     this.value = (this.value || '').replace(/\D+/g,'').slice(0,13);
   });
+</script>
+
+<script>
+/**
+ * Loader ber-step pakai SweetAlert2
+ * @param {Object} opts
+ *  - title: judul modal
+ *  - note: subteks kecil
+ *  - steps: array label langkah
+ *  - startIndex: index langkah awal (default 0)
+ *  - allowClose: boleh ditutup manual? (default false)
+ *  - run: (opsional) array async fn, dijalankan berurutan sesuai steps
+ *         tiap fn boleh throw untuk menghentikan & menandai gagal
+ */
+function loaderSteps(opts = {}) {
+  const steps = opts.steps || [
+    'Memvalidasi data…',
+    'Cek hari & jam…',
+    'Cek kuota pendamping…',
+    'Cek slot jadwal…',
+    'Menyimpan…',
+    'Persiapan Kirim Notifikasi…'
+  ];
+
+  let idx = Math.max(0, Math.min(+(opts.startIndex || 0), steps.length));
+  let failedAt = -1;
+
+  const title = opts.title || 'Proses…';
+  const note  = ('note' in opts) ? opts.note : 'Jangan tutup halaman ini';
+  const allowClose = !!opts.allowClose;
+
+  function html() {
+    // progress: jumlah langkah selesai (idx) dari total
+    const done = Math.max(0, Math.min(idx, steps.length));
+    const percent = Math.round((done / steps.length) * 100);
+
+    const items = steps.map((label, i) => {
+      const isDone = i < idx && failedAt < 0;
+      const isNow  = i === idx && failedAt < 0;
+      const isFail = failedAt === i;
+
+      let bullet = '';
+      if (isDone) bullet = '<span class="ls-tick">✓</span>';
+      else if (isFail) bullet = '<span class="ls-cross">✕</span>';
+      else if (isNow) bullet = '<span class="ls-spin"></span>';
+      else bullet = '';
+
+      const cls =
+        isFail ? 'ls-step fail' :
+        isDone ? 'ls-step done' :
+        isNow  ? 'ls-step now'  : 'ls-step todo';
+
+      return `
+        <li class="${cls}">
+          <div class="ls-bullet">${bullet}</div>
+          <div class="ls-label">${label}</div>
+        </li>
+      `;
+    }).join('');
+
+    return `
+      <style>
+        .ls-wrap{font-size:14px;text-align:left}
+        .ls-note{color:#64748b;margin:.25rem 0 .75rem}
+        .ls-progress{height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+        .ls-bar{height:100%;width:${percent}%;background:#3b82f6;transition:width .35s ease;border-radius:999px}
+        .ls-list{list-style:none;padding:0;margin:.75rem 0 0}
+        .ls-step{display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px dashed #eef2f7}
+        .ls-step:last-child{border-bottom:none}
+        .ls-bullet{width:20px;height:20px;border-radius:999px;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;flex:0 0 20px}
+        .ls-step.done .ls-bullet{background:#10b981;border-color:#10b981;color:#fff}
+        .ls-step.fail .ls-bullet{background:#ef4444;border-color:#ef4444;color:#fff}
+        .ls-step.now .ls-bullet{border-color:#60a5fa}
+        .ls-label{color:#0f172a}
+        .ls-tick{font-weight:700;font-size:12px;line-height:1}
+        .ls-cross{font-weight:700;font-size:12px;line-height:1}
+        .ls-spin{width:12px;height:12px;border-radius:999px;border:2px solid #93c5fd;border-top-color:transparent;animation:ls-rot .8s linear infinite;display:inline-block}
+        @keyframes ls-rot{to{transform:rotate(360deg)}}
+      </style>
+      <div class="ls-wrap">
+        ${note ? `<div class="ls-note">${note}</div>` : ''}
+        <div class="ls-progress"><div class="ls-bar"></div></div>
+        <ul class="ls-list">${items}</ul>
+      </div>
+    `;
+  }
+
+  // buka swal
+  Swal.fire({
+    title,
+    html: html(),
+    allowOutsideClick: false,
+    allowEscapeKey: allowClose,
+    showConfirmButton: false,
+    didOpen: () => {
+      // optional: tampilkan spinner kecil bawaan swal
+      Swal.showLoading();
+    }
+  });
+
+  // Swal.fire({ title:"Proses...", html:"Jangan tutup halaman ini", allowOutsideClick:false, didOpen:() => Swal.showLoading() });
+
+
+  function redraw() {
+    // update HTML penuh agar simpel & robust
+    Swal.update({ html: html() });
+  }
+
+  // --- API ---
+  function setStep(i, newLabel) {
+    if (typeof newLabel === 'string') steps[i] = newLabel;
+    idx = Math.max(0, Math.min(i, steps.length));
+    failedAt = -1;
+    redraw();
+  }
+
+  function next(newLabel) {
+    if (typeof newLabel === 'string' && idx < steps.length) steps[idx] = newLabel;
+    idx = Math.min(idx + 1, steps.length);
+    redraw();
+  }
+
+  function text(newLabel) {
+    if (typeof newLabel === 'string' && idx < steps.length) {
+      steps[idx] = newLabel;
+      redraw();
+    }
+  }
+
+  function fail(errorText) {
+    if (idx >= steps.length) idx = steps.length - 1;
+    if (idx < 0) idx = 0;
+    failedAt = idx;
+    if (typeof errorText === 'string' && errorText.trim()) {
+      steps[idx] = errorText;
+    }
+    redraw();
+  }
+
+  function success(finalText) {
+    if (typeof finalText === 'string' && finalText.trim()) {
+      // set label terakhir bila ada
+      if (idx < steps.length) steps[idx] = finalText;
+    }
+    idx = steps.length; // semua selesai
+    redraw();
+  }
+
+  function close() {
+    Swal.close();
+  }
+
+  // --- Mode otomatis (opsional) ---
+  // opts.run: array async functions yang dijalankan berurutan
+  async function run() {
+    if (!Array.isArray(opts.run) || !opts.run.length) return;
+    try {
+      for (let i = 0; i < opts.run.length; i++) {
+        setStep(i);               // fokus ke step i
+        const label = steps[i];   // label saat ini
+        // jalankan pekerjaan step i
+        await opts.run[i]({ step:i, label, set:text });
+        // selesai step → lanjut
+        next();                   // tandai selesai & maju
+      }
+      success();                  // semua selesai
+    } catch (err) {
+      // tandai gagal di step saat ini
+      const msg = (err && err.message) ? err.message : 'Gagal pada langkah ini.';
+      fail(msg);
+      // option: tampilkan alert kecil
+      setTimeout(() => {
+        Swal.fire({icon:'error', title:'Gagal', text:msg});
+      }, 50);
+      throw err;
+    }
+  }
+
+  // auto-run jika disediakan
+  if (Array.isArray(opts.run) && opts.run.length) {
+    // tidak menunggu di sini; panggil manual jika mau await:
+    run().catch(()=>{});
+  }
+
+  return { next, setStep, text, fail, success, close, run, steps };
+}
 </script>
