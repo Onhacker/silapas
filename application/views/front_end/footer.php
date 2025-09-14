@@ -406,7 +406,13 @@
 
     <div class="modal-body">
 
-       <a href="<?php echo base_url('hal/alur') ?>" style="text-decoration: none;">
+      <a href="<?php echo base_url('hal/panduan') ?>" style="text-decoration: none;">
+        <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
+         <i class="fe-file-text mr-1"></i>Tata Cara Kunjungan 
+        </div>
+      </a>
+
+      <a href="<?php echo base_url('hal/alur') ?>" style="text-decoration: none;">
         <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
          <i class="fas fa-project-diagram mr-1"></i>Alur Kunjungan 
         </div>

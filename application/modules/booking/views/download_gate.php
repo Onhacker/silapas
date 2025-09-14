@@ -5,7 +5,7 @@
       <div class="search-result-box card-box">
         <div class="text-center py-5">
           <h4 class="mb-2"><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></h4>
-          <p class="text-muted">Unduhan sedang dipersiapkan…</p>
+          <p class="text-muted">Silahkan tunggu download sampai selesai kemudian klik tombol dibawah untuk meninggalkan halaman ini</p>
           <a href="<?php echo $to ?>" class="btn btn-primary">Detail Anda</a>
         </div>
 

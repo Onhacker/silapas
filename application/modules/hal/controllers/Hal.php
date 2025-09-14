@@ -27,6 +27,15 @@ class Hal extends MX_Controller {
 
 	}
 
+	function panduan(){
+		$data["rec"] = $this->fm->web_me();
+		$data["title"] = "Panduan Permohonan Kunjungan";
+		$data["deskripsi"] = "Panduan Permohonan Kunjungan menggunakan aplikasi SILATURAHMI. ".$data["rec"]->type.". .";
+		$data["prev"] = base_url("assets/images/flow_icon.png");
+		$this->load->view('panduan',$data);
+
+	}
+
 	function alur(){
 		$data["rec"] = $this->fm->web_me();
 		$data["title"] = "Alur Permohonan Kunjungan";
