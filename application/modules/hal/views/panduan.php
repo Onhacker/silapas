@@ -191,7 +191,7 @@
 
       <!-- CTA -->
       <div class="text-center">
-        <a href="<?= site_url('booking'); ?>" class="btn btn-primary btn-lg">
+        <a href="<?= site_url('booking'); ?>" class="btn btn-blue btn-lg">
           <i class="mdi mdi-clipboard-check-outline mr-1"></i>Ajukan Permohonan Kunjungan
         </a>
       </div>
