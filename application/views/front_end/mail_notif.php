@@ -83,7 +83,7 @@ $badge = $is_update ? 'Perubahan Booking' : 'Konfirmasi Booking';
         </div>
 
         <p class="note">
-          Simpan kontak kami agar tautan di email/WA dapat diklik langsung. Email ini dikirim otomatis oleh sistem <?= $esc($app) ?>.
+          Simpan kontak kami agar tautan di email dapat diklik langsung. Email ini dikirim otomatis oleh sistem <?= $esc($app) ?>.
         </p>
       </div>
 

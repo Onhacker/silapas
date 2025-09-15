@@ -94,7 +94,7 @@
                                  value="<?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?>" autocomplete="off" required>
                         </div>
 
-                        <div class="form-group mb-3">
+                       <!--  <div class="form-group mb-3">
                           <label class="text-primary">Password Baru</label>
                           <div class="input-group">
                             <input type="password" class="form-control" id="password_baru" name="password_baru" minlength="6" autocomplete="new-password">
@@ -114,9 +114,11 @@
                             </div>
                           </div>
                           <small id="pwdHelp" class="form-text"></small>
-                        </div>
+                        </div> -->
 
-
+                      <div class="alert alert-info">
+  Password akan dibuat otomatis dan dikirim ke WhatsApp yang diisi.
+</div>
                 </div>
                 <div class="modal-footer">
                    

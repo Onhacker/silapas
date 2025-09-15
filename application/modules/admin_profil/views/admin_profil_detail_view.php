@@ -76,9 +76,9 @@ $tgl  = function_exists('tgl_indo') ? tgl_indo($tg) : date('d-m-Y', strtotime($t
                   </table>
 
                   <div class="mt-3">
-                    <a href="<?= site_url('admin_profil') ?>" class="btn btn-secondary">
+                   <!--  <a href="<?= site_url('admin_profil') ?>" class="btn btn-secondary">
                       <i class="fe-arrow-left"></i> Kembali
-                    </a>
+                    </a> -->
                     <?php if (strtolower($this->session->userdata('admin_username')) === strtolower($record->username)): ?>
                     <a href="<?= site_url('admin_profil') ?>" class="btn btn-primary ml-2">
                       <i class="fe-edit-2"></i> Edit Profil

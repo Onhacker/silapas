@@ -169,8 +169,8 @@ class Admin_user extends Admin_Controller {
             ]
         ]);
 
-        $this->form_validation->set_rules('password_baru', 'Password Baru', 'trim|required|min_length[8]');
-        $this->form_validation->set_rules('password_baru_lagi', 'Konfirmasi Password', 'trim|required|min_length[8]|matches[password_baru]');
+        // $this->form_validation->set_rules('password_baru', 'Password Baru', 'trim|required|min_length[8]');
+        // $this->form_validation->set_rules('password_baru_lagi', 'Konfirmasi Password', 'trim|required|min_length[8]|matches[password_baru]');
 
         $this->form_validation->set_message('required', '* %s harus diisi');
         $this->form_validation->set_message('alpha_dash', '* %s hanya boleh huruf, angka, underscore (_), atau strip (-)');
@@ -201,6 +201,10 @@ class Admin_user extends Admin_Controller {
             echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Username sudah ada"]);
             return;
         }
+                // ===== Generate password kuat & hash =====
+        $plainPassword = $this->generate_password(12); // 12 char random
+        $row["password"] = password_hash($plainPassword, PASSWORD_ARGON2ID);
+
 
         // ===== Parse unit (bisa unit_tujuan atau unit_lain)
         $unitSel = $this->parse_unit($data['id_unit']); // ['source'=>..., 'id'=>int]
@@ -261,22 +265,24 @@ class Admin_user extends Admin_Controller {
         $res = $this->db->insert("users", $row);
 
         if ($res) {
-            $web  = $this->om->web_me();
+           $web  = $this->om->web_me();
             $site = site_url();
 
-            // Kirim WA
-            $plainPassword = $data["password_baru"];
-            $pesan 
-            = "Halo *{$row['nama_lengkap']}*\n"
-            . "Akun Level *{$unit_label}* {$nama_unit} {$web->nama_website} ({$web->meta_deskripsi})"
-                   . " berhasil dibuat.\n"
-                   . "Silakan login di {$site} dengan:\n"
-                   . "username: *{$row['username']}*\n"
-                   . "password: *{$plainPassword}*";
+            $unitInfo = ($unit_label ?: 'Unit').' '.$nama_unit;
+            $appName  = $web->nama_website ?: 'Aplikasi';
+
+            $pesan =
+              "Halo *{$row['nama_lengkap']}*\n\n".
+              "Akun *{$appName}* untuk {$unitInfo} berhasil dibuat.\n\n".
+              "Login: {$site}\n".
+              "Username: *{$row['username']}*\n".
+              "Password: *{$plainPassword}*\n\n".
+              "_Demi keamanan, segera ganti password setelah login._";
 
             if (function_exists('send_wa_single') && !empty($row["no_telp"])) {
                 @send_wa_single($row["no_telp"], $pesan);
             }
+
 
             echo json_encode([
                 "success" => true,
@@ -293,10 +299,22 @@ class Admin_user extends Admin_Controller {
         }
     }
 
-    function generate_password($length = 8) {
-        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        return substr(str_shuffle($chars), 0, $length);
+    function generate_password($length = 12) {
+    // Hindari karakter yang mudah tertukar (O/0, I/1, l)
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%*?';
+        $alphaLen = strlen($alphabet);
+
+    // minimal safeguard
+        $length = max(8, (int)$length);
+
+        $bytes = random_bytes($length);
+        $pwd = '';
+        for ($i = 0; $i < $length; $i++) {
+            $pwd .= $alphabet[ord($bytes[$i]) % $alphaLen];
+        }
+        return $pwd;
     }
+
 
     public function get_data_modul($id_session)
     {
