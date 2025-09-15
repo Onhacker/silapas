@@ -112,5 +112,5 @@
     </div>
   </div>
 
-  <?php $this->load->view(strtolower($controller)."_js"); ?>
+  <?php $this->load->view(($controller)."_js"); ?>
 </div>
