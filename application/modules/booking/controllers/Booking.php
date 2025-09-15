@@ -667,32 +667,67 @@ class Booking extends MX_Controller {
         }
 
         // ===== Kirim EMAIL ke TAMU (jika ada)
+        // ===== Kirim EMAIL ke TAMU (idempotent + race-safe) =====
         if (!empty($b->email) && filter_var($b->email, FILTER_VALIDATE_EMAIL)) {
-            $ok_mail = $this->_send_email_konfirmasi($b->email, [
-                'access_token'           => $b->access_token,
-                'is_update'              => false,
-                'nama'                   => $b->nama_tamu,
-                'nama_petugas_instansi'  => $b->nama_petugas_instansi,
-                'kode'                   => $b->kode_booking,
-                'instansi_asal'          => $instansi,
-                'unit_tujuan'            => $unit_nama_db ?: '-',
-                'tanggal'                => $b->tanggal,
-                'jam'                    => $b->jam,
-                'qr_url'                 => $qr_url,
-                'redirect_url'           => $redir,
-                'pdf_url'                => $pdf_url,
-                'keperluan'              => $b->keperluan ?: '-',
-            ]);
-            $log[] = ['send_email_user'=>['ok'=>$ok_mail]];
-            if ($ok_mail && $this->db->field_exists('email_sent_at','booking_tamu')) {
-                if ($token !== '') { $this->db->where('access_token', $token); }
-                else               { $this->db->where('kode_booking', $b->kode_booking); }
-                $this->db->where('email_sent_at IS NULL', NULL, FALSE)
-                         ->update('booking_tamu', ['email_sent_at' => date('Y-m-d H:i:s')]);
+            $hasSentCol = $this->db->field_exists('email_sent_at','booking_tamu');
+
+            // 1) Atomic claim: hanya satu proses yang dapat '1'
+            $claimed = 0;
+            if ($hasSentCol && !$force) {
+                $this->db->query(
+                    "UPDATE booking_tamu
+                     SET email_sent_at = NOW()
+                     WHERE kode_booking=? AND access_token=? AND email_sent_at IS NULL",
+                    [$b->kode_booking, $b->access_token]
+                );
+                $claimed = $this->db->affected_rows(); // 1 = kita pemilik kirim; 0 = sudah diklaim/terkirim
+            }
+
+            if ($force || $claimed > 0) {
+                $ok_mail = $this->_send_email_konfirmasi($b->email, [
+                    'access_token'          => $b->access_token,
+                    'is_update'             => false,
+                    'nama'                  => $b->nama_tamu,
+                    'nama_petugas_instansi' => $b->nama_petugas_instansi,
+                    'kode'                  => $b->kode_booking,
+                    'instansi_asal'         => $instansi,
+                    'unit_tujuan'           => $unit_nama_db ?: '-',
+                    'tanggal'               => $b->tanggal,
+                    'jam'                   => $b->jam,
+                    'qr_url'                => $qr_url,
+                    'redirect_url'          => $redir,
+                    'pdf_url'               => $pdf_url,
+                    'keperluan'             => $b->keperluan ?: '-',
+                ]);
+                $log[] = ['send_email_user'=>['ok'=>$ok_mail, 'forced'=>$force, 'claimed'=>$claimed]];
+
+                // 2) Jika gagal dan ini hasil klaim kita (bukan force), kembalikan ke NULL agar bisa retry biasa
+                if (!$ok_mail && !$force && $claimed > 0 && $hasSentCol) {
+                    $this->db->query(
+                        "UPDATE booking_tamu
+                         SET email_sent_at = NULL
+                         WHERE kode_booking=? AND access_token=?",
+                        [$b->kode_booking, $b->access_token]
+                    );
+                }
+
+                // 3) Jika force, pastikan tetap distamp agar tidak resend tanpa sengaja
+                if ($force && $hasSentCol) {
+                    $this->db->query(
+                        "UPDATE booking_tamu
+                         SET email_sent_at = COALESCE(email_sent_at, NOW())
+                         WHERE kode_booking=? AND access_token=?",
+                        [$b->kode_booking, $b->access_token]
+                    );
+                }
+            } else {
+                $log[] = ['send_email_user'=>'skipped: already stamped'];
             }
         } else {
             $log[] = ['send_email_user'=>'skipped: no email'];
         }
+
+
 
 
         // ===== 2) Kirim ke UNIT TUJUAN =====
@@ -2639,7 +2674,7 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
         $rec = $this->fm->web_me();
 
         if ($rec && !empty($rec->smtp_active)) {
-            $app_name   = ($rec->nama_website ?? 'Aplikasi');
+            $app_name   = ($this->fm->web_me()->nama_website ?? 'Aplikasi');
             $smtp_host  = $rec->smtp_host ?: '';
             $smtp_user  = $rec->smtp_user ?: '';
             $smtp_pass  = $rec->smtp_pass ?: '';
@@ -2676,7 +2711,7 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
         $smtp_port   = (int)(getenv('SMTP_PORT') ?: 465);
         $smtp_crypto = getenv('SMTP_CRYPTO') ?: 'ssl';            // 'ssl' (465) atau 'tls' (587)
         $from_email  = getenv('SMTP_FROM')  ?: $smtp_user;
-        $from_name   = getenv('SMTP_FROM_NAME') ?: (($this->fm->web_me()->nama_website ?? 'Aplikasi'));
+        $from_name   = getenv('SMTP_FROM_NAME') ?: (($rec->nama_website ?? 'Aplikasi'));
 
         $cfg = [
             'protocol'    => 'smtp',
