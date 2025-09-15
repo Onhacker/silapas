@@ -253,7 +253,7 @@ function on_seo($modul = "") {
 
 function link_foto_user_web($link = ""){
 	if ($link == "") {
-		$gbr = base_url("upload/users/no-image.png");
+		$gbr = base_url("upload/users/onhacker_221a3f5e.jpg");
 	} else {
 		$gbr = base_url("upload/users/".$link);
 	}
@@ -265,7 +265,7 @@ function link_gambar($link = ""){
 	$ci = & get_instance();
 	$no_image = $ci->fm->web_me()->gambar;
 	if ($link == "") {
-		$gbr = base_url("upload/gambar/no-image.jpg");
+		$gbr = base_url("upload/gambar/onhacker_221a3f5e.jpg");
 	} else {
 		$gbr = base_url("upload/gambar/".$link);
 	}

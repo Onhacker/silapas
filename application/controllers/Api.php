@@ -310,7 +310,7 @@ public function get_menu_mobile()
 
     // Nama & foto dari session (fallback aman)
     $display_name = $nama_ses !== '' ? $nama_ses : $username;
-    $foto_url     = base_url('upload/users/no-image.png');
+    $foto_url     = base_url('upload/users/onhacker_221a3f5e.jpg');
     if (!empty($foto_ses)) {
         // Jika sudah URL penuh, pakai langsung; kalau cuma filename, prepend base_url
         if (filter_var($foto_ses, FILTER_VALIDATE_URL)) {

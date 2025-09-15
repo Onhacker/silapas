@@ -72,7 +72,7 @@ if (function_exists('mb_strlen')) {
       <li class="dropdown notification-list">
         <a class="nav-link dropdown-toggle nav-user mr-0 waves-effect" data-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
           <img src="<?= htmlspecialchars($foto_url, ENT_QUOTES, 'UTF-8') ?>"
-               onerror="this.onerror=null;this.src='<?= base_url('upload/users/no-image.png') ?>';"
+               onerror="this.onerror=null;this.src='<?= base_url('upload/users/onhacker_221a3f5e.jpg') ?>';"
                class="rounded-circle" id="foto_profil" height="28">
           <span class="pro-user-name ml-1" id="nama_profil">
             <?= htmlspecialchars($short, ENT_QUOTES, 'UTF-8') ?> <i class="mdi mdi-chevron-down"></i>

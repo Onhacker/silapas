@@ -101,7 +101,7 @@ class Admin_user extends Admin_Controller {
         foreach($list as $res){
             // foto
             if (empty($res->foto)) {
-                $foto = '<img src="'.base_url('upload/users/no-image.png').'" class="rounded-circle avatar-sm" width="50" alt="foto">';
+                $foto = '<img src="'.base_url('upload/users/onhacker_221a3f5e.jpg').'" class="rounded-circle avatar-sm" width="50" alt="foto">';
             } else {
                 $foto = '<img src="'.base_url('upload/users/'.$res->foto).'" class="rounded-circle avatar-sm" width="50" alt="foto">';
             }

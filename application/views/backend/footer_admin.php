@@ -1,4 +1,32 @@
 <?php $uri = $this->uri->uri_string(); ?>
+<?php
+// --- ACTIVE HELPER ---
+$uri = trim($this->uri->uri_string(), '/'); // normalize
+
+if (!function_exists('uri_is')) {
+  function uri_is(string $uri, $patterns): bool {
+    foreach ((array)$patterns as $p) {
+      $p = trim((string)$p, '/');
+      if ($p === '') { if ($uri === '') return true; continue; }
+      // wildcard '*' di akhir = prefix match
+      if (substr($p, -1) === '*') {
+        $prefix = rtrim($p, '*');
+        if ($uri === $prefix || strpos($uri, $prefix) === 0) return true;
+      } elseif ($uri === $p) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+if (!function_exists('nav_class')) {
+  function nav_class(string $uri, $patterns, string $on='text-active', string $off='text-dark'): string {
+    return uri_is($uri, $patterns) ? $on : $off;
+  }
+}
+?>
+
 <style>
   .navbar-bottom {
     height: 65px;
@@ -79,64 +107,66 @@
   <div class="w-100 d-flex justify-content-between text-center position-relative mx-0 px-0">
 
     <div class="nav-item">
-      <a href="<?= base_url() ?>" class="<?= ($uri == '' || $uri == 'home') ? 'text-active' : 'text-dark' ?>">
+      <a href="<?= base_url() ?>" class="<?= nav_class($uri, ['', 'home']) ?>">
         <i class="fas fa-home d-block mb-1"></i>
         <span class="small">Beranda</span>
       </a>
     </div>
 
-  <div class="nav-item">
-      <a href="<?= base_url('hal/jadwal') ?>" class="<?= ($uri == 'hal/jadwal') ? 'text-active' : 'text-dark' ?>">
+    <div class="nav-item">
+      <a href="<?= base_url('hal/jadwal') ?>" class="<?= nav_class($uri, ['hal/jadwal*']) ?>">
         <i class="far fa-calendar-alt d-block mb-1"></i>
         <span class="small">Jadwal</span>
       </a>
     </div>
+
     <div class="space-left"></div>
 
-    <?php $web = $this->om->web_me(); ?>
-    <?php
-  // pastikan helper menu sudah diload (autoload/helper atau panggil di controller)
+    <?php $web = $this->om->web_me();
     if (!function_exists('user_can_mod')) $this->load->helper('menu');
 
-  // tentukan hak akses untuk fitur scan
-    $can_scan = function_exists('user_can_mod')
-    ? user_can_mod(['admin_scan','scan','checkin/checkout'])
-    : false;
-
-  // tentukan target URL & state aktif (highlight)
+    $can_scan   = function_exists('user_can_mod') ? user_can_mod(['admin_scan','scan','checkin/checkout']) : false;
     $target_url = $can_scan ? base_url('admin_scan') : base_url('booking');
-    $is_active  = $can_scan ? ($uri === 'admin_scan') : ($uri === 'booking');
+    $center_on  = uri_is($uri, $can_scan ? ['admin_scan'] : ['booking']);
     ?>
     <a href="<?= $target_url ?>"
-     class="center-button <?= $is_active ? 'text-white' : '' ?>"
-     style="text-align:center; <?= $is_active ? 'background-color:;' : '' ?>"
-     aria-label="<?= $can_scan ? 'Scan (Check-in/Out)' : 'Booking' ?>">
-     <div>
-      <img src="<?= base_url('assets/images/') . $web->gambar ?>"
-      alt="<?= $can_scan ? 'Scan' : 'Booking' ?>"
-      style="width:50px;height:50px;object-fit:contain;margin-top:0;">
+       class="center-button <?= $center_on ? 'text-white' : '' ?>"
+       style="text-align:center; <?= $center_on ? 'background-image:none;background-color:#2a5298;' : '' ?>"
+       aria-label="<?= $can_scan ? 'Scan (Check-in/Out)' : 'Booking' ?>">
+      <div>
+        <img src="<?= base_url('assets/images/') . $web->gambar ?>"
+             alt="<?= $can_scan ? 'Scan' : 'Booking' ?>"
+             style="width:50px;height:50px;object-fit:contain;margin-top:0;">
+      </div>
+    </a>
+
+    <div class="space-right"></div>
+
+    <div class="nav-item">
+      <a href="<?= base_url('hal/struktur') ?>" class="<?= nav_class($uri, ['hal/struktur*']) ?>">
+        <i class="fas fa-sitemap d-block mb-1"></i>
+        <span class="small">Struktur</span>
+      </a>
     </div>
-  </a>
 
+    <?php
+      // Semua halaman yang “mewakili” Menu → bikin aktif ikon Menu
+      $menu_patterns = [
+        'admin_permohonan','admin_profil/detail_profil','booking',
+        'admin_dashboard/monitor','admin_scan','admin_user','hal/kontak',
+        'Admin_setting_web*','Admin_unit_tujuan*','Admin_unit_lain*'
+      ];
+    ?>
+    <div class="nav-item">
+      <a href="#" class="<?= nav_class($uri, $menu_patterns) ?>" data-toggle="modal" data-target="#kontakModal">
+        <i class="fas fa-bars d-block mb-1"></i>
+        <span class="small">Menu</span>
+      </a>
+    </div>
 
-  <div class="space-right"></div>
-
-  <div class="nav-item">
-    <a href="<?= base_url('hal/struktur') ?>" class="<?= ($uri == 'hal/struktur') ? 'text-active' : 'text-dark' ?>">
-      <i class="fas fa-sitemap d-block mb-1"></i>
-      <span class="small">Struktur</span>
-    </a>
   </div>
-
-  <div class="nav-item">
-    <a class="<?= ($uri == 'admin_permohonan' || $uri == 'admin_profil/detail_profil' || $uri == 'booking' || $uri == 'admin_dashboard/monitor' || $uri == 'admin_scan' || $uri == 'admin_user' || $uri == 'hal/kontak') ? 'text-active' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModal">
-      <i class="fas fa-bars d-block mb-1"></i>
-      <span class="small">Menu</span>
-    </a>
-  </div>
-
-</div>
 </nav>
+
 <style type="text/css">
 
   .modal-dialog.modal-bottom {

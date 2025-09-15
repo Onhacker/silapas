@@ -21,14 +21,14 @@
     	<div class="col-lg-4 col-xl-4">
     		<div class="card-box text-center">
                <!--  <?php if ($record->tanggal_reg == "0000-00-00"){ ?>
-                    <img src="<?php echo base_url('upload/users/no-image.png') ?>" class="rounded-circle avatar-lg img-thumbnail" alt="profile-image">
+                    <img src="<?php echo base_url('upload/users/onhacker_221a3f5e.jpg') ?>" class="rounded-circle avatar-lg img-thumbnail" alt="profile-image">
                     <h4 class="mb-0">Akun ini menunggu verifikasi email agar bisa aktif melalui <?php echo $record->email ?></h4>
                     <p></p>
                     <p class="text-black mb-2 font-13"><strong>Email :</strong> <span class="ml-2 " id= "mail_ver"><?php echo $record->email ?></span></p>
                     <button type="button" class="btn btn-success btn-xs waves-effect mb-2 waves-light" onclick="kirim_ulang()">Kirim Ulang Email Verifikasi</button>
                 <?php } else { ?> -->
                     <?php if (empty($record->foto)) {?>
-                        <img src="<?php echo base_url('upload/users/no-image.png') ?>" class="rounded-circle avatar-lg img-thumbnail" alt="profile-image">
+                        <img src="<?php echo base_url('upload/users/onhacker_221a3f5e.jpg') ?>" class="rounded-circle avatar-lg img-thumbnail" alt="profile-image">
                     <?php } else { ?>
                         <img src="<?php echo base_url('upload/users/').$record->foto ?>" class="rounded-circle avatar-lg img-thumbnail"
                         alt="profile-image">
