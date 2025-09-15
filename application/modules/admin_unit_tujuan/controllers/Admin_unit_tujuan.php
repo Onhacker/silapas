@@ -12,7 +12,7 @@ class Admin_unit_tujuan extends Admin_Controller {
         $data["controller"] = get_class($this);
         $data["title"]      = "Master";
         $data["subtitle"]   = "Unit Tujuan";
-        $data["content"]    = $this->load->view(strtolower($data["controller"])."_view",$data,true);
+        $data["content"]    = $this->load->view(($data["controller"])."_view",$data,true);
         $this->render($data);
     }
 
