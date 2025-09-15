@@ -266,7 +266,7 @@ class Admin_user extends Admin_Controller {
 
         if ($res) {
            $web  = $this->om->web_me();
-            $site = site_url();
+            $site = site_url("on_login");
 
             $unitInfo = ($unit_label ?: 'Unit').' '.$nama_unit;
             $appName  = $web->nama_website ?: 'Aplikasi';

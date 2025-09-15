@@ -128,7 +128,7 @@
       save_method = 'add';
       $("#add_member").show();
       $('.mymodal-title').text('Tambah Pengguna');
-      $('#password_baru, #password_baru_lagi').prop('disabled', false).val('');
+      // $('#password_baru, #password_baru_lagi').prop('disabled', false).val('');
       $('#full-width-modal').modal('show');
     }
 
@@ -143,8 +143,8 @@
       var nama       = ($.trim($('#nama_lengkap').val() || ''));
       var id_unit    = ($.trim($('#id_unit').val() || ''));
       var no_telp    = ($.trim($('#no_telp').val() || ''));
-      var pass1      = $('#password_baru').val() || '';
-      var pass2      = $('#password_baru_lagi').val() || '';
+      // var pass1      = $('#password_baru').val() || '';
+      // var pass2      = $('#password_baru_lagi').val() || '';
 
       if (!nama)     return "Nama Lengkap harus diisi.";
       if (!id_unit)  return "Unit harus dipilih.";
@@ -152,11 +152,11 @@
       if (username.length < 6 || username.length > 12) return "Username harus 6–12 karakter.";
       if (!/^[a-zA-Z0-9_-]+$/.test(username)) return "Username hanya boleh huruf/angka/underscore/strip.";
 
-      if (save_method === 'add'){
-        if (!pass1 || !pass2) return "Password & Konfirmasi Password harus diisi.";
-        if (pass1.length < 8 || pass2.length < 8) return "Password minimal 8 karakter.";
-        if (pass1 !== pass2) return "Password dan Konfirmasi Password tidak sama.";
-      }
+      // if (save_method === 'add'){
+      //   if (!pass1 || !pass2) return "Password & Konfirmasi Password harus diisi.";
+      //   if (pass1.length < 8 || pass2.length < 8) return "Password minimal 8 karakter.";
+      //   if (pass1 !== pass2) return "Password dan Konfirmasi Password tidak sama.";
+      // }
       if (no_telp && !/^[0-9+]+$/.test(no_telp)) return "Nomor WhatsApp hanya boleh angka dan tanda +.";
       return null;
     }
