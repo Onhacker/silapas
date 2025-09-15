@@ -182,6 +182,7 @@ class Booking extends MX_Controller {
                     "success"=>false, "title"=>"Validasi Gagal", "pesan"=>validation_errors()
                 ]));
         }
+        $email = strtolower(trim($data['email'] ?? ''));
 
         // 1) Validasi tanggal & jam
         [$ok, $tanggal, $jam, $err] = $this->_validate_jadwal($data['tanggal'], $data['jam']);
@@ -362,6 +363,10 @@ class Booking extends MX_Controller {
             "token_issued_at"       => date('Y-m-d H:i:s'),
             "token_revoked"         => 0
         ];
+        if ($this->db->field_exists('email','booking_tamu')) {
+            $insert_base['email'] = $email ?: null;
+        }
+
 
         $MAX_TRY = 7;
         $lastErr = null;
@@ -661,6 +666,35 @@ class Booking extends MX_Controller {
             $log[] = ['send_user'=>'skipped: already stamped'];
         }
 
+        // ===== Kirim EMAIL ke TAMU (jika ada)
+        if (!empty($b->email) && filter_var($b->email, FILTER_VALIDATE_EMAIL)) {
+            $ok_mail = $this->_send_email_konfirmasi($b->email, [
+                'access_token'           => $b->access_token,
+                'is_update'              => false,
+                'nama'                   => $b->nama_tamu,
+                'nama_petugas_instansi'  => $b->nama_petugas_instansi,
+                'kode'                   => $b->kode_booking,
+                'instansi_asal'          => $instansi,
+                'unit_tujuan'            => $unit_nama_db ?: '-',
+                'tanggal'                => $b->tanggal,
+                'jam'                    => $b->jam,
+                'qr_url'                 => $qr_url,
+                'redirect_url'           => $redir,
+                'pdf_url'                => $pdf_url,
+                'keperluan'              => $b->keperluan ?: '-',
+            ]);
+            $log[] = ['send_email_user'=>['ok'=>$ok_mail]];
+            if ($ok_mail && $this->db->field_exists('email_sent_at','booking_tamu')) {
+                if ($token !== '') { $this->db->where('access_token', $token); }
+                else               { $this->db->where('kode_booking', $b->kode_booking); }
+                $this->db->where('email_sent_at IS NULL', NULL, FALSE)
+                         ->update('booking_tamu', ['email_sent_at' => date('Y-m-d H:i:s')]);
+            }
+        } else {
+            $log[] = ['send_email_user'=>'skipped: no email'];
+        }
+
+
         // ===== 2) Kirim ke UNIT TUJUAN =====
         if (!empty($hp_unit)) {
             $can_stamp_unit = $this->db->field_exists('wa_unit_sent_at', 'booking_tamu');
@@ -863,6 +897,8 @@ class Booking extends MX_Controller {
         $this->form_validation->set_rules('tempat_lahir','Tempat Lahir','required|trim');
         $this->form_validation->set_rules('alamat','Alamat','required|trim');
         $this->form_validation->set_rules('tanggal_lahir','Tanggal Lahir','required|trim');
+        $this->form_validation->set_rules('email','Email','required|trim|valid_email');
+
 
         // NIK 16 | NIP 18/9 | NRP 8–9 digit
         $this->form_validation->set_rules(
@@ -1269,12 +1305,12 @@ class Booking extends MX_Controller {
 
     $kode = trim((string)$this->input->post('kode_booking', true));
     if ($kode === '' || empty($_FILES['surat_tugas']['name'])) {
-        return $this->_json(false, 'Data tidak lengkap', 400);
+        return $this->_jsonx(false, 'Data tidak lengkap', 400);
     }
 
     // pastikan booking ada
     $row = $this->db->get_where('booking_tamu', ['kode_booking'=>$kode])->row_array();
-    if (!$row) return $this->_json(false, 'Booking tidak ditemukan', 404);
+    if (!$row) return $this->_jsonx(false, 'Booking tidak ditemukan', 404);
 
     $config = [
         'upload_path'      => FCPATH.'uploads/surat_tugas/',
@@ -1290,7 +1326,7 @@ class Booking extends MX_Controller {
 
     $this->load->library('upload', $config);
     if (!$this->upload->do_upload('surat_tugas')) {
-        return $this->_json(false, $this->upload->display_errors('', ''), 400);
+        return $this->_jsonx(false, $this->upload->display_errors('', ''), 400);
     }
 
     $up      = $this->upload->data();                       // file_name, file_type, etc.
@@ -2110,7 +2146,7 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
                 "pesan"=>"Jumlah pendamping yang diisi (".count($pendampingRows).") tidak sama dengan jumlah pendamping ($diminta)."
             ]);
         }
-
+        $email = strtolower(trim($data['email'] ?? ''));
         // 7) Siapkan UPDATE
         $update = [
             "nama_tamu"             => $data['nama_tamu'],
@@ -2136,6 +2172,9 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
         ];
         if ($this->db->field_exists('edit_count', 'booking_tamu')) {
             $update['edit_count'] = (int)($booking->edit_count ?? 0) + 1;
+        }
+        if ($this->db->field_exists('email','booking_tamu')) {
+            $update['email'] = $email ?: null;
         }
 
         // 8) Transaksi + cek kuota (exclude record sendiri bila pindah tanggal/unit)
@@ -2276,6 +2315,32 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
                      ->where('wa_sent_at IS NULL', NULL, FALSE)
                      ->update('booking_tamu', ['wa_sent_at' => date('Y-m-d H:i:s')]);
         }
+
+        // EMAIL TAMU saat update
+        if (!empty($b->email) && filter_var($b->email, FILTER_VALIDATE_EMAIL)) {
+            $ok_mail = $this->_send_email_konfirmasi($b->email, [
+                'is_update'             => true,
+                'access_token'          => $b->access_token,
+                'nama'                  => $b->nama_tamu,
+                'nama_petugas_instansi' => $b->nama_petugas_instansi,
+                'kode'                  => $b->kode_booking,
+                'instansi_asal'         => $instansi,
+                'unit_tujuan'           => $this->_safe_unit_name((int)$b->unit_tujuan) ?: '-',
+                'tanggal'               => $b->tanggal,
+                'jam'                   => $b->jam,
+                'qr_url'                => $qr_url,
+                'redirect_url'          => $redir,
+                'pdf_url'               => $pdf_url,
+                'keperluan'             => $b->keperluan ?: '-',
+            ]);
+            if ($ok_mail && $this->db->field_exists('email_sent_at','booking_tamu')) {
+                $this->db->where('kode_booking', $b->kode_booking)
+                         ->where('access_token', $b->access_token)
+                         ->where('email_sent_at IS NULL', NULL, FALSE)
+                         ->update('booking_tamu', ['email_sent_at' => date('Y-m-d H:i:s')]);
+            }
+        }
+
 
         // UNIT TUJUAN
         $unit_row = $this->db->select('id, nama_unit, nama_pejabat, parent_id, no_hp', false)
@@ -2503,6 +2568,98 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
         $this->output->set_status_header($code)
                      ->set_content_type('application/json','utf-8')
                      ->set_output(json_encode(['ok'=>false,'msg'=>$msg], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+    }
+
+    private function _send_email_konfirmasi(string $to, array $d): bool
+    {
+        $to = trim($to);
+        if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
+
+        // init + dapatkan FROM
+        list($from, $from_name) = $this->_init_email_and_from();
+
+        // app/web info
+        $web      = $this->fm->web_me();
+        $app_name = $web->nama_website ?? 'Aplikasi';
+
+        // payload utk template (sama seperti sebelumnya) ...
+        $payload = [
+            'is_update'             => !empty($d['is_update']),
+            'kode'                  => (string)($d['kode'] ?? ''),
+            'nama'                  => (string)($d['nama'] ?? '-'),
+            'instansi_asal'         => (string)($d['instansi_asal'] ?? '-'),
+            'unit_tujuan'           => (string)($d['unit_tujuan'] ?? ($d['child_unit_nama'] ?? ($d['unit_nama'] ?? '-'))),
+            'nama_petugas_instansi' => (string)($d['nama_petugas_instansi'] ?? ($d['unit_pejabat'] ?? '')),
+            'tanggal'               => !empty($d['tanggal']) ? date('d-m-Y', strtotime($d['tanggal'])) : '-',
+            'jam'                   => (string)($d['jam'] ?? '-'),
+            'keperluan'             => (string)($d['keperluan'] ?? '-'),
+            'redirect_url'          => (string)($d['redirect_url'] ?? site_url('booking')),
+            'pdf_url'               => (string)($d['pdf_url'] ?? ''),
+            'qr_url'                => (string)($d['qr_url'] ?? ''),
+            'app_name'              => $app_name,
+        ];
+
+        $html = $this->load->view('front_end/mail_notif', $payload, true);
+
+        $this->load->library('email');
+        $this->email->clear(true);
+        $this->email->from($from, $from_name ?: $app_name);
+        $this->email->to($to);
+        $subj = ($payload['is_update'] ? '[Perubahan] ' : '[Konfirmasi] ')."Booking {$payload['kode']} – {$app_name}";
+        $this->email->subject($subj);
+        $this->email->set_mailtype('html');
+        $this->email->set_newline("\r\n");
+        $this->email->message($html);
+
+        try {
+            $ok = (bool)$this->email->send();
+            if (!$ok) {
+                // dump error ke log supaya gampang debug
+                $dbg = $this->email->print_debugger(['headers']);
+                log_message('error', 'email send failed: '.$dbg);
+            }
+            return $ok;
+        } catch (Throwable $e) {
+            log_message('error', 'email send exception: '.$e->getMessage());
+            return false;
+        }
+    }
+
+
+    /** Init Email library tanpa application/config/email.php
+     *  Ambil dari ENV jika ada; kalau tidak, fallback ke nilai default.
+     *  Return: [from_email, from_name]
+     */
+    private function _init_email_and_from(): array
+    {
+        $this->load->library('email');
+
+        // Ambil dari environment (recommended). Bisa set via panel hosting / .htaccess (SetEnv)
+        $smtp_host   = getenv('SMTP_HOST')   ?: 'smtp.hostinger.com';
+        $smtp_user   = getenv('SMTP_USER')   ?: 'admin@silaturahmi.org';
+        $smtp_pass   = getenv('SMTP_PASS')   ?: '100Riburupiah@1212';               // GMAIL: pakai App Password!
+        $smtp_port   = (int)(getenv('SMTP_PORT') ?: 465);
+        $smtp_crypto = getenv('SMTP_CRYPTO') ?: 'ssl';            // 'ssl' (465) atau 'tls' (587)
+        $from_email  = getenv('SMTP_FROM')  ?: $smtp_user;
+        $from_name   = getenv('SMTP_FROM_NAME') ?: (($this->fm->web_me()->nama_website ?? 'Aplikasi'));
+
+        $cfg = [
+            'protocol'   => 'smtp',
+            'smtp_host'  => $smtp_host,
+            'smtp_user'  => $smtp_user,
+            'smtp_pass'  => $smtp_pass,
+            'smtp_port'  => $smtp_port,
+            'smtp_crypto'=> $smtp_crypto,     // CI3 >=3.1.5
+            'mailtype'   => 'html',
+            'charset'    => 'utf-8',
+            'newline'    => "\r\n",
+            'crlf'       => "\r\n",
+            'wordwrap'   => true,
+            'validate'   => true,
+        ];
+
+        $this->email->initialize($cfg);
+        return [$from_email, $from_name];
     }
 
 

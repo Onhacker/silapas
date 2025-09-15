@@ -268,6 +268,16 @@ $this->load->view("front_end/head.php");
                 </div>
               </div>
 
+              <div class="col-md-6">
+                <div class="form-group mb-2">
+                  <label for="email" class="form-label">Email (opsional)</label>
+                  <input type="email" id="email" name="email" class="form-control"
+                  value="<?= htmlspecialchars((string)($B->email ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                  <small class="help-hint">Jika diisi, kami akan mengirim email konfirmasi & link PDF.</small>
+                </div>
+              </div>
+
+
               <!-- ====== Pendamping (opsional) ====== -->
               <div class="col-md-12">
                 <div class="header-title d-flex justify-content-between align-items-center">

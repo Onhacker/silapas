@@ -204,7 +204,12 @@
                 })();
                 </script>
               </div>
-
+               <div class="col-md-6">
+                <div class="form-group mb-2">
+                  <label for="jabatan" class="form-label label-required">Jabatan</label>
+                  <input type="text" id="jabatan" name="jabatan" class="form-control" placeholder="Contoh: Staf / Kepala Seksi" required>
+                </div>
+              </div>
               <div class="col-md-6">
                 <div class="form-group mb-2">
                   <label for="alamat" class="form-label label-required">Alamat Tamu</label>
@@ -232,14 +237,9 @@
                 </div>
               </div>
 
-              <div class="col-md-6">
-                <div class="form-group mb-2">
-                  <label for="jabatan" class="form-label label-required">Jabatan</label>
-                  <input type="text" id="jabatan" name="jabatan" class="form-control" placeholder="Contoh: Staf / Kepala Seksi" required>
-                </div>
-              </div>
+             
 
-              <div class="col-md-6">
+              <div class="col-md-3">
                 <div class="form-group mb-2">
                   <label for="no_hp" class="form-label label-required">No. HP</label>
                   <input type="text" id="no_hp" name="no_hp" class="form-control"
@@ -249,6 +249,16 @@
                   <small class="help-hint">Gunakan nomor aktif untuk menerima WhatsApp konfirmasi.</small>
                 </div>
               </div>
+
+              <div class="col-md-3">
+                <div class="form-group mb-2">
+                  <label for="email" class="form-label">Email</label>
+                  <input type="email" id="email" name="email" class="form-control"
+                  placeholder="nama@instansi.go.id" required="">
+                  <small class="help-hint">Gunakan email aktif untuk menerima Email konfirmasi.</small>
+                </div>
+              </div>
+
 
               <!-- ====== Pendamping (opsional) ====== -->
               <div class="col-md-12">
