@@ -346,18 +346,23 @@
             </div>
 
             <div class="form-row">
-              <div class="form-group col-md-8">
+              <div class="form-group col-md-6">
                 <label class="text-primary" for="smtp_test_to">Uji Kirim ke Email</label>
                 <input type="email" class="form-control" id="smtp_test_to" placeholder="nama@example.com">
-                <small class="text-muted">
-                  Simpan dulu pengaturan, lalu klik Test SMTP. <br>
+                <small class="text-dark">
+                  Update dulu pengaturan, lalu klik Test SMTP. <br>
                   <b>Catatan Gmail:</b> gunakan <i>App Password</i> + aktifkan 2FA. Gunakan TLS (587) atau SSL (465).
                 </small>
               </div>
-              <div class="form-group col-md-4 d-flex align-items-end">
-                <button type="button" class="btn btn-outline-info btn-block" onclick="testSmtp()">Test SMTP</button>
-              </div>
             </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <!-- <div class="form-group col-md-6 d-flex align-items-end"> -->
+                <button type="button" class="btn btn-outline-info btn-block" onclick="testSmtp()">Test Kirim Email</button>
+              <!-- </div> -->
+            </div>
+
+          </div>
 
             <!-- ========= 10) LAINNYA ========= -->
             <h5 class="mb-3 text-uppercase bg-light p-2">
@@ -380,7 +385,7 @@
             <!-- Tombol -->
             <div class="row">
               <div class="col-6">
-                <a href="javascript:void(0)" onclick="update()" class="btn btn-primary btn-block">Update</a>
+                <a href="javascript:void(0)" onclick="update()" class="btn btn-blue btn-block">Update</a>
               </div>
               <div class="col-6">
                 <button type="reset" onclick="home()" class="btn btn-secondary btn-block">Batal</button>
