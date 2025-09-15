@@ -46,6 +46,8 @@ class Api extends MX_Controller {
               'require'=>['Manajemen User','admin_user','user'] ],
             [ 'label'=>'Unit Tujuan','url'=>site_url('admin_unit_tujuan'),
               'require'=>['Unit Tujuan','admin_unit_tujuan','user'] ],
+              [ 'label'=>'Unit Lain','url'=>site_url('admin_unit_lain'),
+              'require'=>['Unit Lain','admin_unit_lain','user'] ],
         ]
     ];
 
@@ -157,6 +159,28 @@ public function get_menu_mobile()
             'url'     => site_url('admin_dashboard'),
             'icon'    => 'mdi mdi-qrcode-scan',
             'require' => ['admin_dashboard'] // cukup link modul
+        ],
+
+        [
+            'id'      => 'Admin_setting_web',
+            'label'   => 'Pengaturan Sistem',
+            'url'     => site_url('Admin_setting_web'),
+            'icon'    => 'mdi mdi-qrcode-scan',
+            'require' => ['Admin_setting_web'] // cukup link modul
+        ],
+         [
+            'id'      => 'Admin_unit_tujuan',
+            'label'   => 'Unit Tujuan',
+            'url'     => site_url('Admin_unit_tujuan'),
+            'icon'    => 'mdi mdi-qrcode-scan',
+            'require' => ['Admin_unit_tujuan'] // cukup link modul
+        ],
+        [
+            'id'      => 'Admin_unit_lain',
+            'label'   => 'Unit Lain',
+            'url'     => site_url('Admin_unit_lain'),
+            'icon'    => 'mdi mdi-qrcode-scan',
+            'require' => ['Admin_unit_lain'] // cukup link modul
         ],
     ];
 

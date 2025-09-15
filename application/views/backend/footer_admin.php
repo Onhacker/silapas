@@ -63,15 +63,15 @@
     }
   }
   .navbar-bottom .nav-item a:hover {
-    color: #F54927 !important; 
+    color: #4a81d4 !important; 
   }
 
   .navbar-bottom .nav-item a:hover i,
   .navbar-bottom .nav-item a:hover span {
-    color: #F54927 !important;
+    color: #4a81d4 !important;
   }
   .text-active {
-    color: #F54927 !important
+    color: #4a81d4 !important
   }
 </style>
 
@@ -170,112 +170,134 @@
   }
 
 </style>
-<div class="modal " id="kontakModal" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-bottom fadeInUp animated modal-dialog-full" style="animation-duration: 0.5s;">
+<!-- Modal Menu (scrollable + icon rapi) -->
+<div class="modal" id="kontakModal" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-bottom fadeInUp animated modal-dialog-full" style="animation-duration: .5s;">
     <div class="modal-content">
-     <div class="modal-header bg-blue text-white">
-      <h5 class="modal-title d-flex align-items-center text-white" id="menumoLabel">
-        <i class="fas fa-concierge-bell mr-2"></i> Menu
-      </h5>
-      <button type="button" class="close text-white" data-dismiss="modal" aria-label="Tutup">
-        <span aria-hidden="true">&times;</span>
-      </button>
+      <div class="modal-header bg-blue text-white">
+        <h5 class="modal-title d-flex align-items-center text-white" id="menumoLabel">
+          <i class="fas fa-concierge-bell mr-2"></i> Menu
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Tutup">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body p-0">
+        <div class="menu-list">
+
+          <!-- Profil -->
+          <a href="<?= base_url('admin_profil/detail_profil') ?>" class="menu-item">
+            <i class="fas fa-user-circle"></i><span>Profil</span>
+          </a>
+
+          <!-- Booking -->
+          <a href="<?= base_url('booking') ?>" class="menu-item">
+            <i class="fas fa-calendar-check"></i><span>Booking</span>
+          </a>
+
+          <!-- Alur Kunjungan -->
+          <a href="<?= base_url('hal/alur') ?>" class="menu-item">
+            <i class="fas fa-project-diagram"></i><span>Alur Kunjungan</span>
+          </a>
+
+          <!-- Statistik (dashboard) -->
+          <?php if (user_can_mod(['admin_dashboard'])): ?>
+            <a id="quick-dashboard-link" href="<?= site_url('admin_dashboard') ?>" class="menu-item">
+              <i class="fas fa-chart-line"></i><span>Statistik</span>
+            </a>
+          <?php endif; ?>
+
+          <!-- Monitoring -->
+          <?php if (user_can_mod(['admin_dashboard/monitor'])): ?>
+            <a id="quick-dashboard-monitor-link" href="<?= site_url('admin_dashboard/monitor') ?>" class="menu-item">
+              <i class="fas fa-clipboard-list"></i><span>Monitoring</span>
+            </a>
+          <?php endif; ?>
+
+          <!-- Checkin/Checkout -->
+          <?php if (user_can_mod(['admin_scan'])): ?>
+            <a id="quick-scan-link" href="<?= site_url('admin_scan') ?>" class="menu-item">
+              <i class="fas fa-qrcode"></i><span>Checkin/Checkout</span>
+            </a>
+          <?php endif; ?>
+
+          <!-- Data -->
+          <?php if (user_can_mod(['admin_permohonan'])): ?>
+            <a id="quick-data-link" href="<?= site_url('admin_permohonan') ?>" class="menu-item">
+              <i class="fas fa-database"></i><span>Data</span>
+            </a>
+          <?php endif; ?>
+
+          <!-- Manajemen User -->
+          <?php if (user_can_mod(['admin_user'])): ?>
+            <a id="quick-user-link" href="<?= site_url('admin_user') ?>" class="menu-item">
+              <i class="fas fa-users-cog"></i><span>Manajemen User</span>
+            </a>
+          <?php endif; ?>
+
+          <!-- Pengaturan Sistem -->
+          <?php if (user_can_mod(['Admin_setting_web'])): ?>
+            <a id="quick-setting-link" href="<?= site_url('Admin_setting_web') ?>" class="menu-item">
+              <i class="fas fa-cogs"></i><span>Pengaturan Sistem</span>
+            </a>
+          <?php endif; ?>
+
+          <!-- Unit Tujuan -->
+          <?php if (user_can_mod(['Admin_unit_tujuan'])): ?>
+            <a id="quick-unit-link" href="<?= site_url('Admin_unit_tujuan') ?>" class="menu-item">
+              <i class="fas fa-building"></i><span>Unit Tujuan</span>
+            </a>
+          <?php endif; ?>
+
+          <!-- Unit Lain -->
+          <?php if (user_can_mod(['Admin_unit_lain'])): ?>
+            <a id="quick-unit-lain-link" href="<?= site_url('Admin_unit_lain') ?>" class="menu-item">
+              <i class="fas fa-briefcase"></i><span>Unit Lain</span>
+            </a>
+          <?php endif; ?>
+
+          <!-- Kontak -->
+          <a href="<?= base_url('hal/kontak') ?>" class="menu-item">
+            <i class="fas fa-address-book"></i><span>Kontak</span>
+          </a>
+
+        </div><!-- /.menu-list -->
+      </div><!-- /.modal-body -->
     </div>
-
-    <div class="modal-body">
-      <!-- Profil -->
-    <a href="<?= base_url('admin_profil/detail_profil') ?>" style="text-decoration: none;">
-      <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success"
-           style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-        <i class="fas fa-user-circle mr-1"></i>Profil
-      </div>
-    </a>
-
-    <!-- Booking -->
-    <a href="<?= base_url('booking') ?>" style="text-decoration: none;">
-      <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success"
-           style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-        <i class="mdi mdi-calendar-check mr-1"></i>Booking
-      </div>
-    </a>
-
-     <a href="<?= base_url('hal/alur') ?>" style="text-decoration: none;">
-      <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success"
-           style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-        <i class="fas fa-project-diagram mr-1"></i>Alur Kunjungan
-      </div>
-    </a>
-
-
-   
-
-    <!-- Statistik (dashboard) -->
-    <?php if (user_can_mod(['admin_dashboard'])): ?>
-      <a id="quick-dashboard-link" href="<?= site_url('admin_dashboard') ?>" style="text-decoration:none;">
-        <div id="quick-dashboard-card"
-             class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success"
-             style="position:relative; z-index:auto; font-size:16px; background:#c7d5ff; font-weight:600; width:100%;">
-          <i class="fas fa-chart-line mr-1"></i>Statistik
-        </div>
-      </a>
-    <?php endif; ?>
-
-    <!-- Monitoring -->
-    <?php if (user_can_mod(['admin_dashboard/monitor'])): ?>
-      <a id="quick-dashboard-monitor-link" href="<?= site_url('admin_dashboard/monitor') ?>" style="text-decoration:none;">
-        <div id="quick-dashboard-monitor-card"
-             class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success"
-             style="position:relative; z-index:auto; font-size:16px; background:#c7d5ff; font-weight:600; width:100%;">
-          <i class="fas fa-clipboard-list mr-1"></i>Monitoring
-        </div>
-      </a>
-    <?php endif; ?>
-
-    <!-- Checkin/Checkout -->
-    <?php if (user_can_mod(['admin_scan'])): ?>
-      <a id="quick-scan-link" href="<?= site_url('admin_scan') ?>" style="text-decoration:none;">
-        <div id="quick-scan-card"
-             class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success"
-             style="position:relative; z-index:auto; font-size:16px; background:#c7d5ff; font-weight:600; width:100%;">
-          <i class="mdi mdi-qrcode-scan mr-1"></i>Checkin/Checkout
-        </div>
-      </a>
-    <?php endif; ?>
-
-    <!-- Data -->
-    <?php if (user_can_mod(['admin_permohonan'])): ?>
-      <a id="quick-data-link" href="<?= site_url('admin_permohonan') ?>" style="text-decoration:none;">
-        <div id="quick-data-card"
-             class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success"
-             style="position:relative; z-index:auto; font-size:16px; background:#c7d5ff; font-weight:600; width:100%;">
-          <i class="fe-database mr-1"></i>Data
-        </div>
-      </a>
-    <?php endif; ?>
-
-    <!-- Manajemen User -->
-    <?php if (user_can_mod(['admin_user'])): ?>
-      <a id="quick-user-link" href="<?= site_url('admin_user') ?>" style="text-decoration:none;">
-        <div id="quick-user-card"
-             class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success"
-             style="position:relative; z-index:auto; font-size:16px; background:#c7d5ff; font-weight:600; width:100%;">
-          <i class="fas fa-users-cog mr-1"></i>Manajemen User
-        </div>
-      </a>
-    <?php endif; ?>
-
-
-
-<!-- Kontak -->
-<a href="<?php echo base_url('hal/kontak') ?>" style="text-decoration: none;">
-  <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-    <i class="fas fa-address-book mr-1"></i>Kontak 
   </div>
-</a>
 </div>
-</div>
-</div>
-</div>
+
+<!-- Style khusus modal menu -->
+<style>
+  /*.bg-blue{ background:#1f6feb !important; }*/
+
+  #kontakModal .menu-list{
+    max-height: 70vh;        /* bikin body modal bisa discroll */
+    overflow-y: auto;
+    padding: 12px;
+  }
+  #kontakModal .menu-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 14px;
+    margin:10px 12px;
+    border-radius:12px;
+    background:#c7d5ff;
+    font-weight:600;
+    color:#111 !important;
+    text-decoration:none !important;
+    transition: background .2s ease, transform .1s ease;
+  }
+  #kontakModal .menu-item:hover{ background:#b9c9ff; }
+  #kontakModal .menu-item:active{ transform: translateY(1px); }
+  #kontakModal .menu-item i{ width:22px; text-align:center; }
+  /* optional: rapihin scrollbar */
+  #kontakModal .menu-list::-webkit-scrollbar{ width:8px; }
+  #kontakModal .menu-list::-webkit-scrollbar-thumb{ background:#1D41D1; border-radius:8px; }
+</style>
+
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -284,7 +306,10 @@
       admin_permohonan: { a: document.getElementById("quick-data-link") },
       admin_scan:       { a: document.getElementById("quick-scan-link") },
       admin_dashboard:       { a: document.getElementById("quick-dashboard-link") },
-      admin_dashboard_monitor:       { a: document.getElementById("quick-dashboard_monitor-link") }
+      admin_dashboard_monitor:       { a: document.getElementById("quick-dashboard-monitor-link") },
+      admin_setting_web:       { a: document.getElementById("quick-setting-link") },
+      admin_unit_tujuan:       { a: document.getElementById("quick-unit-link") },
+      admin_unit_lain:       { a: document.getElementById("quick-unit-lain-link") }
     };
 
     const setVis = (id, show) => {

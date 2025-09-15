@@ -340,7 +340,7 @@
     </div>
 
     <div class="nav-item">
-      <a class="<?= ($uri == 'hal/kontak' || $uri == 'hal/alur') ? 'text-active' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModalfront">
+      <a class="<?= ($uri == 'hal/kontak' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModalfront">
         <i class="fas fa-bars d-block mb-1"></i>
         <span class="small">Menu</span>
       </a>
@@ -392,58 +392,77 @@
 
 </style>
 
-<div class="modal " id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-bottom fadeInUp animated modal-dialog-full" style="animation-duration: 0.5s;">
+<!-- Modal Menu (Front) -->
+<div class="modal" id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-bottom fadeInUp animated modal-dialog-full" style="animation-duration:.5s;">
     <div class="modal-content">
-     <div class="modal-header bg-blue text-white">
-      <h5 class="modal-title d-flex align-items-center text-white" id="menumoLabel">
-        <i class="fas fa-concierge-bell mr-2"></i> Menu
-      </h5>
-      <button type="button" class="close text-white" data-dismiss="modal" aria-label="Tutup">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-
-    <div class="modal-body">
-
-      <a href="<?php echo base_url('hal/panduan') ?>" style="text-decoration: none;">
-        <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-         <i class="fe-file-text mr-1"></i>Tata Cara Kunjungan 
-        </div>
-      </a>
-
-      <a href="<?php echo base_url('hal/alur') ?>" style="text-decoration: none;">
-        <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-         <i class="fas fa-project-diagram mr-1"></i>Alur Kunjungan 
-        </div>
-      </a>
-
-      <!-- Kontak -->
-      <a href="<?php echo base_url('hal/kontak') ?>" style="text-decoration: none;">
-        <div class="external-event text-dark ui-draggable ui-draggable-handle" data-class="bg-success" style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-          <i class="fas fa-address-book mr-1"></i>Kontak 
-        </div>
-      </a>
-      <a href="<?= base_url('hal/privacy_policy') ?>" style="text-decoration: none;">
-        <div class="external-event text-dark ui-draggable ui-draggable-handle"
-        data-class="bg-success"
-        style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-        <i class="fas fa-user-shield mr-1" aria-hidden="true"></i>Kebijakan Privasi
+      <div class="modal-header bg-blue text-white">
+        <h5 class="modal-title d-flex align-items-center text-white" id="menumoLabel">
+          <i class="fas fa-concierge-bell mr-2"></i> Menu
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Tutup">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
-    </a>
 
-    <a href="<?= base_url('hal') ?>" style="text-decoration: none;">
-      <div class="external-event text-dark ui-draggable ui-draggable-handle"
-      data-class="bg-success"
-      style="position: relative; z-index: auto; font-size: 16px; background: #c7d5ff; font-weight: 600; width: 100%;">
-      <i class="fas fa-file-contract mr-1" aria-hidden="true"></i>Syarat &amp; Ketentuan
-    </div>
-  </a>
+      <div class="modal-body p-0">
+        <div class="menu-list">
+          <a href="<?= base_url('hal/panduan') ?>" class="menu-item">
+            <i class="fas fa-file-alt"></i><span>Tata Cara Kunjungan</span>
+          </a>
 
+          <a href="<?= base_url('hal/alur') ?>" class="menu-item">
+            <i class="fas fa-project-diagram"></i><span>Alur Kunjungan</span>
+          </a>
+
+          <a href="<?= base_url('hal/kontak') ?>" class="menu-item">
+            <i class="fas fa-address-book"></i><span>Kontak</span>
+          </a>
+
+          <a href="<?= base_url('hal/privacy_policy') ?>" class="menu-item">
+            <i class="fas fa-user-shield"></i><span>Kebijakan Privasi</span>
+          </a>
+
+          <a href="<?= base_url('hal') ?>" class="menu-item">
+            <i class="fas fa-file-contract"></i><span>Syarat &amp; Ketentuan</span>
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-</div>
+
+<!-- Style khusus -->
+<style>
+  /*.bg-blue{ background:#1f6feb !important; }*/
+
+  #kontakModalfront .menu-list{
+    max-height:70vh;          /* bikin bisa scroll */
+    overflow-y:auto;
+    padding:12px;
+  }
+  #kontakModalfront .menu-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 14px;
+    margin:10px 12px;
+    border-radius:12px;
+    background:#c7d5ff;
+    font-weight:600;
+    color:#111 !important;
+    text-decoration:none !important;
+    transition:background .2s ease, transform .1s ease;
+  }
+  #kontakModalfront .menu-item:hover{ background:#b9c9ff; }
+  #kontakModalfront .menu-item:active{ transform:translateY(1px); }
+  #kontakModalfront .menu-item i{ width:22px; text-align:center; }
+
+  /* optional: scrollbar manis */
+  #kontakModalfront .menu-list::-webkit-scrollbar{ width:8px; }
+  #kontakModalfront .menu-list::-webkit-scrollbar-thumb{ background:#a9bbff; border-radius:8px; }
+</style>
+
 <script>
 // jQuery:
 // $('#kontakModalfront').appendTo('body');

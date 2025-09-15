@@ -49,8 +49,9 @@ class M_admin_user extends CI_Model {
       {$expr} AS nama_unit
     ", false);
 
-    // filter umum: tidak terhapus
+    // filter umum
     $this->db->where('u.deleted', 'N');
+    $this->db->where('u.username !=', 'admin'); // EXCLUDE username 'admin'
     // JANGAN filter id_unit<>0, agar 'Unit Lain' ikut tampil
   }
 
