@@ -249,7 +249,7 @@
 
             <!-- ========= 8) INTEGRASI WHATSAPP ========= -->
             <h5 class="mb-3 text-uppercase bg-success p-2 text-white">
-              <i class="fe-message-circle mr-1"></i> Integrasi WhatsApp
+              <i class="fe-message-circle mr-1"></i> Integrasi Notifikasi WhatsApp
             </h5>
             <div class="form-row mt-2">
               <div class="form-group col-md-6">
@@ -272,7 +272,7 @@
 
             <!-- ========= 9) SMTP EMAIL ========= -->
             <h5 class="mb-3 text-uppercase bg-info p-2 text-white">
-              <i class="fe-mail mr-1"></i> SMTP Email
+              <i class="fe-mail mr-1"></i> Notifikasi ke Email Pengunjung
             </h5>
 
             <div class="form-row">
@@ -481,16 +481,63 @@ document.addEventListener('DOMContentLoaded', function(){
 
 // Test SMTP
 function testSmtp(){
-  var to = document.getElementById('smtp_test_to').value.trim();
-  if(!to){ alert('Isi email tujuan uji terlebih dahulu'); return; }
-  fetch('<?= site_url('admin_setting_web/smtp_test'); ?>', {
+  const to = document.getElementById('smtp_test_to')?.value.trim();
+  if(!to){
+    if (window.Swal) {
+      Swal.fire({icon:'warning', title:'Email tujuan kosong', text:'Isi email yang akan menerima email uji.'});
+    } else {
+      alert('Isi email tujuan uji terlebih dahulu');
+    }
+    return;
+  }
+
+  const url  = '<?= site_url('admin_setting_web/smtp_test'); ?>';
+  const body = new URLSearchParams();
+  body.append('to', to);
+  body.append('<?= $this->security->get_csrf_token_name(); ?>', '<?= $this->security->get_csrf_hash(); ?>');
+
+  if (window.Swal) {
+    Swal.fire({
+      title: 'Mengirim email uji…',
+      html: 'Harap tunggu sebentar',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+  }
+
+  fetch(url, {
     method: 'POST',
-    headers: {'X-Requested-With':'XMLHttpRequest','Content-Type':'application/x-www-form-urlencoded'},
-    body: 'to='+encodeURIComponent(to)+'&<?= $this->security->get_csrf_token_name(); ?>=<?= $this->security->get_csrf_hash(); ?>'
-  }).then(r=>r.json()).then(j=>{
-    alert((j.success?'OK: ':'Gagal: ')+j.pesan);
-  }).catch(e=>alert('Error: '+e));
+    headers: {
+      'X-Requested-With':'XMLHttpRequest',
+      'Content-Type':'application/x-www-form-urlencoded'
+    },
+    body: body.toString()
+  })
+  .then(r => r.ok ? r.json() : Promise.reject({status:r.status, message:'HTTP '+r.status}))
+  .then(j => {
+    if (window.Swal) {
+      Swal.fire({
+        icon: j.success ? 'success' : 'error',
+        title: j.success ? 'Berhasil' : 'Gagal',
+        html: j.pesan || (j.success ? 'Email uji terkirim.' : 'Gagal mengirim email uji.')
+      });
+    } else {
+      alert((j.success?'OK: ':'Gagal: ')+ (j.pesan||''));
+    }
+    // optional: refresh CSRF bila backend mengirimkan token baru
+    if (j.csrf_name && j.csrf_hash){
+      document.querySelectorAll('input[name="'+j.csrf_name+'"]').forEach(i=>i.value=j.csrf_hash);
+    }
+  })
+  .catch(e => {
+    if (window.Swal) {
+      Swal.fire({icon:'error', title:'Error', text: e?.message || 'Terjadi masalah koneksi.'});
+    } else {
+      alert('Error: '+(e?.message||e));
+    }
+  });
 }
+
 </script>
 
 <?php $this->load->view($controller."_js"); ?>
