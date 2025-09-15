@@ -219,7 +219,13 @@ $this->load->view("front_end/head.php");
                   </small>
                 </div>
               </div>
-
+              <div class="col-md-6">
+                <div class="form-group mb-2">
+                  <label for="jabatan" class="form-label label-required">Jabatan</label>
+                  <input type="text" id="jabatan" name="jabatan" class="form-control" required
+                         value="<?= htmlspecialchars((string)($B->jabatan ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                </div>
+              </div>
               <div class="col-md-6">
                 <div class="form-group mb-2">
                   <label for="alamat" class="form-label label-required">Alamat Tamu</label>
@@ -249,15 +255,9 @@ $this->load->view("front_end/head.php");
                 </div>
               </div>
 
-              <div class="col-md-6">
-                <div class="form-group mb-2">
-                  <label for="jabatan" class="form-label label-required">Jabatan</label>
-                  <input type="text" id="jabatan" name="jabatan" class="form-control" required
-                         value="<?= htmlspecialchars((string)($B->jabatan ?? ''), ENT_QUOTES, 'UTF-8') ?>">
-                </div>
-              </div>
+              
 
-              <div class="col-md-6">
+              <div class="col-md-3">
                 <div class="form-group mb-2">
                   <label for="no_hp" class="form-label label-required">No. HP</label>
                   <input type="text" id="no_hp" name="no_hp" class="form-control"
@@ -268,12 +268,12 @@ $this->load->view("front_end/head.php");
                 </div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-3">
                 <div class="form-group mb-2">
-                  <label for="email" class="form-label">Email (opsional)</label>
+                  <label for="email" class="form-label">Email</label>
                   <input type="email" id="email" name="email" class="form-control"
                   value="<?= htmlspecialchars((string)($B->email ?? ''), ENT_QUOTES, 'UTF-8') ?>">
-                  <small class="help-hint">Jika diisi, kami akan mengirim email konfirmasi & link PDF.</small>
+                  <small class="help-hint">Gunakan email aktif untuk menerima Email konfirmasi.</small>
                 </div>
               </div>
 

@@ -32,6 +32,16 @@ public function update()
     $this->form_validation->set_rules('early_min','Batas Datang Lebih Awal','trim|integer|greater_than_equal_to[0]|less_than_equal_to[1440]');
     $this->form_validation->set_rules('late_min','Batas Keterlambatan','trim|integer|greater_than_equal_to[0]|less_than_equal_to[1440]');
 
+    // ===== RULES SMTP =====
+    $this->form_validation->set_rules('smtp_port','SMTP Port','trim|integer|greater_than_equal_to[1]|less_than_equal_to[65535]');
+    $this->form_validation->set_rules('smtp_crypto','Enkripsi','trim|in_list[ssl,tls,]'); // '' artinya none
+    $this->form_validation->set_rules('smtp_from','From Email','trim|valid_email');
+    $this->form_validation->set_rules('smtp_from_name','From Name','trim');
+    $this->form_validation->set_rules('smtp_host','SMTP Host','trim');
+    $this->form_validation->set_rules('smtp_user','SMTP Username','trim');
+    // smtp_pass: boleh kosong (tidak mengganti)
+
+
     $this->form_validation->set_message('required', '* %s Harus diisi');
     $this->form_validation->set_message('valid_email', '* %s Tidak valid');
     $this->form_validation->set_message('valid_url', '* %s Tidak valid (awali dengan http:// atau https://)');
@@ -94,6 +104,19 @@ public function update()
         'instagram'        => $post['instagram'] ?? '',
         'facebook'         => $post['facebook'] ?? '',
     ];
+    $row['smtp_active']    = isset($post['smtp_active']) ? 1 : 0;
+    $row['smtp_host']      = $post['smtp_host'] ?? null;
+    $row['smtp_port']      = isset($post['smtp_port']) && $post['smtp_port']!=='' ? (int)$post['smtp_port'] : null;
+    $row['smtp_user']      = $post['smtp_user'] ?? null;
+// password hanya diset kalau DIISI
+    if (isset($post['smtp_pass']) && trim($post['smtp_pass']) !== '') {
+        $row['smtp_pass'] = $post['smtp_pass'];
+    }
+    $crypto = isset($post['smtp_crypto']) ? strtolower(trim($post['smtp_crypto'])) : '';
+    $row['smtp_crypto']    = in_array($crypto, ['ssl','tls'], true) ? $crypto : null;
+    $row['smtp_from']      = $post['smtp_from'] ?? null;
+    $row['smtp_from_name'] = $post['smtp_from_name'] ?? null;
+
 
     // ===== Token/Secret WA → hanya set kalau DIISI (tidak kosong) =====
     if (isset($post['wa_api_token']) && trim($post['wa_api_token']) !== '') {
@@ -232,6 +255,70 @@ public function update()
 }
 
 
-	
+	public function smtp_test()
+{
+    if (strtoupper($this->input->method(TRUE)) !== 'POST') {
+        echo json_encode(["success"=>false,"pesan"=>"Method not allowed"]); return;
+    }
+    $to = trim((string)$this->input->post('to', true));
+    if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(["success"=>false,"pesan"=>"Email tujuan tidak valid"]); return;
+    }
+
+    // ambil config dari DB
+    $rec = $this->db->get_where('identitas', ['id_identitas'=>1])->row();
+    if (!$rec || empty($rec->smtp_active)) {
+        echo json_encode(["success"=>false,"pesan"=>"SMTP belum diaktifkan"]); return;
+    }
+
+    $app_name  = $rec->nama_website ?? 'Aplikasi';
+    $smtp_host = $rec->smtp_host ?: '';
+    $smtp_user = $rec->smtp_user ?: '';
+    $smtp_pass = $rec->smtp_pass ?: '';
+    $smtp_port = (int)($rec->smtp_port ?: 0);
+    $smtp_crypto = $rec->smtp_crypto ?: ''; // '', 'ssl', 'tls'
+    $from_email  = $rec->smtp_from ?: $smtp_user;
+    $from_name   = $rec->smtp_from_name ?: $app_name;
+
+    if ($smtp_host==='' || $smtp_user==='' || $smtp_pass==='' || $smtp_port<=0) {
+        echo json_encode(["success"=>false,"pesan"=>"Konfigurasi SMTP belum lengkap"]); return;
+    }
+
+    $this->load->library('email');
+    $cfg = [
+        'protocol'    => 'smtp',
+        'smtp_host'   => $smtp_host,
+        'smtp_user'   => $smtp_user,
+        'smtp_pass'   => $smtp_pass,
+        'smtp_port'   => $smtp_port,
+        'smtp_crypto' => ($smtp_crypto?:null), // CI otomatis abaikan jika null
+        'mailtype'    => 'html',
+        'charset'     => 'utf-8',
+        'newline'     => "\r\n",
+        'crlf'        => "\r\n",
+        'wordwrap'    => true,
+        'validate'    => true,
+    ];
+    $this->email->initialize($cfg);
+    $this->email->clear(true);
+    $this->email->from($from_email, $from_name);
+    $this->email->to($to);
+    $this->email->subject('Tes SMTP - '.$app_name);
+    $this->email->message('<p>Halo,</p><p>Ini email uji dari pengaturan SMTP aplikasi <b>'.$app_name.'</b>.</p>');
+
+    try {
+        $ok = $this->email->send();
+        if (!$ok) {
+            $dbg = $this->email->print_debugger(['headers']);
+            log_message('error', 'SMTP TEST failed: '.$dbg);
+            echo json_encode(["success"=>false,"pesan"=>"Gagal mengirim (lihat log)."]); return;
+        }
+        echo json_encode(["success"=>true,"pesan"=>"Terkirim ke ".$to]); return;
+    } catch (Throwable $e) {
+        log_message('error', 'SMTP TEST exception: '.$e->getMessage());
+        echo json_encode(["success"=>false,"pesan"=>"Exception: ".$e->getMessage()]); return;
+    }
+}
+
 	
 }

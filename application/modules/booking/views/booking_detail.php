@@ -247,6 +247,15 @@ body.noblur-backdrop #app {
               <?php endif; ?>
             </dd>
           </div>
+          <div class="kv-row row no-gutters align-items-center">
+            <dt class="col-sm-4 kv-label">
+              <i class="fas fa-envelope mr-1" aria-hidden="true"></i> Email
+            </dt>
+            <dd class="col-sm-8 kv-value">
+              <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?>
+            </dd>
+          </div>
+
 
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🏢 Instansi Asal</dt><dd class="col-sm-8 kv-value"><?= $instansi ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🎯 Unit Tujuan</dt><dd class="col-sm-8 kv-value"><?= $unit_nama ?></dd></div>

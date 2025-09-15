@@ -2630,37 +2630,72 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
      *  Ambil dari ENV jika ada; kalau tidak, fallback ke nilai default.
      *  Return: [from_email, from_name]
      */
+
     private function _init_email_and_from(): array
     {
         $this->load->library('email');
 
-        // Ambil dari environment (recommended). Bisa set via panel hosting / .htaccess (SetEnv)
+        // 1) Coba ambil dari DB 'identitas'
+        $rec = $this->fm->web_me();
+
+        if ($rec && !empty($rec->smtp_active)) {
+            $app_name   = ($rec->nama_website ?? 'Aplikasi');
+            $smtp_host  = $rec->smtp_host ?: '';
+            $smtp_user  = $rec->smtp_user ?: '';
+            $smtp_pass  = $rec->smtp_pass ?: '';
+            $smtp_port  = (int)($rec->smtp_port ?: 0);
+            $smtp_crypto= $rec->smtp_crypto ?: ''; // '', 'ssl', 'tls'
+            $from_email = $rec->smtp_from ?: ($smtp_user ?: 'noreply@localhost.localdomain');
+            $from_name  = $rec->smtp_from_name ?: $app_name;
+
+            if ($smtp_host !== '' && $smtp_user !== '' && $smtp_pass !== '' && $smtp_port > 0) {
+                $cfg = [
+                    'protocol'    => 'smtp',
+                    'smtp_host'   => $smtp_host,
+                    'smtp_user'   => $smtp_user,
+                    'smtp_pass'   => $smtp_pass,
+                    'smtp_port'   => $smtp_port,
+                    'smtp_crypto' => ($smtp_crypto?:null),
+                    'mailtype'    => 'html',
+                    'charset'     => 'utf-8',
+                    'newline'     => "\r\n",
+                    'crlf'        => "\r\n",
+                    'wordwrap'    => true,
+                    'validate'    => true,
+                ];
+                $this->email->initialize($cfg);
+                return [$from_email, $from_name];
+            }
+            // kalau aktif tapi belum lengkap → lanjut ke fallback ENV
+        }
+
+        // 2) Fallback ENV (lama)
         $smtp_host   = getenv('SMTP_HOST')   ?: 'smtp.hostinger.com';
         $smtp_user   = getenv('SMTP_USER')   ?: 'admin@silaturahmi.org';
-        $smtp_pass   = getenv('SMTP_PASS')   ?: '100Riburupiah@1212';               // GMAIL: pakai App Password!
+        $smtp_pass   = getenv('SMTP_PASS')   ?: '100Ribxdurupiah@'; // GMAIL: pakai App Password!
         $smtp_port   = (int)(getenv('SMTP_PORT') ?: 465);
         $smtp_crypto = getenv('SMTP_CRYPTO') ?: 'ssl';            // 'ssl' (465) atau 'tls' (587)
         $from_email  = getenv('SMTP_FROM')  ?: $smtp_user;
         $from_name   = getenv('SMTP_FROM_NAME') ?: (($this->fm->web_me()->nama_website ?? 'Aplikasi'));
 
         $cfg = [
-            'protocol'   => 'smtp',
-            'smtp_host'  => $smtp_host,
-            'smtp_user'  => $smtp_user,
-            'smtp_pass'  => $smtp_pass,
-            'smtp_port'  => $smtp_port,
-            'smtp_crypto'=> $smtp_crypto,     // CI3 >=3.1.5
-            'mailtype'   => 'html',
-            'charset'    => 'utf-8',
-            'newline'    => "\r\n",
-            'crlf'       => "\r\n",
-            'wordwrap'   => true,
-            'validate'   => true,
+            'protocol'    => 'smtp',
+            'smtp_host'   => $smtp_host,
+            'smtp_user'   => $smtp_user,
+            'smtp_pass'   => $smtp_pass,
+            'smtp_port'   => $smtp_port,
+            'smtp_crypto' => $smtp_crypto,
+            'mailtype'    => 'html',
+            'charset'     => 'utf-8',
+            'newline'     => "\r\n",
+            'crlf'        => "\r\n",
+            'wordwrap'    => true,
+            'validate'    => true,
         ];
-
         $this->email->initialize($cfg);
         return [$from_email, $from_name];
     }
+
 
 
 
