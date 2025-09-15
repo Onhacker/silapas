@@ -52,11 +52,11 @@
             </div>
 
             <!-- Favicon -->
-            <div class="form-group mb-4">
+          <!--   <div class="form-group mb-4">
               <label class="text-primary" for="favicon">Favicon</label>
               <input type="file" class="form-control-file" id="favicon" name="favicon" accept=".ico,.png,.jpg,.jpeg,.gif">
               <small class="text-muted d-block">Maks 1 MB. Disimpan sebagai <code>assets/images/favicon.*</code></small>
-            </div>
+            </div> -->
 
             <!-- ========= 2) KONTAK ========= -->
             <h5 class="mb-3 text-uppercase bg-light p-2">
@@ -67,7 +67,7 @@
                 <label class="text-primary" for="email">Email</label>
                 <input type="email" class="form-control" id="email" name="email"
                        value="<?= v($record,'email') ?>">
-                <small class="text-info">Dipakai sebagai pengirim notifikasi (reset password, dll).</small>
+                <!-- <small class="text-info">Dipakai sebagai pengirim notifikasi (reset password, dll).</small> -->
               </div>
               <div class="form-group col-md-3">
                 <label class="text-primary" for="no_telp">No. HP / WhatsApp</label>
