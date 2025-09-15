@@ -135,11 +135,10 @@ class Admin_user extends Admin_Controller {
         $data = $this->input->post(NULL, TRUE);
         $this->load->library('form_validation');
 
+        // === VALIDASI INPUT (tanpa password) ===
         $this->form_validation->set_rules('username', 'Username', 'trim|required|min_length[6]|max_length[12]|alpha_dash');
         $this->form_validation->set_rules('nama_lengkap', 'Nama Lengkap', 'trim|required');
         $this->form_validation->set_rules('no_telp', 'Nama HP/WA', 'trim|required');
-
-        // === VALIDASI TANPA callback_: pakai CLOSURE agar aman HMVC ===
         $this->form_validation->set_rules('id_unit', 'Unit', [
             'required',
             [
@@ -169,9 +168,6 @@ class Admin_user extends Admin_Controller {
             ]
         ]);
 
-        // $this->form_validation->set_rules('password_baru', 'Password Baru', 'trim|required|min_length[8]');
-        // $this->form_validation->set_rules('password_baru_lagi', 'Konfirmasi Password', 'trim|required|min_length[8]|matches[password_baru]');
-
         $this->form_validation->set_message('required', '* %s harus diisi');
         $this->form_validation->set_message('alpha_dash', '* %s hanya boleh huruf, angka, underscore (_), atau strip (-)');
         $this->form_validation->set_message('min_length', '* %s minimal %s karakter');
@@ -189,45 +185,47 @@ class Admin_user extends Admin_Controller {
             return;
         }
 
-        // id_session unik 10 digit
+        // === id_session unik 10 digit ===
         do {
             $id_session = substr(str_shuffle(str_repeat("0123456789", 10)), 0, 10);
             $exists = $this->db->where('id_session', $id_session)->count_all_results('users');
         } while ($exists > 0);
 
-        // Cek username duplikat
+        // === Cek username duplikat ===
         $dupeUser = $this->db->where("username", $data["username"])->limit(1)->get("users");
         if ($dupeUser->num_rows() > 0) {
             echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Username sudah ada"]);
             return;
         }
-                // ===== Generate password kuat & hash =====
-        $plainPassword = $this->generate_password(12); // 12 char random
-        $row["password"] = password_hash($plainPassword, PASSWORD_ARGON2ID);
-
 
         // ===== Parse unit (bisa unit_tujuan atau unit_lain)
         $unitSel = $this->parse_unit($data['id_unit']); // ['source'=>..., 'id'=>int]
 
-        // Siapkan data insert
+        // ===== Siapkan data insert
         $row = [];
         $row["id_session"]   = $id_session;
         $row["nama_lengkap"] = $data["nama_lengkap"];
         $row["no_telp"]      = $data["no_telp"];
         $row["username"]     = $data["username"];
         $row["blokir"]       = "N";
+        if ($this->db->field_exists('deleted','users')) {
+            $row["deleted"]  = "N"; // agar lolos filter saat login
+        }
         $row["attack"]       = md5(date("Ymdhis"));
         $row["valid_reset"]  = "0000-00-00";
         $row["tanggal_reg"]  = date("Y-m-d");
         $row["id_reset"]     = hash("sha512", md5(date("Ymdhis")));
-        $row["password"]     = password_hash($data["password_baru"], PASSWORD_ARGON2ID);
+
+        // ===== Generate password kuat & hash (tanpa input form)
+        $plainPassword   = $this->generate_password(12); // 12 char random
+        $algo            = defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_DEFAULT;
+        $row["password"] = password_hash($plainPassword, $algo);
 
         // ===== Mapping kolom unit sesuai sumber
         $unit_label = 'Unit';
         $nama_unit  = 'Unit';
 
         if ($unitSel['source'] === 'unit_lain') {
-            // Jika skema mendukung kolom tambahan
             if ($this->db->field_exists('id_unit_lain', 'users')) {
                 $row['id_unit_lain'] = $unitSel['id'];
             }
@@ -237,7 +235,6 @@ class Admin_user extends Admin_Controller {
                 $row['unit_source'] = 'unit_lain';
             }
 
-            // Ambil label tugas (fallback aman)
             $u = $this->db->select('tugas AS nama')
                           ->get_where('unit_lain', ['id_unit_lain' => $unitSel['id']])->row();
             $nama_unit  = $u ? $u->nama : 'Unit Lain';
@@ -261,28 +258,28 @@ class Admin_user extends Admin_Controller {
 
         log_message('debug', 'POST id_unit = '.$this->input->post('id_unit'));
 
-        // Simpan
+        // ===== Simpan
         $res = $this->db->insert("users", $row);
 
         if ($res) {
-           $web  = $this->om->web_me();
+            $web  = $this->om->web_me();
             $site = site_url("on_login");
 
             $unitInfo = ($unit_label ?: 'Unit').' '.$nama_unit;
             $appName  = $web->nama_website ?: 'Aplikasi';
 
+            // ===== Kirim WhatsApp kredensial
             $pesan =
-              "Halo *{$row['nama_lengkap']}*\n\n".
-              "Akun *{$appName}* untuk {$unitInfo} berhasil dibuat.\n\n".
-              "Login: {$site}\n".
-              "Username: *{$row['username']}*\n".
-              "Password: *{$plainPassword}*\n\n".
-              "_Demi keamanan, segera ganti password setelah login._";
+                "Halo *{$row['nama_lengkap']}*\n\n".
+                "Akun *{$appName}* untuk {$unitInfo} berhasil dibuat.\n\n".
+                "Login: {$site}\n".
+                "Username: *{$row['username']}*\n".
+                "Password: *{$plainPassword}*\n\n".
+                "_Demi keamanan, segera ganti password setelah login._";
 
             if (function_exists('send_wa_single') && !empty($row["no_telp"])) {
                 @send_wa_single($row["no_telp"], $pesan);
             }
-
 
             echo json_encode([
                 "success" => true,
@@ -298,6 +295,7 @@ class Admin_user extends Admin_Controller {
             ]);
         }
     }
+
 
     function generate_password($length = 12) {
     // Hindari karakter yang mudah tertukar (O/0, I/1, l)
