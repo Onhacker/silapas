@@ -1,5 +1,5 @@
 <?php
-$foto = !empty($record->foto) ? $record->foto : 'Dewis.jpg';
+$foto = !empty($record->foto) ? $record->foto : 'onhacker_221a3f5e.jpg';
 $img  = base_url('upload/users/'.$foto);
 $tg   = $record->tanggal_reg ? $record->tanggal_reg : date('Y-m-d');
 $tgl  = function_exists('tgl_indo') ? tgl_indo($tg) : date('d-m-Y', strtotime($tg));

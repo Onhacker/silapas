@@ -83,7 +83,7 @@ class Admin_profil extends Admin_Controller {
         }
 
         // fallback foto
-        $foto = !empty($row->foto) ? $row->foto : 'Dewis.jpg';
+        $foto = !empty($row->foto) ? $row->foto : 'onhacker_221a3f5e.jpg';
 
         // format tanggal untuk tampilan
         $tgl = $row->tanggal_reg ? $row->tanggal_reg : date('Y-m-d');

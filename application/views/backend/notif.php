@@ -26,7 +26,7 @@ $display_name = $admin_login ? ($admin_name !== '' ? $admin_name : $admin_user) 
 if ($admin_foto !== '') {
   $foto_url = filter_var($admin_foto, FILTER_VALIDATE_URL) ? $admin_foto : base_url('upload/users/'.$admin_foto);
 } else {
-  $foto_url = base_url('upload/users/dewis.jpg'); // fallback Anda bisa ganti ke Dewis.jpg
+  $foto_url = base_url('upload/users/onhacker_221a3f5e.jpg'); // fallback Anda bisa ganti ke onhacker_221a3f5e.jpg
 }
 
 // short name max 12 char

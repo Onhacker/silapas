@@ -80,7 +80,7 @@
       }
 
       // foto
-      var foto = (result.foto && result.foto.trim() !== "") ? result.foto : "Dewis.jpg";
+      var foto = (result.foto && result.foto.trim() !== "") ? result.foto : "onhacker_221a3f5e.jpg";
       $('#foto_profil').attr('src', '<?= base_url("upload/users/") ?>' + foto);
     }
   });

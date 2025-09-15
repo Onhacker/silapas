@@ -22,7 +22,7 @@
             <div class="card-box text-center">
 
                <input type="file" name="foto" id="foto" onchange="return validasiFile()" class="dropify"
-               data-default-file="<?php echo base_url('upload/users/') . (!empty($record->foto) ? $record->foto : 'Dewis.jpg'); ?>" />
+               data-default-file="<?php echo base_url('upload/users/') . (!empty($record->foto) ? $record->foto : 'onhacker_221a3f5e.jpg'); ?>" />
 
 
                  <div class="d-flex justify-content-center">
