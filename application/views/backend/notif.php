@@ -41,7 +41,7 @@ if (function_exists('mb_strlen')) {
   <ul class="list-unstyled topnav-menu float-right mb-0 ">
 
     <!-- Notifikasi -->
-    <li class="dropdown notification-list">
+    <li class="dropdown notification-list hide-on-mobile">
       <a class="nav-link dropdown-toggle waves-effect" href="<?= site_url('home'); ?>">
         <i class="fe-external-link" ></i> Lihat Website
       </a>
