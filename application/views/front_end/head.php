@@ -189,7 +189,7 @@
 </head>
 
 <?php $this->load->view("global") ?> 
-<body class="menubar-gradient gradient-topbar topbar-dark">
+<body class="menubar-gradient gradient-topbar topbar-dark"> 
    <div id="preloader">
         <div id="status">
             <div class="image-container animated flip infinite"> <img src="<?php echo base_url('assets/images/').$rec->gambar ?>" alt="Foto" style="display: none;" onload="this.style.display='block';" /> </div>
