@@ -188,7 +188,7 @@
 
 </head>
 
-<?php $this->load->view("global") ?>
+<?php $this->load->view("global") ?> 
 <body class="menubar-gradient gradient-topbar topbar-dark">
    <div id="preloader">
         <div id="status">
