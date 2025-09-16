@@ -1167,22 +1167,6 @@ $(function () {
 });
 
 
-// (function(){
-//   const form = document.getElementById('form_app');
-//   const KEY='booking_draft_v1';
-//   // restore
-//   try { const d=JSON.parse(localStorage.getItem(KEY)||'{}');
-//     ['nama_tamu','id_number','alamat','tempat_lahir','tanggal_lahir','keperluan','unit_tujuan'].forEach(id=>{
-//       if(d[id] && document.getElementById(id)) document.getElementById(id).value = d[id];
-//     });
-//   } catch(e){}
-//   // simpan
-//   form.addEventListener('input', ()=>{
-//     const m={}; ['nama_tamu','id_number','alamat','tempat_lahir','tanggal_lahir','keperluan','unit_tujuan']
-//       .forEach(id=> m[id] = (document.getElementById(id)?.value||''));
-//     localStorage.setItem(KEY, JSON.stringify(m));
-//   });
-// })();
 
 </script>
 <script>
