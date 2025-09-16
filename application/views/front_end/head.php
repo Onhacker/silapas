@@ -172,6 +172,8 @@
     /*#preloader{ position:fixed; inset:0; background:#fff; z-index:2000; display:none; }*/
     #status{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); }
     .image-container img{ display:none; }
+    li.className = 'dropdown notification-list d-none d-md-block';
+
   </style>
   <script>
     (function(){
@@ -189,19 +191,23 @@
       });
     })();
 
+       
     (function(){
+      // Jangan tampilkan di mobile (≤768px)
+      if (window.matchMedia('(max-width: 767.98px)').matches) return;
+
       var url = "<?= site_url('api/status') ?>";
       fetch(url, {
         method: 'GET',
-        credentials: 'same-origin',  // kirim cookie session
-        cache: 'no-store',           // jangan cache hasilnya
+        credentials: 'same-origin',
+        cache: 'no-store',
         headers: { 'Accept': 'application/json' }
       })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(j){
         if (!j || !j.success || !j.data || !j.data.logged_in) return;
 
-        var ul = document.getElementById('topnav-right');
+        var ul = document.getElementById('topnav-right'); // pastikan <ul id="topnav-right">
         if (!ul) return;
 
         var li = document.createElement('li');
@@ -215,9 +221,7 @@
         li.appendChild(a);
         ul.appendChild(li);
       })
-      .catch(function(){
-        // Offline/gagal → biarkan kosong (tidak ada Login, tidak ada Dashboard)
-      });
+      .catch(function(){ /* offline: diamkan saja */ });
     })();
     </script>
 
