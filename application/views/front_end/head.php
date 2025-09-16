@@ -53,28 +53,7 @@
 
    <!-- ========== CSS KUSTOM (DIKELOMPOKKAN) ========== -->
   <style>
-     /* PRELOADER AKTIF */
-     #preloader{
-        position:fixed;
-        inset:0;
-        background:#ffffff;
-        z-index:20000;
-        display:flex;               /* <- JANGAN none */
-        align-items:center;
-        justify-content:center;
-        transition:opacity .25s ease, visibility .25s ease;
-      }
-      #preloader.is-hidden{
-        opacity:0;
-        visibility:hidden;
-      }
-      #status{ text-align:center; }
-      #status .image-container img{
-        max-height:72px; width:auto; display:block;
-      }
-      @media (prefers-color-scheme: dark){
-        #preloader{ background:#ffffff; }
-      }
+    
     /* ========== 1) Safe area iOS notch ========== */
     :root { --safe-top: 0px; --safe-bottom: 0px; }
     @supports (padding: max(0px)) {
@@ -168,30 +147,12 @@
     }
     .white-shadow-text { color:#fff !important; text-shadow:1px 1px 2px rgba(0,0,0,.7); }
 
-    /* ========== 6) Preloader ========== */
-    /*#preloader{ position:fixed; inset:0; background:#fff; z-index:2000; display:none; }*/
-    #status{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); }
     .image-container img{ display:none; }
     li.className = 'dropdown notification-list d-none d-md-block';
 
   </style>
   <script>
-    (function(){
-      // fallback: sembunyikan jika event 'load' tak pernah datang (mis. gambar gagal)
-      var hid = function(){
-        var p = document.getElementById('preloader');
-        if (p && !p.classList.contains('is-hidden')) p.classList.add('is-hidden');
-      };
-      var fallback = setTimeout(hid, 6000);
-
-      // ketika SEMUA resource sudah dimuat
-      window.addEventListener('load', function(){
-        clearTimeout(fallback);
-        hid();
-      });
-    })();
-
-       
+   
     (function(){
       // Jangan tampilkan di mobile (≤768px)
       if (window.matchMedia('(max-width: 767.98px)').matches) return;
@@ -229,14 +190,11 @@
 
 <?php $this->load->view("global") ?>
 <body class="menubar-gradient gradient-topbar topbar-dark">
-  <div id="preloader" role="status" aria-live="polite" aria-label="Memuat…">
-    <div id="status">
-      <div class="image-container animated flip infinite">
-        <img src="<?= base_url('assets/images/').$rec->gambar ?>" alt="Logo"
-             style="display:none" onload="this.style.display='block'">
-      </div>
+   <div id="preloader">
+        <div id="status">
+            <div class="image-container animated flip infinite"> <img src="<?php echo base_url('assets/images/').$rec->gambar ?>" alt="Foto" style="display: none;" onload="this.style.display='block';" /> </div>
+        </div>
     </div>
-  </div>
 <header id="topnav">
 
   <div class="navbar-custom">
