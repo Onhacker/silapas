@@ -119,7 +119,7 @@
                                        </div>
                                    <?php  } ?>
 
-                                   <div class="col-md-6">
+                                  <!--  <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="text-primary" for="example-email">Permission Publish</label>
                                         <?php    
@@ -129,7 +129,7 @@
                                         echo form_dropdown("permission_publish",$arr_permission_publish,$permission_publish,'class="form-control"') ?>
                                         <small>Aktifkan permission untuk user <?php echo $record->nama_lengkap ?> jika diperbolehkan langsung menerbitkan postingan tanpa melalui verifikasi admin</small>
                                     </div>
-                                    </div>
+                                    </div> -->
                             </div> <!-- end row -->
                             <div class="text-left">
                                 <button type="button"  onclick="update_setting_profil()"  class="btn btn-success btn-xs waves-effect waves-light mt-2"><i class="mdi mdi-content-save"></i> Simpan</button>

@@ -1,167 +1,244 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="utf-8" />
-    <title><?php echo ucfirst(strtolower($rec->nama_website))." - ".$title ; ?></title>
-    <meta name="theme-color" content="#ffffff">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-    <meta name="robots" content="index, follow">
-    <meta content="Onhacker.net" name="author" />
-    <meta name="description" content="<?= htmlspecialchars($deskripsi) ?>">
-    <meta name="keyword" content="<?= htmlspecialchars($rec->meta_keyword) ?>">
-    <meta property="og:title" content="<?= htmlspecialchars($rec->nama_website." - ".$title) ?>" />
-    <meta property="og:description" content="<?= htmlspecialchars($deskripsi) ?>" />
-    <meta property="og:image" content="<?= $prev ?>" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:url" content="<?= current_url() ?>" />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="google" content="notranslate">
-    <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          "name": "<?php echo $rec->nama_website ; ?>",
-          "url": "<?php echo site_url(); ?>",
-          "logo": "<?php echo base_url('assets/images/logo.png'); ?>"
-      }
-  </script>
- <!-- pilih salah satu pendekatan -->
-<!-- pilih warna gelap headermu -->
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#0F172A">
-<meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#000000">
-
-
-
+  <!-- ========== META DASAR ========== -->
+  <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="robots" content="index, follow">
+  <meta name="google" content="notranslate">
+  <meta name="author" content="Onhacker.net">
+
+  <title><?= ucfirst(strtolower($rec->nama_website)).' - '.$title; ?></title>
+
+  <!-- ========== THEME COLOR (LIGHT/DARK) ========== -->
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#0F172A">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#000000">
+
+  <!-- ========== SEO / OPEN GRAPH / TWITTER ========== -->
+  <meta name="description" content="<?= htmlspecialchars($deskripsi) ?>">
+  <meta name="keywords" content="<?= htmlspecialchars($rec->meta_keyword) ?>">
+  <meta property="og:title" content="<?= htmlspecialchars($rec->nama_website.' - '.$title) ?>" />
+  <meta property="og:description" content="<?= htmlspecialchars($deskripsi) ?>" />
+  <meta property="og:image" content="<?= $prev ?>" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="<?= current_url() ?>" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- ========== PWA / ICONS ========== -->
   <link rel="manifest" href="<?= site_url('developer/manifest') ?>?v=7">
-  <link rel="icon" href="<?php echo base_url('assets/images/favicon.ico') ?>" type="image/x-icon" />
-  <link rel="shortcut icon" href="<?php echo base_url('assets/images/favicon.ico') ?>" type="image/x-icon" />
+  <link rel="icon" href="<?= base_url('assets/images/favicon.ico') ?>" type="image/x-icon" />
+  <link rel="shortcut icon" href="<?= base_url('assets/images/favicon.ico') ?>" type="image/x-icon" />
 
-  <link href="<?php echo base_url('assets/admin/css/bootstrap.min.css'); ?>" rel="stylesheet" type="text/css" />
-  <link href="<?php echo base_url('assets/admin/css/icons.min.css'); ?>" rel="stylesheet" type="text/css" />
-  <link href="<?php echo base_url('assets/admin/css/app.min.css'); ?>" rel="stylesheet" type="text/css" />
-  <link href="<?php echo base_url() ?>assets/admin/libs/animate/animate.min.css" rel="stylesheet" type="text/css" />
-  <link href="<?php echo base_url('assets/admin') ?>/libs/sweetalert2/sweetalert2.min.css" rel="stylesheet" type="text/css" />
+  <!-- ========== JSON-LD ORGANIZATION ========== -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "<?= addslashes($rec->nama_website) ?>",
+      "url": "<?= site_url() ?>",
+      "logo": "<?= base_url('assets/images/logo.png'); ?>"
+    }
+  </script>
 
-  <style type="text/css">
-   .d-flex.align-items-center.mb-3>.me-3 img{max-height:50px;width:auto;display:block;transition:all .3s ease-in-out;filter:drop-shadow(2px 2px 6px rgba(0,0,0,.3))}.d-flex.align-items-center.mb-3>.me-3{margin-right:1rem}@media (max-width:767.98px){.logo-desktop{display:none!important}}.search-result-box .kepala{padding-bottom:20px;border-bottom:1px solid #f1f5f7;margin-bottom:20px}.header-title2{font-size:1.2rem;font-weight:600;color:#555;text-align:left;margin:10px 0;font-family:'Arial',sans-serif;border-left:4px solid #ff5722;padding-left:10px;text-shadow:1px 1px 2px rgba(0,0,0,.15)}.d-flex.align-items-center.mb-3>.me-3 img:hover{filter:drop-shadow(0 0 10px rgba(255,87,34,.6));transform:scale(1.05)}.bord{border-left:4px solid #ff5722;padding-left:10px}
-   body {
-    padding-bottom: 0px;
-}
-/* default 0 untuk browser lama */
-:root {
-  --safe-top: 0px;
-  --safe-bottom: 0px;
-}
+  <!-- ========== CSS VENDOR ========== -->
+  <link href="<?= base_url('assets/admin/css/bootstrap.min.css'); ?>" rel="stylesheet" />
+  <link href="<?= base_url('assets/admin/css/icons.min.css'); ?>" rel="stylesheet" />
+  <link href="<?= base_url('assets/admin/css/app.min.css'); ?>" rel="stylesheet" />
+  <link href="<?= base_url('assets/admin/libs/animate/animate.min.css'); ?>" rel="stylesheet" />
+  <link href="<?= base_url('assets/admin/libs/sweetalert2/sweetalert2.min.css'); ?>" rel="stylesheet" />
 
-/* override dengan nilai real di device yang support */
-@supports (padding: max(0px)) {
-  :root {
-    --safe-top: env(safe-area-inset-top);
-    --safe-bottom: env(safe-area-inset-bottom);
-  }
-}
 
-/* HEADER/FIXED BAR ATAS */
-.header-fixed, .app-header, header.sticky {
-  /* beri ruang di atas supaya tidak ketimpa status bar */
-  padding-top: calc(12px + var(--safe-top));
-}
+   <!-- ========== CSS KUSTOM (DIKELOMPOKKAN) ========== -->
+  <style>
+     /* PRELOADER AKTIF */
+     #preloader{
+        position:fixed;
+        inset:0;
+        background:#ffffff;
+        z-index:20000;
+        display:flex;               /* <- JANGAN none */
+        align-items:center;
+        justify-content:center;
+        transition:opacity .25s ease, visibility .25s ease;
+      }
+      #preloader.is-hidden{
+        opacity:0;
+        visibility:hidden;
+      }
+      #status{ text-align:center; }
+      #status .image-container img{
+        max-height:72px; width:auto; display:block;
+      }
+      @media (prefers-color-scheme: dark){
+        #preloader{ background:#ffffff; }
+      }
+    /* ========== 1) Safe area iOS notch ========== */
+    :root { --safe-top: 0px; --safe-bottom: 0px; }
+    @supports (padding: max(0px)) {
+      :root {
+        --safe-top: env(safe-area-inset-top);
+        --safe-bottom: env(safe-area-inset-bottom);
+      }
+    }
+    .header-fixed, .app-header, header.sticky { padding-top: calc(12px + var(--safe-top)); }
+    .bottom-nav, .navbar-bottom, footer.sticky { padding-bottom: calc(8px + var(--safe-bottom)); }
+    .fab, .floating-logo, .btn-fab {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: calc(20px + var(--safe-bottom)); z-index: 1000;
+    }
+    body { padding-bottom: var(--safe-bottom); }
 
-/* NAV BAWAH / TAB BAR */
-.bottom-nav, .navbar-bottom, footer.sticky {
-  /* beri ruang ekstra di bawah agar tidak nempel gesture bar */
-  padding-bottom: calc(8px + var(--safe-bottom));
-}
+    /* ========== 2) Logo bar desktop ========== */
+    .d-flex.align-items-center.mb-3 > .me-3 img {
+      max-height: 50px; width: auto; display: block;
+      transition: all .3s ease-in-out;
+      filter: drop-shadow(2px 2px 6px rgba(0,0,0,.3));
+    }
+    .d-flex.align-items-center.mb-3 > .me-3 { margin-right: 1rem; }
+    .d-flex.align-items-center.mb-3 > .me-3 img:hover {
+      filter: drop-shadow(0 0 10px rgba(255,87,34,.6)); transform: scale(1.05);
+    }
+    .header-title2{
+      font-size:1.2rem; font-weight:600; color:#555; text-align:left; margin:10px 0;
+      font-family:Arial, sans-serif; border-left:4px solid #ff5722; padding-left:10px;
+      text-shadow:1px 1px 2px rgba(0,0,0,.15)
+    }
+    .bord{ border-left:4px solid #ff5722; padding-left:10px }
+    @media (max-width: 767.98px) { .logo-desktop{ display:none !important } }
 
-/* TOMBOL/MENU BULAT MENGAMBANG DI TENGAH BAWAH */
-.fab, .floating-logo, .btn-fab {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  /* naikkan setinggi safe-area */
-  bottom: calc(20px + var(--safe-bottom));
-  /* z-index kalau perlu di atas nav */
-  z-index: 1000;
-}
+    /* ========== 3) Blok hero judul (opsional) ========== */
+    :root { --a1:#dd7634; --a2:#ffffff; --a3:#CDDC39; }
+    .hero-title { padding:24px 0 10px; text-align:center; }
+    .hero-title .text{
+      color:#fff; display:inline-block; margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      font-weight:900; letter-spacing:.025em; text-transform:uppercase;
+      line-height:1.1; font-size:clamp(18px,4.2vw,32px);
+      filter:drop-shadow(0 2px 10px rgba(139,92,246,.15));
+      animation:popIn .7s ease-out both;
+    }
+    .hero-title .accent{
+      display:block; height:4px; width:0; margin:10px auto 0; border-radius:999px;
+      background:linear-gradient(90deg,var(--a1),var(--a2),var(--a3));
+      box-shadow:0 0 18px rgba(34,197,94,.35), 0 0 24px rgba(6,182,212,.25);
+      animation:grow .9s .70s ease-out forwards;
+    }
+    @keyframes popIn{ from{opacity:0; transform:translateY(6px) scale(.98)} to{opacity:1; transform:translateY(0) scale(1)} }
+    @keyframes grow{ from{width:0} to{width:min(520px,80%)} }
+    @media (prefers-reduced-motion: reduce){ .hero-title .text,.hero-title .accent{animation:none} .hero-title .accent{width:min(520px,80%)} }
 
-/* (opsional) kalau ada body yang dipakai scroll container  */
-body { padding-bottom: var(--safe-bottom); }
+    /* ========== 4) Wrapper curved header (gradasi melengkung) ========== */
+    :root{ --c1:#4e77be; --c2:#1e3c72; }
+    .wrapper{
+      position: relative; isolation: isolate;
+      /* padding: clamp(16px,3vw,28px); */
+      border-radius: 20px;
+      /* background: #fff;  isi kartu */
+      box-shadow: 0 16px 36px rgba(0,0,0,.08);
+      overflow: hidden;
+      margin-bottom: clamp(16px, 3vw, 32px);
+    }
+    .wrapper.curved{ --curve-h: 320px; }
+    .wrapper.curved::before{
+      content:""; position:absolute; left:0; right:0; top:0; height: var(--curve-h);
+      background: linear-gradient(360deg, var(--c1), var(--c2));
+      border-bottom-left-radius: 50% 16%; border-bottom-right-radius: 50% 16%;
+      z-index: -1; pointer-events: none;
+      filter: drop-shadow(0 18px 36px rgba(16,24,40,.18));
+    }
+    .wrapper > *{ position: relative; z-index: 1; }
+    .wrapper.curved.curve-sm{ --curve-h: 140px; }
+    .wrapper.curved.curve-md{ --curve-h: 220px; }
+    .wrapper.curved.curve-lg{ --curve-h: 320px; }
+    .wrapper.curved.curve-xl{ --curve-h: 420px; }
 
-</style>
-<style>
-  :root{
-    --a1:#dd7634; /* green */
-    --a2:#ffffff; /* cyan  */
-    --a3:#CDDC39; /* violet*/
-  }
-  .hero-title{
-    padding:24px 0 10px;
-    text-align:center;
+    /* ========== 5) Logo mobile stack ========== */
+    .logo-boxx { display:flex; justify-content:center; align-items:center; padding:10px 0; text-align:center; }
+    .logox { display:flex; align-items:center; justify-content:center; flex-direction:row; }
+    .logo-smx img { height:40px; margin-right:10px; filter: drop-shadow(0 0 4px rgba(255,255,255,.8)); }
+    .logo-text { display:flex; flex-direction:column; align-items:center; color:#333; text-align:center; }
+    .logo-text .header-title-top { font-weight:700; font-size:18px; line-height:1.2; }
+    .logo-text .header-title-bottom { font-weight:500; font-size:13px; line-height:1.2; }
+    @media (max-width: 767.98px) {
+      .logo-text .header-title-top { font-size:22px; }
+      .logo-text .header-title-bottom { font-size:16px; }
+    }
+    .white-shadow-text { color:#fff !important; text-shadow:1px 1px 2px rgba(0,0,0,.7); }
 
-  }
-  .hero-title .text{
-    color: white;
-  display:inline-block;
-  margin:0;
-  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-  font-weight:900;
-  letter-spacing:.025em;
-  text-transform:uppercase;
-  line-height:1.1;
-  font-size:clamp(18px,4.2vw,32px);
-  /* (opsional) kalau mau efek gradien teks, aktifkan 4 baris ini:
-  background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3));
-  -webkit-background-clip:text;
-          background-clip:text;
-  color:transparent;
-  */
-  filter:drop-shadow(0 2px 10px rgba(139,92,246,.15));
-  animation:popIn .7s ease-out both;
-}
+    /* ========== 6) Preloader ========== */
+    /*#preloader{ position:fixed; inset:0; background:#fff; z-index:2000; display:none; }*/
+    #status{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); }
+    .image-container img{ display:none; }
+  </style>
+  <script>
+    (function(){
+      // fallback: sembunyikan jika event 'load' tak pernah datang (mis. gambar gagal)
+      var hid = function(){
+        var p = document.getElementById('preloader');
+        if (p && !p.classList.contains('is-hidden')) p.classList.add('is-hidden');
+      };
+      var fallback = setTimeout(hid, 6000);
 
-  .hero-title .accent{
-    display:block;
-    height:4px;
-    width:0;
-    margin:10px auto 0;
-    border-radius:999px;
-    background:linear-gradient(90deg,var(--a1),var(--a2),var(--a3));
-    box-shadow:0 0 18px rgba(34,197,94,.35), 0 0 24px rgba(6,182,212,.25);
-    animation:grow .9s .70s ease-out forwards;
-  }
-  @keyframes popIn{
-    from{opacity:0; transform:translateY(6px) scale(.98)}
-    to  {opacity:1; transform:translateY(0)   scale(1)}
-  }
-  @keyframes grow{
-    from{width:0}
-    to  {width:min(520px,80%)}
-  }
-  @media (prefers-reduced-motion: reduce){
-    .hero-title .text,.hero-title .accent{animation:none}
-    .hero-title .accent{width:min(520px,80%)}
-  }
+      // ketika SEMUA resource sudah dimuat
+      window.addEventListener('load', function(){
+        clearTimeout(fallback);
+        hid();
+      });
+    })();
 
-</style>
+    (function(){
+      var url = "<?= site_url('api/status') ?>";
+      fetch(url, {
+        method: 'GET',
+        credentials: 'same-origin',  // kirim cookie session
+        cache: 'no-store',           // jangan cache hasilnya
+        headers: { 'Accept': 'application/json' }
+      })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(j){
+        if (!j || !j.success || !j.data || !j.data.logged_in) return;
+
+        var ul = document.getElementById('topnav-right');
+        if (!ul) return;
+
+        var li = document.createElement('li');
+        li.className = 'dropdown notification-list';
+
+        var a = document.createElement('a');
+        a.className = 'nav-link dropdown-toggle waves-effect';
+        a.href = j.data.dashboard || "<?= site_url('admin_profil/detail_profil') ?>";
+        a.innerHTML = '<i class="fe-user user"></i> Ke Dashboard';
+
+        li.appendChild(a);
+        ul.appendChild(li);
+      })
+      .catch(function(){
+        // Offline/gagal → biarkan kosong (tidak ada Login, tidak ada Dashboard)
+      });
+    })();
+    </script>
+
 </head>
 
 <?php $this->load->view("global") ?>
 <body class="menubar-gradient gradient-topbar topbar-dark">
-    <div id="preloader">
-        <div id="status">
-         <div class="image-container animated flip infinite">
-          <img src="<?php echo base_url('assets/images/').$rec->gambar ?>" alt="Foto" style="display: none;" onload="this.style.display='block';" />
+  <div id="preloader" role="status" aria-live="polite" aria-label="Memuat…">
+    <div id="status">
+      <div class="image-container animated flip infinite">
+        <img src="<?= base_url('assets/images/').$rec->gambar ?>" alt="Logo"
+             style="display:none" onload="this.style.display='block'">
       </div>
+    </div>
   </div>
-</div>
 <header id="topnav">
 
   <div class="navbar-custom">
     <div class="container-fluid">
-
+      <ul class="list-unstyled topnav-menu float-right mb-0" id="topnav-right"></ul>
+     
         <div class="logo-desktop d-flex align-items-center mb-3">
             <div class="me-3">
                 <img src="<?php echo base_url('assets/images/').$rec->gambar ?>" alt="Logo <?php echo $rec->nama_website ?>" height="50px">
@@ -170,124 +247,13 @@ body { padding-bottom: var(--safe-bottom); }
             <div class="kepala">
                 <h4 class="mb-1">
                     <span class="header-title2"><?php echo ($rec->nama_website)." ".strtoupper($rec->kabupaten) ?>
-
-                </a>
             </h4>
             <div class="font-13 text-success mb-2 text-truncate">
                 <code><?php echo strtoupper($rec->meta_deskripsi." ") ?></code>
             </div>
         </div>
     </div>
-    <style type="text/css">
-        .logo-boxx {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px 0;
-            text-align: center;
-        }
-
-        .logo-boxx .logox {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: row;
-        }
-
-        .logo-smx img {
-            height: 40px;
-            margin-right: 10px;
-            filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
-
-
-        }
-
-
-        .logo-text {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #333;
-            text-align: center;
-        }
-
-        .logo-text .header-title-top {
-            font-weight: 700;
-            font-size: 18px;
-            line-height: 1.2;
-        }
-
-        .logo-text .header-title-bottom {
-            font-weight: 500;
-            font-size: 13px;
-            line-height: 1.2;
-        }
-
-        @media (max-width: 767.98px) {
-            .logo-text .header-title-top {
-                font-size: 22px;
-            }
-            .logo-text .header-title-bottom {
-                font-size: 16px;
-            }
-        }
-
-        .white-shadow-text {
-            color: #fff !important;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
-        }
-
-
-        :root{
-          --c1:#4e77be; /* cyan */
-          --c2:#1e3c72; /* violet */
-}
-
-/* Kartu dasar */
-.wrapper{
-  position: relative;
-  isolation: isolate;           /* penting: batasi pseudo-element di dalam wrapper */
-  /*padding: clamp(16px,3vw,28px);*/
-  border-radius: 20px;
-  /*background: #fff;             /* isi kartu */*/
-  box-shadow: 0 16px 36px rgba(0,0,0,.08);
-  overflow: hidden;             /* biar lengkung gak meluber */
-}
-
-/* ===== Lengkungan di DALAM wrapper =====
-   Atur tinggi dengan --curve-h  */
-.wrapper.curved{
-  --curve-h: 220px;             /* << ganti sesukamu: 140px, 260px, 320px, dst */
-}
-
-/* latar gradasi melengkung nempel di atas wrapper (bukan full halaman) */
-.wrapper.curved::before{
-  content:"";
-  position:absolute;
-  left:0; right:0; top:0;
-  height: var(--curve-h);
-  background: linear-gradient(360deg, var(--c1), var(--c2));
-  border-bottom-left-radius: 50% 16%;
-  border-bottom-right-radius: 50% 16%;
-  z-index: -1;                   /* di belakang isi wrapper */
-  pointer-events: none;
-  filter: drop-shadow(0 18px 36px rgba(16,24,40,.18));
-}
-
-/* teks/isi tetap terbaca di atas */
-.wrapper > *{ position: relative; z-index: 1; }
-
-/* util kelas untuk cepat ubah tinggi */
-.wrapper.curved.curve-sm{ --curve-h: 140px; }
-.wrapper.curved.curve-md{ --curve-h: 220px; }  /* default */
-.wrapper.curved.curve-lg{ --curve-h: 320px; }
-.wrapper.curved.curve-xl{ --curve-h: 420px; }
-
-/* (opsional) jarak bawah supaya tidak “nempel” footer */
-.wrapper{ margin-bottom: clamp(16px, 3vw, 32px); }
-
-
-    </style>
+   
     <div class="logo-boxx d-block d-md-none">
         <div class="logox">
             <div class="logo-smx">

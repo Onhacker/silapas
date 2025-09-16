@@ -86,6 +86,9 @@
                     <button type="button" id="btn-cetak" class="mr-1 btn btn-danger">
                       <i class="fa fa-file-pdf"></i> Cetak PDF
                     </button>
+                    <button type="button" id="btn-excel" class="mr-1 btn btn-success">
+                      <i class="fa fa-file-excel"></i> Export Excel
+                    </button>
                   </div>
 
                 </div>
@@ -217,6 +220,19 @@ $(function(){
     }).toString();
 
     window.open('<?php echo site_url('admin_permohonan/cetak_pdf'); ?>?'+qs, '_blank');
+  });
+
+  // Export Excel (pakai filter yang sama)
+  $('#btn-excel').on('click', function(){
+    const qs = new URLSearchParams({
+      tanggal_mulai:   $('#tanggal_mulai').val() || '',
+      tanggal_selesai: $('#tanggal_selesai').val() || '',
+      unit_tujuan:     $('#unit_tujuan').val() || '',
+      form_asal:       $('#form_asal').val() || '',
+      status:          $('#filter_status').val() || ''
+    }).toString();
+
+    window.open('<?= site_url('admin_permohonan/export_excel'); ?>?'+qs, '_blank');
   });
 
   // Cegah submit bawaan (Enter) agar tidak reload page

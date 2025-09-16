@@ -1,13 +1,14 @@
 /* ===== Service Worker ===== */
 
-const CACHE_NAME  = 'sila-44';                 // ⬅️ bump saat deploy
+const CACHE_NAME  = 'sila-45';                 // ⬅️ bump saat deploy
 const OFFLINE_URL = '/assets/offline.html';
 
 /* HTML publik yang boleh dicache (path tanpa query) */
 const HTML_CACHE_WHITELIST = new Set([
-  '/', '/home', '/hal', '/hal/alur', '/hal/kontak', '/hal/struktur', '/hal/privacy_policy','/hal/jadwal','/hal/panduan', '/booking',
-, '/hal/privacy_policy'
+  '/', '/home', '/hal', '/hal/alur', '/hal/kontak', '/hal/struktur',
+  '/hal/privacy_policy', '/hal/jadwal', '/hal/panduan', '/booking'
 ]);
+
 
 /* Precaches (URL asli, termasuk query). JANGAN masukkan endpoint dinamis seperti /home/chart_data */
 const urlsToCache = [
@@ -23,9 +24,9 @@ const urlsToCache = [
   '/assets/admin/css/icons.min.css',
   '/assets/admin/css/app.min.css',
   '/assets/admin/libs/animate/animate.min.css',
-  '/assets/admin/libs/datatables/dataTables.bootstrap4.css',
-  '/assets/admin/libs/datatables/jquery.dataTables.min.js',
-  '/assets/admin/libs/datatables/dataTables.bootstrap4.js',
+  '/assets/admin/datatables/dataTables.bootstrap4.css',
+  '/assets/admin/datatables/jquery.dataTables.min.js',
+  '/assets/admin/datatables/dataTables.bootstrap4.js',
   '/assets/admin/js/jquery.easyui.min.js',
   '/assets/admin/libs/flatpickr/flatpickr.min.css',
   '/assets/admin/libs/flatpickr/flatpickr.min.js',
@@ -62,7 +63,8 @@ const API_DENYLIST = [
   /^\/home\/chart(?:_?data)?(?:\/.*)?$/i,  // /home/chartdata atau /home/chart_data
   /^\/api\/?/i,                            // API umum
   /^\/admin(?:\/.*)?$/i,                   // semua admin (dashboard, dll.)
-  /^\/login(?:\/.*)?$/i                 // login
+  /^\/login(?:\/.*)?$/i,                 // login
+  /^\/admin_permohonan\/(export_excel|cetak_pdf)(?:\/.*)?$/i
   // /^\/booking\/(booked|print_pdf)(?:\/.*)?$/i // halaman sensitif token
 ];
 
@@ -74,7 +76,7 @@ const isStaticAsset = (req) => {
   const p = new URL(req.url).pathname;
   return /\.(?:css|js|mjs|png|jpe?g|gif|webp|svg|ico|woff2?|ttf|otf|map|wasm)$/i.test(p);
 };
-
+const RUNTIME_BYPASS = [/\/api\/status$/];
 /* ===== INSTALL ===== */
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -118,6 +120,10 @@ self.addEventListener('fetch', (event) => {
   const accept = req.headers.get('accept') || '';
   const sameOrigin = url.origin === self.location.origin;
 
+  if (RUNTIME_BYPASS.some(rx => rx.test(url.pathname))) {
+    event.respondWith(fetch(event.request)); // network only
+    return;
+  }
   /* 0) Network-only untuk route sensitif (tidak pernah di-cache) */
   if (sameOrigin && API_DENYLIST.some(rx => rx.test(url.pathname))) {
     event.respondWith(

@@ -357,6 +357,22 @@ public function get_menu_mobile()
     ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 }
 
+public function status()
+  {
+    $logged = (bool)$this->session->userdata('admin_login');
+    $resp = [
+      'logged_in' => $logged,
+      'name'      => $logged ? ($this->session->userdata('admin_nama') ?: 'Admin') : null,
+      'dashboard' => $logged ? site_url('admin_profil/detail_profil') : null,
+    ];
 
+    // JANGAN dicache
+    $this->output
+      ->set_content_type('application/json')
+      ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+      ->set_header('Pragma: no-cache')
+      ->set_header('Expires: 0')
+      ->set_output(json_encode(['success'=>true,'data'=>$resp]));
+  }
 
 }

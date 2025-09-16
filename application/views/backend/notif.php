@@ -41,31 +41,12 @@ if (function_exists('mb_strlen')) {
   <ul class="list-unstyled topnav-menu float-right mb-0 ">
 
     <!-- Notifikasi -->
- <!--    <li class="dropdown notification-list">
-      <a class="nav-link dropdown-toggle waves-effect" data-toggle="dropdown" href="javascript:void(0)" onclick="loadNotifikasi()" role="button" aria-haspopup="false" aria-expanded="false">
-        <i class="fe-bell noti-icon" id="notification-icon"></i>
-        <span class="badge badge-danger rounded-circle noti-icon-badge" id="notif-count" style="display:none;">0</span>
+    <li class="dropdown notification-list">
+      <a class="nav-link dropdown-toggle waves-effect" href="<?= site_url('home'); ?>">
+        <i class="fe-external-link" ></i> Lihat Website
       </a>
-
-      <style>
-        @keyframes bounce {0%{transform:scale(1)}25%{transform:scale(1.3)}50%{transform:scale(.9)}75%{transform:scale(1.1)}100%{transform:scale(1)}}
-        .bounce{animation:bounce .5s}
-        .notification-list .notify-item .notify-details,
-        .notification-list .notify-item .user-msg{white-space:normal!important;margin-left:0!important}
-        .noti-title{background:#fff;padding:5px 10px;border-bottom:1px solid #e0e0e0;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-      </style>
-
-      <div class="dropdown-menu dropdown-menu-right dropdown-lg">
-        <div class="dropdown-item noti-title mb-2 text-center">
-          <h5 class="m-0 font-weight-bold text-danger">
-            <span><i class="mdi mdi-bell-ring-outline"></i> Notifikasi</span>
-          </h5>
-        </div>
-        <div class="slimscroll noti-scroll" id="notif-container" style="overflow:hidden;width:auto;height:255px;">
-          Tidak ada notifikasi
-        </div>
-      </div>
-    </li> -->
+    </li>
+      
 
     <!-- User / Login -->
     <?php if ($admin_login): ?>

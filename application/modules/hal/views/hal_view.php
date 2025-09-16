@@ -84,7 +84,7 @@
 
               <h4 class="mt-0">Check-in (Hari H)</h4>
               <p>
-                Di pos petugas, QR pada ticket di-<strong>scan</strong> melalui halaman <strong>Scan</strong> (<a href="<?= site_url('admin_scan') ?>">admin_scan</a>).
+                Di pos petugas, QR pada ticket di-<strong>scan</strong>.
                 Petugas memilih mode <strong>Check-in</strong>, mengarahkan kamera ke QR (atau memakai <em>barcode gun</em> /
                 input <strong>kode booking</strong> sebagai fallback). Sistem menandai <strong>Checked-in</strong> dan merekam <strong>waktu &amp; petugas</strong>.
               </p>
