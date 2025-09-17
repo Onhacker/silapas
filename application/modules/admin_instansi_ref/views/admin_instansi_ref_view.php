@@ -1,5 +1,4 @@
 <link href="<?= base_url('assets/admin/datatables/css/dataTables.bootstrap4.min.css'); ?>" rel="stylesheet" type="text/css"/>
-
 <div class="container-fluid">
   <div class="row">
     <div class="col-12">

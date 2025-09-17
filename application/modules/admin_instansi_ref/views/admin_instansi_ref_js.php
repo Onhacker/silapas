@@ -1,6 +1,5 @@
 <script>
 var table, save_method = 'add';
-
 // Pemetaan kolom & form per jenis (sinkron dengan Model::map)
 const CFG = {
   opd: {
