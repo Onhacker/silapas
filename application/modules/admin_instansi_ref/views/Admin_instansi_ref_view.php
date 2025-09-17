@@ -13,29 +13,33 @@
     </div>
   </div>
 
-  <!-- Filter Jenis -->
-  <div class="row mb-2">
-    <div class="col-md-6">
-      <label class="font-weight-bold mb-1">Pilih Kategori</label>
-      <select id="jenis" class="form-control" data-toggle="select2">
-        <option value="opd">OPD Provinsi / Instansi Vertikal</option>
-        <option value="pn">Pengadilan Negeri</option>
-        <option value="pa">Pengadilan Agama</option>
-        <option value="ptun">Pengadilan TUN</option>
-        <option value="kejari">Kejaksaan Negeri</option>
-        <option value="cabjari">Cabang Kejaksaan Negeri</option>
-        <option value="bnn">BNN Kab/Kota</option>
-        <option value="kodim">Kodim Sulawesi</option>
-        <option value="kejati">Kejaksaan Tinggi</option>
-      </select>
-    </div>
-  </div>
+  <!-- (HAPUS blok "Filter Jenis" lama di atas ini) -->
 
-  <!-- Tabel -->
-  <div class="row"><div class="col-12">
-    <div class="card">
-      <div class="card-body">
-        <div class="button-list mb-2">
+<!-- Tabel -->
+<div class="row"><div class="col-12">
+  <div class="card">
+    <div class="card-body">
+
+      <!-- Toolbar: Filter (kiri) + Tombol (kanan) -->
+      <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-2">
+        <!-- Filter Jenis -->
+        <div class="d-flex align-items-center mb-2 mb-md-0">
+          <label for="jenis" class="mb-0 mr-2 font-weight-bold">Pilih Kategori</label>
+          <select id="jenis" class="form-control" data-toggle="select2" style="min-width:280px">
+            <option value="opd">OPD Provinsi / Instansi Vertikal</option>
+            <option value="pn">Pengadilan Negeri</option>
+            <option value="pa">Pengadilan Agama</option>
+            <option value="ptun">Pengadilan TUN</option>
+            <option value="kejari">Kejaksaan Negeri</option>
+            <option value="cabjari">Cabang Kejaksaan Negeri</option>
+            <option value="bnn">BNN Kab/Kota</option>
+            <option value="kodim">Kodim Sulawesi</option>
+            <option value="kejati">Kejaksaan Tinggi</option>
+          </select>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="button-list">
           <button type="button" onclick="add()" class="btn btn-success btn-rounded btn-sm waves-effect waves-light">
             <span class="btn-label"><i class="fe-plus-circle"></i></span>Tambah
           </button>
@@ -46,8 +50,11 @@
             <span class="btn-label"><i class="fa fa-trash"></i></span>Hapus
           </button>
         </div>
-        <table id="datable_1" class="table table-striped table-bordered w-100">
-          <thead>
+      </div>
+      <!-- /Toolbar -->
+
+      <table id="datable_1" class="table table-striped table-bordered w-100">
+        <thead>
           <tr>
             <th class="text-center" width="5%">
               <div class="checkbox checkbox-primary checkbox-single">
@@ -57,11 +64,12 @@
             <th width="5%">No.</th>
             <!-- kolom dinamis disuntik via JS -->
           </tr>
-          </thead>
-        </table>
-      </div>
+        </thead>
+      </table>
+
     </div>
-  </div></div>
+  </div>
+</div></div>
 
   <!-- Modal -->
   <div id="full-width-modal" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static" aria-hidden="true">
