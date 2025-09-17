@@ -287,6 +287,13 @@ if (!function_exists('nav_class')) {
             </a>
           <?php endif; ?>
 
+          <?php if (user_can_mod(['Admin_instansi_ref'])): ?>
+            <a id="quick-instansi-ref-link" href="<?= site_url('Admin_instansi_ref') ?>" class="menu-item" title="Instansi Asal">
+              <i class="fe-briefcase"></i><span>Instansi Asal</span>
+            </a>
+          <?php endif; ?>
+
+
           <!-- Kontak -->
           <a href="<?= base_url('hal/kontak') ?>" class="menu-item">
             <i class="fas fa-address-book"></i><span>Kontak</span>
@@ -339,7 +346,8 @@ if (!function_exists('nav_class')) {
       admin_dashboard_monitor:       { a: document.getElementById("quick-dashboard-monitor-link") },
       admin_setting_web:       { a: document.getElementById("quick-setting-link") },
       admin_unit_tujuan:       { a: document.getElementById("quick-unit-link") },
-      admin_unit_lain:       { a: document.getElementById("quick-unit-lain-link") }
+      admin_unit_lain:       { a: document.getElementById("quick-unit-lain-link") },
+      admin_instansi_ref:       { a: document.getElementById("quick-instansi-ref-link") }
     };
 
     const setVis = (id, show) => {

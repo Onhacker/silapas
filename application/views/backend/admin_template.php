@@ -224,7 +224,7 @@ $us = $this->om->user();
 <?php } ?>
 
 
-<?php if (strtolower($controller) == "admin_dusun" or strtolower($controller) == "admin_unit_lain"  or strtolower($controller) == "master_syarat" or strtolower($controller) == "admin_unit_tujuan") {?>
+<?php if (strtolower($controller) == "admin_instansi_ref" or strtolower($controller) == "admin_unit_lain"  or strtolower($controller) == "master_syarat" or strtolower($controller) == "admin_unit_tujuan") {?>
    <script src="<?php echo base_url(); ?>assets/admin/datatables/js/jquery.dataTables.min.js"></script>
    <script src="<?php echo base_url(); ?>assets/admin/datatables/js/dataTables.bootstrap4.min.js"></script>
    <script src="<?php echo base_url("assets/admin") ?>/libs/jquery-toast/jquery.toast.min.js"></script>

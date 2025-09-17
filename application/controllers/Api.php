@@ -46,8 +46,10 @@ class Api extends MX_Controller {
               'require'=>['Manajemen User','admin_user','user'] ],
             [ 'label'=>'Unit Tujuan','url'=>site_url('admin_unit_tujuan'),
               'require'=>['Unit Tujuan','admin_unit_tujuan','user'] ],
-              [ 'label'=>'Unit Lain','url'=>site_url('admin_unit_lain'),
+            [ 'label'=>'Unit Lain','url'=>site_url('admin_unit_lain'),
               'require'=>['Unit Lain','admin_unit_lain','user'] ],
+            [ 'label'=>'Instansi Asal','url'=>site_url('admin_instansi_ref'),
+              'require'=>['Unit Lain','admin_instansi_ref','user'] ],
         ]
     ];
 
@@ -181,6 +183,13 @@ public function get_menu_mobile()
             'url'     => site_url('Admin_unit_lain'),
             'icon'    => 'mdi mdi-qrcode-scan',
             'require' => ['Admin_unit_lain'] // cukup link modul
+        ],
+        [
+            'id'      => 'Admin_instansi_ref',
+            'label'   => 'Instansi Asal',
+            'url'     => site_url('Admin_instansi_ref'),
+            'icon'    => 'mdi mdi-qrcode-scan',
+            'require' => ['Admin_instansi_ref'] // cukup link modul
         ],
     ];
 

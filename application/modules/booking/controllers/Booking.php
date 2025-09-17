@@ -31,11 +31,15 @@ class Booking extends MX_Controller {
         $data["deskripsi"]  = "Pemohon dapat memantau status permohonan secara real-time mulai dari pengajuan hingga selesai diproses. Fitur ini memudahkan pemantauan dan memastikan transparansi pelayanan";
         $data["prev"]       = base_url("assets/images/booking.png");
 
-        $data['units_tree'] = $this->mb->get_tree(); // pohon unit
-        $data["rec"]        = $this->fm->web_me();
+        // === ambil tree dari cache (auto bypass jika ?nocache=1) ===
+        $data['units_tree'] = $this->mb->get_tree_cached();
+
+        // kurangi I/O
+        $data["rec"] = $this->fm->web_me();
 
         $this->load->view('booking_view', $data);
     }
+
 
     public function download_gate()
     {
@@ -1593,7 +1597,11 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
 
     public function options_by_kategori()
     {
-        $jenis = $this->input->get('jenis', true);
+        $jenis   = $this->input->get('jenis', true);
+        $nocache = ($this->input->get('nocache') === '1');
+
+        // === CACHE DRIVER: nocache=1 -> adapter dummy (tidak simpan apa pun) ===
+        $this->load->driver('cache', ['adapter' => $nocache ? 'dummy' : 'file']);
 
         $map = [
             'opd'    => ['table'=>'opd_sulsel',               'id'=>'id_opd',    'text'=>'nama_opd',                         'search'=>['nama_opd']],
@@ -1612,25 +1620,40 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
                 ->set_output(json_encode([]));
         }
 
-        $cfg = $map[$jenis];
-        $this->db->select($cfg['id'].' AS id, '.$cfg['text'].' AS text', false)
-            ->from($cfg['table']);
+        $cacheKey = 'opts_kat:' . $jenis;
 
-        if ($this->db->field_exists('aktif', $cfg['table'])) {
-            $this->db->where('aktif', 1);
+        // === Ambil dari cache (kecuali nocache=1) ===
+        $rows = $nocache ? false : $this->cache->get($cacheKey);
+
+        if ($rows === false) {
+            $cfg = $map[$jenis];
+
+            $this->db->select($cfg['id'].' AS id, '.$cfg['text'].' AS text', false)
+                     ->from($cfg['table']);
+
+            if ($this->db->field_exists('aktif', $cfg['table'])) {
+                $this->db->where('aktif', 1);
+            }
+
+            if ($jenis === 'kodim') {
+                $this->db->order_by('nomor_kodim', 'ASC');
+            } else {
+                // MySQL mengizinkan ORDER BY alias 'text'
+                $this->db->order_by('text', 'ASC');
+            }
+
+            $rows = $this->db->get()->result_array();
+
+            // === Simpan cache “selamanya” (sampai dihapus manual / invalidasi admin) ===
+            if (!$nocache) {
+                $this->cache->save($cacheKey, $rows, 0); // TTL=0 => permanen
+            }
         }
-
-        if ($jenis === 'kodim') {
-            $this->db->order_by('nomor_kodim', 'ASC');
-        } else {
-            $this->db->order_by('text', 'ASC');
-        }
-
-        $rows = $this->db->get()->result_array();
 
         return $this->output->set_content_type('application/json')
             ->set_output(json_encode($rows));
     }
+
 
     public function print_pdf($kode_booking)
     {
