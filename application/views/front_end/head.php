@@ -146,9 +146,6 @@
       .logo-text .header-title-bottom { font-size:16px; }
     }
     .white-shadow-text { color:#fff !important; text-shadow:1px 1px 2px rgba(0,0,0,.7); }
-
-    .image-container img{ display:none; }
-    li.className = 'dropdown notification-list d-none d-md-block';
     .active-menu > a {
       text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
       font-weight: bold;
@@ -162,6 +159,9 @@
       text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
       font-weight: bold;
     }
+    .image-container img{ display:none; }
+    li.className = 'dropdown notification-list d-none d-md-block';
+    
   </style>
   <script>
    
@@ -245,7 +245,8 @@
 </div>
 <div class="topbar-menu">
     <div class="container-fluid">
-  <?php $uri = $this->uri->uri_string(); ?>
+
+<?php $uri = $this->uri->uri_string(); ?>
   <div id="navigation">
     <ul class="navigation-menu">
       <li class="has-submenu <?= ($uri === '' || $uri === 'home') ? 'active-menu' : '' ?>">
