@@ -475,10 +475,10 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- Jadikan non-blocking + perbaiki typo install.js -->
-<script src="<?= base_url('assets/admin/js/vendor.min.js') ?>" defer></script>
-<script src="<?= base_url('assets/admin/js/app.min.js') ?>" defer></script>
-<script src="<?= base_url('assets/admin/js/sw.min.js') ?>" defer></script>
-<script src="<?= base_url('assets/js/install.js') ?>" defer></script>
+<script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>
+<script src="<?= base_url('assets/admin/js/app.min.js') ?>"></script>
+<script src="<?= base_url('assets/admin/js/sw.min.js') ?>"></script>
+<script src="<?= base_url('assets/js/install.js') ?>"></script>
 
 <script>
   const base_url = "<?= base_url() ?>";
