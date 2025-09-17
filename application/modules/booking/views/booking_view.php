@@ -88,7 +88,7 @@
 <div class="container-fluid">
   <div class="hero-title" role="banner" aria-label="Judul situs">
     <h1 class="text"><?= $title ?></h1>
-    <div class="text-muted">Isi data dengan benar untuk mempercepat proses konfirmasi</div>
+    <div class="text-muted"><?php echo $rec->type ?></div>
     <span class="accent" aria-hidden="true"></span>
   </div>
 
