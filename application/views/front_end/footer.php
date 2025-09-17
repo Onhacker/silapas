@@ -464,11 +464,14 @@
 </style>
 
 <script>
-  // Pastikan modal langsung di <body> (hindari isu z-index/overlay)
-  document.addEventListener('DOMContentLoaded', () => {
-    const m = document.getElementById('kontakModalfront');
-    if (m && m.parentNode !== document.body) document.body.appendChild(m);
-  });
+// jQuery:
+// $('#kontakModalfront').appendTo('body');
+
+// Vanilla:
+document.addEventListener('DOMContentLoaded', () => {
+  const m = document.getElementById('kontakModalfront');
+  if (m && m.parentNode !== document.body) document.body.appendChild(m);
+});
 </script>
 
 <!-- Jadikan non-blocking + perbaiki typo install.js -->
@@ -532,7 +535,6 @@
     navigator.serviceWorker.addEventListener('controllerchange', () => { location.reload(); });
   }
 </script>
-
 
 </body>
 </html>
