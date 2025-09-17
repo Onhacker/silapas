@@ -6,6 +6,9 @@ class Admin_unit_tujuan extends Admin_Controller {
         parent::__construct();
         cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
         $this->load->model('M_admin_unit_tujuan','dm');
+
+        // === untuk auto clear cache ===
+        $this->load->driver('cache', ['adapter' => 'file']); // sesuaikan adapter bila perlu
     }
 
     public function index(){
@@ -61,6 +64,9 @@ class Admin_unit_tujuan extends Admin_Controller {
         $ok = $this->db->trans_status();
         $ok ? $this->db->trans_commit() : $this->db->trans_rollback();
 
+        // === auto clear cache saat sukses ===
+        if ($ok) { $this->_invalidate_unit_tree_cache(); }
+
         echo json_encode([
             "success" => $ok,
             "title"   => $ok ? "Berhasil" : "Gagal",
@@ -86,6 +92,9 @@ class Admin_unit_tujuan extends Admin_Controller {
         $this->db->where('id', $id)->update('unit_tujuan', $in);
         $ok = $this->db->trans_status();
         $ok ? $this->db->trans_commit() : $this->db->trans_rollback();
+
+        // === auto clear cache saat sukses ===
+        if ($ok) { $this->_invalidate_unit_tree_cache(); }
 
         echo json_encode([
             "success" => $ok,
@@ -115,6 +124,9 @@ class Admin_unit_tujuan extends Admin_Controller {
         $this->db->where_in('id',$ids)->delete('unit_tujuan');
         $ok = $this->db->affected_rows() > 0;
 
+        // === auto clear cache saat sukses ===
+        if ($ok) { $this->_invalidate_unit_tree_cache(); }
+
         echo json_encode([
             "success"=>$ok,
             "title"=>$ok?"Berhasil":"Gagal",
@@ -124,54 +136,53 @@ class Admin_unit_tujuan extends Admin_Controller {
 
     /* ===== Helpers ===== */
     private function _validate($is_update = false){
-    $this->load->library('form_validation');
+        $this->load->library('form_validation');
 
-    if ($is_update) {
-        $this->form_validation->set_rules('id', 'ID', 'required|integer');
+        if ($is_update) {
+            $this->form_validation->set_rules('id', 'ID', 'required|integer');
+        }
+
+        // Wajib
+        $this->form_validation->set_rules('nama_unit', 'Nama Unit', 'required|max_length[150]');
+        $this->form_validation->set_rules('kuota_harian', 'Kuota Harian', 'required|is_natural'); 
+        // is_natural = 0 atau lebih (>=0) di CI3
+
+        // Opsional: kalau diisi baru divalidasi
+        $nama_pejabat = $this->input->post('nama_pejabat', true);
+        if ($nama_pejabat !== null && $nama_pejabat !== '') {
+            $this->form_validation->set_rules('nama_pejabat', 'Nama Pejabat', 'max_length[150]');
+        }
+
+        $no_hp = $this->input->post('no_hp', true);
+        if ($no_hp !== null && $no_hp !== '') {
+            $this->form_validation->set_rules('no_hp', 'No HP', 'max_length[20]');
+        }
+
+        $parent_id = $this->input->post('parent_id', true);
+        if ($parent_id !== null && $parent_id !== '') {
+            $this->form_validation->set_rules('parent_id', 'Parent', 'integer');
+        }
+
+        $jumlah_pendamping = $this->input->post('jumlah_pendamping', true);
+        if ($jumlah_pendamping !== null && $jumlah_pendamping !== '') {
+            $this->form_validation->set_rules('jumlah_pendamping', 'Jumlah Pendamping', 'is_natural'); // >= 0
+        }
+
+        // Pesan
+        $this->form_validation->set_message('required', '* %s harus diisi');
+        $this->form_validation->set_message('integer', '* %s harus berupa angka bulat');
+        $this->form_validation->set_message('is_natural', '* %s minimal 0');
+        $this->form_validation->set_error_delimiters('<br> ', ' ');
+
+        if ($this->form_validation->run() !== TRUE) {
+            echo json_encode([
+                "success" => false,
+                "title"   => "Validasi Gagal",
+                "pesan"   => validation_errors()
+            ]);
+            exit;
+        }
     }
-
-    // Wajib
-    $this->form_validation->set_rules('nama_unit', 'Nama Unit', 'required|max_length[150]');
-    $this->form_validation->set_rules('kuota_harian', 'Kuota Harian', 'required|is_natural'); 
-    // is_natural = 0 atau lebih (>=0) di CI3
-
-    // Opsional: kalau diisi baru divalidasi
-    $nama_pejabat = $this->input->post('nama_pejabat', true);
-    if ($nama_pejabat !== null && $nama_pejabat !== '') {
-        $this->form_validation->set_rules('nama_pejabat', 'Nama Pejabat', 'max_length[150]');
-    }
-
-    $no_hp = $this->input->post('no_hp', true);
-    if ($no_hp !== null && $no_hp !== '') {
-        $this->form_validation->set_rules('no_hp', 'No HP', 'max_length[20]');
-    }
-
-    $parent_id = $this->input->post('parent_id', true);
-    if ($parent_id !== null && $parent_id !== '') {
-        $this->form_validation->set_rules('parent_id', 'Parent', 'integer');
-    }
-
-    $jumlah_pendamping = $this->input->post('jumlah_pendamping', true);
-    if ($jumlah_pendamping !== null && $jumlah_pendamping !== '') {
-        $this->form_validation->set_rules('jumlah_pendamping', 'Jumlah Pendamping', 'is_natural'); // >= 0
-    }
-
-    // Pesan
-    $this->form_validation->set_message('required', '* %s harus diisi');
-    $this->form_validation->set_message('integer', '* %s harus berupa angka bulat');
-    $this->form_validation->set_message('is_natural', '* %s minimal 0');
-    $this->form_validation->set_error_delimiters('<br> ', ' ');
-
-    if ($this->form_validation->run() !== TRUE) {
-        echo json_encode([
-            "success" => false,
-            "title"   => "Validasi Gagal",
-            "pesan"   => validation_errors()
-        ]);
-        exit;
-    }
-}
-
 
     private function _collect(){
         $nama_unit   = trim((string)$this->input->post('nama_unit', true));
@@ -210,5 +221,16 @@ class Admin_unit_tujuan extends Admin_Controller {
             $out[] = ["id"=>$r->id, "text"=>"[#{$r->id}] ".$r->nama_unit];
         }
         $this->output->set_content_type('application/json')->set_output(json_encode($out));
+    }
+
+    /* ===== Cache invalidation helper ===== */
+    private function _invalidate_unit_tree_cache(){
+        // Ubah daftar key jika Anda memakai nama lain/prefix berbeda
+        $keys = ['unit_tree'];
+        foreach($keys as $k){
+            $this->cache->delete($k);
+        }
+        // Jika di sisi pembaca cacheKey menyertakan versi/timestamp yang berubah-ubah,
+        // pertimbangkan invalidasi global: $this->cache->clean(); (hati-hati: bersihkan semua cache)
     }
 }

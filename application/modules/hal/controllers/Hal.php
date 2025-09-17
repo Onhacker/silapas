@@ -63,74 +63,70 @@ class Hal extends MX_Controller {
 	}
 
 	public function struktur()
-{
-    // === toggle dev: ?nocache=1 akan mem-bypass seluruh mekanisme cache ===
-    $nocache = ($this->input->get('nocache') === '1');
+	{
+	    $nocache = ($this->input->get('nocache') === '1');
 
-    // Saat nocache=1 pakai driver dummy (tidak menyimpan apa pun)
-    $this->load->driver('cache', ['adapter' => $nocache ? 'dummy' : 'file']);
-    $this->load->model('M_organisasi', 'mu');
+	    // nocache=1 -> driver dummy (tak menyimpan apa pun)
+	    $this->load->driver('cache', ['adapter' => $nocache ? 'dummy' : 'file']);
+	    $this->load->model('M_organisasi', 'mu');
 
-    // versi data berdasar last change -> dipakai untuk cache & ETag
-    $last = (int) $this->mu->last_changed(); // epoch ts; fallback 0
-    $etag = 'W/"unit-tujuan-'.$last.'"';
+	    // ETag berbasis versi data
+	    $last = (int) $this->mu->last_changed(); // epoch ts; fallback 0
+	    $etag = 'W/"unit-tree-'.$last.'"';
 
-    // 304 jika tidak berubah (skip jika nocache=1)
-    if (!$nocache) {
-        $ifNone = trim((string) $this->input->server('HTTP_IF_NONE_MATCH'));
-        if ($ifNone === $etag) {
-            $this->output
-                ->set_status_header(304)
-                ->set_header('ETag: '.$etag)
-                ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=120');
-            return;
-        }
-    }
+	    // 304 jika tidak berubah (skip jika nocache=1)
+	    if (!$nocache) {
+	        $ifNone = trim((string) $this->input->server('HTTP_IF_NONE_MATCH'));
+	        if ($ifNone === $etag) {
+	            $this->output
+	                ->set_status_header(304)
+	                ->set_header('ETag: '.$etag)
+	                // ==== Tidak ada TTL klien; selalu revalidate ====
+	                ->set_header('Cache-Control: no-cache, must-revalidate, max-age=0, s-maxage=0, proxy-revalidate')
+	                ->set_header('Pragma: no-cache')
+	                ->set_header('Expires: 0');
+	            return;
+	        }
+	    }
 
-    $cacheKey = 'unit_tujuan_tree_'.$last;
+	    // Cache server-side “selamanya”
+	    $cacheKey = 'unit_tree';
 
-    if ($nocache) {
-        // Selalu rebuild dari DB, tanpa get/save cache
-        $rows = $this->mu->get_all();            // SELECT ringan + ORDER
-        $tree = $this->build_tree_fast($rows);         // O(n)
-        $this->sort_tree_by_name($tree);               // urutkan agar rapi
-    } else {
-        // Jalur normal dengan cache
-        $tree = $this->cache->get($cacheKey);
-        if ($tree === false) {
-            $rows = $this->mu->get_all();
-            // $tree = $this->build_tree_fast($rows);
-            // $this->sort_tree_by_name($tree);
-            $tree = $this->build_tree_fast($rows);
-$this->sort_tree_custom($tree); // <-- ganti dari sort_tree_by_name()
+	    if ($nocache) {
+	        $rows = $this->mu->get_all();
+	        $tree = $this->build_tree_fast($rows);
+	        $this->sort_tree_custom($tree);
+	    } else {
+	        $tree = $this->cache->get($cacheKey);
+	        if ($tree === false) {
+	            $rows = $this->mu->get_all();
+	            $tree = $this->build_tree_fast($rows);
+	            $this->sort_tree_custom($tree);
+	            $this->cache->save($cacheKey, $tree, 0); // TTL=0 => permanen (sampai di-invalidate admin)
+	        }
+	    }
 
-            $this->cache->save($cacheKey, $tree, 300); // 5 menit
-        }
-    }
+	    $rec = $this->fm->web_me();
+	    $data = [
+	        'controller' => get_class($this),
+	        'deskripsi'  => 'Struktur Organisasi ' . ($rec->type ?? ''),
+	        'prev'       => base_url('assets/images/struktur_organisasi.webp'),
+	        'title'      => 'Struktur Organisasi',
+	        'rec'        => $rec,
+	        'tree'       => $tree,
+	    ];
 
-    $data = [
-        'controller' => get_class($this),
-        'deskripsi'  => 'Struktur Organisasi '.$this->fm->web_me()->type,
-        'prev'       => base_url('assets/images/struktur_organisasi.webp'),
-        'title'      => 'Struktur Organisasi',
-        'rec'        => $this->fm->web_me(),
-        'tree'       => $tree,
-    ];
+	    // ==== Tidak ada TTL klien; selalu revalidate (perubahan langsung terlihat) ====
+	    $this->output
+	        ->set_header('ETag: '.$etag)
+	        ->set_header('Cache-Control: no-cache, must-revalidate, max-age=0, s-maxage=0, proxy-revalidate')
+	        ->set_header('Pragma: no-cache')
+	        ->set_header('Expires: 0');
 
-    // // Header respons sesuai mode
-    // if ($nocache) {
-    //     $this->output
-    //         ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
-    //         ->set_header('Pragma: no-cache')
-    //         ->set_header('Expires: 0');
-    // } else {
-    //     $this->output
-    //         ->set_header('ETag: '.$etag)
-    //         ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=120');
-    // }
+	    $this->load->view('organisasi_view', $data);
+	}
 
-    $this->load->view('organisasi_view', $data);
-}
+
 
 
 /** O(n): bangun tree cepat dari rows datar tabel unit_tujuan */
