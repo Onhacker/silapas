@@ -475,66 +475,79 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
-<!-- Jadikan non-blocking + perbaiki typo install.js -->
-<script src="<?= base_url('assets/admin/js/vendor.min.js') ?>" defer></script>
-<script src="<?= base_url('assets/admin/js/app.min.js') ?>" defer></script>
-<script src="<?= base_url('assets/admin/js/sw.min.js') ?>" defer></script>
-<script src="<?= base_url('assets/js/install.js') ?>" defer></script>
+<script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>
+<script src="<?= base_url('assets/admin/js/app.min.js') ?>"></script>
+<script src="<?php echo base_url('assets/admin') ?>/js/sw.min.js"></script>
+<script src="<?php echo base_url('assets/') ?>/js/install.js">"></script>
 
 <script>
   const base_url = "<?= base_url() ?>";
-  function scrollToTop(){ window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
+  
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+<script>
   (function(){
     const PKG = "<?= $playPackage ?>";
     const WEB = "<?= $playUrl ?>";
+
+    // Buka Play Store via intent; fallback ke halaman web Play
     window.openPlayStore = function(e){
       if (e) e.preventDefault();
       const isAndroid = /Android/i.test(navigator.userAgent);
+
       if (isAndroid) {
-        const intent = `intent://details?id=${PKG}#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=${encodeURIComponent(WEB)};end`;
+        const intent = `intent://details?id=${PKG}` +
+        `#Intent;scheme=market;package=com.android.vending;` +
+        `S.browser_fallback_url=${encodeURIComponent(WEB)};end`;
         location.href = intent;
       } else {
+        // Non-Android: buka halaman web Play
         window.open(WEB, '_blank', 'noopener');
       }
       return false;
     };
   })();
 
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
-      .then(registration => {
-        console.log("✅ Service Worker registered.");
-        registration.onupdatefound = () => {
-          const newWorker = registration.installing;
-          if (!newWorker) return;
-          console.log("🔄 Update ditemukan.");
-          newWorker.onstatechange = () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              if (window.Swal) {
-                Swal.fire({
-                  title: 'Update Tersedia',
-                  text: 'Versi baru tersedia. Ingin muat ulang aplikasi?',
-                  icon: 'info',
-                  showCancelButton: true,
-                  confirmButtonText: 'Muat Ulang',
-                  cancelButtonText: 'Nanti Saja'
-                }).then((r) => { if (r.isConfirmed) newWorker.postMessage({ type:'SKIP_WAITING' }); });
-              } else {
-                // Fallback tanpa SweetAlert: tetap fungsional
-                if (confirm('Versi baru tersedia. Muat ulang aplikasi sekarang?')) {
-                  newWorker.postMessage({ type:'SKIP_WAITING' });
-                }
-              }
-            }
-          };
-        };
-      })
-      .catch(err => console.warn("❌ Gagal daftar Service Worker:", err));
-
-    // Reload saat SW baru mengambil alih
-    navigator.serviceWorker.addEventListener('controllerchange', () => { location.reload(); });
+    .then(registration => {
+      console.log("✅ Service Worker registered.");
+      registration.onupdatefound = () => {
+        const newWorker = registration.installing;
+        console.log("🔄 Update ditemukan.");
+        newWorker.onstatechange = () => {
+         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          Swal.fire({
+            title: 'Update Tersedia',
+            text: 'Versi baru tersedia. Ingin muat ulang aplikasi?',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Muat Ulang',
+            cancelButtonText: 'Nanti Saja'
+          }).then((result) => {
+            if (result.isConfirmed) {
+      // Minta worker baru segera aktif
+      newWorker.postMessage({ type: 'SKIP_WAITING' });
+    }
+  });
+        }
+      };
+    };
+  })
+    .catch(err => console.warn("❌ Gagal daftar Service Worker:", err));
   }
+
+
+// Reload otomatis ketika controller SW berubah (worker baru mengambil alih)
+navigator.serviceWorker.addEventListener('controllerchange', () => {
+  location.reload();
+});
+
+
 </script>
 
 
