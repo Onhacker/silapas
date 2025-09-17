@@ -1,36 +1,23 @@
 <?php if ($this->uri->segment(1) != 'on_login'): ?>
   <script>
-    const thisUri = "<?= site_url($this->uri->uri_string()); ?>";
+  const thisUri = "<?= site_url($this->uri->uri_string()); ?>";
+  const shareText = <?= json_encode($rec->nama_website.' '.$rec->kabupaten.'. '.$title) ?>;
 
-    function shareTo(platform) {
-      const url = encodeURIComponent(thisUri); 
-      const text = encodeURIComponent("<?= htmlspecialchars($rec->nama_website." ".$rec->kabupaten.". ".$title, ENT_QUOTES, 'UTF-8') ?>");
-
-
-      let shareUrl = "";
-
-      switch (platform) {
-        case "whatsapp":
-        shareUrl = `https://wa.me/?text=${text}%20${url}`;
-        break;
-        case "facebook":
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-        break;
-        case "twitter":
-        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
-        break;
-        case "telegram":
-        shareUrl = `https://t.me/share/url?url=${url}&text=${text}`;
-        break;
-        default:
-        alert("Platform tidak didukung");
-        return;
-      }
-
-      window.open(shareUrl, "_blank");
+  function shareTo(platform){
+    const url  = encodeURIComponent(thisUri);
+    const text = encodeURIComponent(shareText);
+    let shareUrl = "";
+    switch(platform){
+      case "whatsapp": shareUrl = `https://wa.me/?text=${text}%20${url}`; break;
+      case "facebook": shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
+      case "twitter":  shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`; break;
+      case "telegram": shareUrl = `https://t.me/share/url?url=${url}&text=${text}`; break;
+      default: alert("Platform tidak didukung"); return;
     }
+    window.open(shareUrl, "_blank", "noopener"); // aman
+  }
+</script>
 
-  </script>
   <style>
     #playstoreBadge img { height: 56px; width: auto; }
     @media (max-width: 576px){
@@ -340,7 +327,7 @@
     </div>
 
     <div class="nav-item">
-      <a class="<?= ($uri == 'hal/kontak' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModalfront">
+      <a href="#" class="<?= ($uri == 'hal/kontak' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModalfront">
         <i class="fas fa-bars d-block mb-1"></i>
         <span class="small">Menu</span>
       </a>
@@ -474,7 +461,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- Jadikan non-blocking + perbaiki typo install.js -->
 <script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>
 <script src="<?= base_url('assets/admin/js/app.min.js') ?>"></script>
 <script src="<?= base_url('assets/admin/js/sw.min.js') ?>"></script>
