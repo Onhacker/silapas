@@ -20,7 +20,7 @@
         </article>
 
         <hr>
-        <a class="btn btn-light" href="<?= site_url('hal/pengumuman') ?>"><i class="fe-arrow-left"></i> Kembali ke daftar</a>
+        <a class="btn btn-light" href="<?= site_url('hal/pengumuman') ?>"><i class="fe-arrow-left"></i> Ke Semua Pengumuman</a>
       </div>
     </div>
   </div>
