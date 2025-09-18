@@ -184,10 +184,10 @@
 </header>
 <style type="text/css">
   /* Kunci root agar Chrome tidak mengaktifkan P2R di root scroller */
-html, body {
+/*html, body {
   height: 100%;
   overflow: hidden !important;
-}
+}*/
 
 /* Scroll di container saja */
 #app-scroll {
