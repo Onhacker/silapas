@@ -80,7 +80,296 @@
     border: 1px solid #e0e0e0;
   }
 
+  .navbar-bottom {
+    height: 65px;
+    border-top: 1px solid #dee2e6;
+    background-color: #fff;
+    box-shadow: 0 -1px 5px rgba(0,0,0,0.05);
+    z-index: 1030;
+  }
+  .navbar-bottom a {
+    font-size: 12px;
+    color: #666;
+    text-decoration: none;
+  }
+  .navbar-bottom i {
+    font-size: 18px;
+  }
+  .center-button {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    /*background-image: linear-gradient(to right, #00c6ff 0%, #0072ff 100%) !important;*/
+    background-image: linear-gradient(to right, #1e3c72 0%, #2a5298 100%) !important;
+
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: footerAni 1s infinite;
+    z-index: 10;
+  }
+  .center-button .icon-center {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+  }
+  .nav-item {
+    flex: 1;
+    text-align: center;
+  }
+  .space-left, .space-right {
+    flex: 0.5;
+  }
+  @keyframes footerAni {
+    0% { transform: scale(1) translateX(-50%) }
+    50% { transform: scale(1.05) translateX(-48%) }
+  }
+  .modal-dialog.modal-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out;
+    margin: 0;
+  }
+  .modal.fade.show .modal-dialog.modal-bottom {
+    transform: translateY(0);
+  }
+  .modal-dialog-full {
+    max-width: 100%;
+  }
+  .modal-content-full,
+  .modal-content {
+    height: 100%;
+    border-radius: 0;
+    width: 100%;
+    margin: 0;
+  }
+  .navbar-bottom .nav-item a:hover {
+    color: #4a81d4 !important;
+  }
+  .navbar-bottom .nav-item a:hover i,
+  .navbar-bottom .nav-item a:hover span {
+    color: #4a81d4 !important;
+  }
+  .text-active {
+    color: #4a81d4 !important
+  }
+
+
+  /* transisi balik ke atas */
+  #kontakModalfront .modal-dialog.sheet-snap {
+    transition: transform .18s ease-out;
+  }
+
+
+  .modal-dialog.modal-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    transform: translateY(100%); 
+    transition: transform 0.3s ease-out; 
+    margin: 0;
+  }
+
+  .modal.fade.show .modal-dialog.modal-bottom {
+    transform: translateY(0); 
+  }
+  .modal-dialog-full {
+    max-width: 100%;
+  }
+
+  .modal-content-full {
+    height: 100%;
+    border-radius: 0;
+  }
+
+
+  .modal-content {
+    border-radius: 0; 
+    width: 100%; 
+    margin: 0;
+  }
+  /* Pastikan modal di atas backdrop */
+#kontakModalfront { z-index: 200000 !important; }        
+.modal-backdrop.show { z-index: 199990 !important; }     
+
+#topnav, .navbar, header { z-index: 199980; }
+/*:root { --topnav-h: 64px; } */
+
+/* Full width + full height */
+#kontakModalfront .modal-dialog {
+  max-width: 100%;
+  width: 100%;
+  height: 90%;
+  margin: 0;
+}
+
+/* Posisi “bottom sheet” + transisi */
+#kontakModalfront .modal-dialog.modal-bottom {
+  position: fixed;
+  inset: auto 0 0 0; /* top:auto; right:0; bottom:0; left:0 */
+  transform: translateY(100%);             /* start di bawah layar */
+  transition: transform .3s ease;          /* transisi utk buka & tutup */
+  will-change: transform;                  /* smoother */
+}
+
+/* Saat modal .show -> geser naik (terlihat) */
+#kontakModalfront.show .modal-dialog.modal-bottom {
+  transform: translateY(0);
+}
+
+/* Konten full-height + area body scrollable */
+#kontakModalfront .modal-content {
+  height: 100%;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#kontakModalfront .modal-header,
+#kontakModalfront .modal-footer { flex-shrink: 0; }
+
+#kontakModalfront .modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+/* Tumpukan z-index tetap di atas backdrop */
+#kontakModalfront { z-index: 200000 !important; }
+.modal-backdrop.show { z-index: 199990 !important; }
+
+  /* MOBILE-FIRST: 2 kolom */
+  #quickmobilem{
+    display: grid !important;            /* override d-flex */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    overflow: visible;
+  }
+
+  /* Kartu & konten rata tengah */
+  #quickmobilem .quickmobilem-item{ display:flex; }
+  #quickmobilem .qcard{
+    width:100%;
+    display:flex; flex-direction:column; align-items:center;
+    text-align:center; gap:8px;
+    padding:12px 8px; border-radius:14px;
+    background:#f8f9fa; border:1px solid #eee;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  #quickmobilem .qcard:hover{ transform:translateY(-2px); box-shadow:0 6px 14px rgba(0,0,0,.08); }
+
+  /* Ikon bulat */
+  #quickmobilem .menu-circle{
+    width:56px; height:56px; margin:0 auto;
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    color:#fff; box-shadow:0 4px 10px rgba(0,0,0,.12);
+  }
+  #quickmobilem .emoji-icon{ font-size:24px; line-height:1; }
+
+  /* Label */
+  #quickmobilem .menu-label{
+    display:block; width:100%; text-align:center;
+    margin-top:2px; font-weight:600; font-size:12px; color:#34495e;
+  }
+
+  /* SUPER KECIL (opsional) */
+  @media (max-width: 360px){
+    #quickmobilem .menu-circle{ width:50px; height:50px; }
+    #quickmobilem .emoji-icon{ font-size:22px; }
+    #quickmobilem .menu-label{ font-size:11px; }
+  }
+
+  /* LAPTOP/desktop: 4 kolom (Bootstrap lg ≥ 992px) */
+  @media (min-width: 992px){
+    #quickmobilem{ grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  }
+
+
+  /*.bg-blue{ background:#1f6feb !important; }*/
+
+  #kontakModalfront .menu-list{
+    max-height:100%;          /* bikin bisa scroll */
+    overflow-y:auto;
+    padding:12px;
+  }
+  #kontakModalfront .menu-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 14px;
+    margin:10px 12px;
+    border-radius:12px;
+    background:#c7d5ff;
+    font-weight:600;
+    color:#111 !important;
+    text-decoration:none !important;
+    transition:background .2s ease, transform .1s ease;
+  }
+  #kontakModalfront .menu-item:hover{ background:#b9c9ff; }
+  #kontakModalfront .menu-item:active{ transform:translateY(1px); }
+  #kontakModalfront .menu-item i{ width:22px; text-align:center; }
+
+  /* optional: scrollbar manis */
+  #kontakModalfront .menu-list::-webkit-scrollbar{ width:8px; }
+  #kontakModalfront .menu-list::-webkit-scrollbar-thumb{ background:#a9bbff; border-radius:8px; }
+  /* Bungkus tombol agar benar-benar center */
+.sheet-close-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin: 16px 0 8px;
+}
+
+/* Tombol bulat dengan panah ke bawah */
+.btn-sheet-close{
+  width:56px; height:56px;
+  border-radius:50%;
+  border:none;
+  outline:0;
+  background:#e9ecef;
+  box-shadow:0 6px 16px rgba(0,0,0,.12);
+  display:flex; align-items:center; justify-content:center;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.btn-sheet-close i{
+  font-size:20px;
+  line-height:1;
+  color:#343a40;
+}
+
+.btn-sheet-close:hover{
+  background:#dee2e6;
+  transform: translateY(1px);
+  box-shadow:0 4px 12px rgba(0,0,0,.10);
+}
+
+.btn-sheet-close:active{
+  transform: translateY(2px) scale(.98);
+}
+
+/* Aksesibilitas fokus keyboard */
+.btn-sheet-close:focus{
+  box-shadow:0 0 0 3px rgba(13,110,253,.25), 0 6px 16px rgba(0,0,0,.12);
+}
+
+
+  /* transisi balik/keluar singkat */
+  #kontakModalfront .modal-dialog.sheet-snap {
+    transition: transform .18s ease-out;
+  }
 </style>
+
 
 
 <div class="container-fluid mb-5">
@@ -204,91 +493,7 @@
 <!-- Close -->
 
 <?php $uri = $this->uri->uri_string(); ?>
-<style>
-  .navbar-bottom {
-    height: 65px;
-    border-top: 1px solid #dee2e6;
-    background-color: #fff;
-    box-shadow: 0 -1px 5px rgba(0,0,0,0.05);
-    z-index: 1030;
-  }
-  .navbar-bottom a {
-    font-size: 12px;
-    color: #666;
-    text-decoration: none;
-  }
-  .navbar-bottom i {
-    font-size: 18px;
-  }
-  .center-button {
-    position: absolute;
-    top: -25px;
-    left: 50%;
-    transform: translateX(-50%);
-    /*background-image: linear-gradient(to right, #00c6ff 0%, #0072ff 100%) !important;*/
-    background-image: linear-gradient(to right, #1e3c72 0%, #2a5298 100%) !important;
 
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-    border: 1px solid #dee2e6;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: footerAni 1s infinite;
-    z-index: 10;
-  }
-  .center-button .icon-center {
-    width: 30px;
-    height: 30px;
-    object-fit: contain;
-  }
-  .nav-item {
-    flex: 1;
-    text-align: center;
-  }
-  .space-left, .space-right {
-    flex: 0.5;
-  }
-  @keyframes footerAni {
-    0% { transform: scale(1) translateX(-50%) }
-    50% { transform: scale(1.05) translateX(-48%) }
-  }
-  .modal-dialog.modal-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    transform: translateY(100%);
-    transition: transform 0.3s ease-out;
-    margin: 0;
-  }
-  .modal.fade.show .modal-dialog.modal-bottom {
-    transform: translateY(0);
-  }
-  .modal-dialog-full {
-    max-width: 100%;
-  }
-  .modal-content-full,
-  .modal-content {
-    height: 100%;
-    border-radius: 0;
-    width: 100%;
-    margin: 0;
-  }
-  .navbar-bottom .nav-item a:hover {
-    color: #4a81d4 !important;
-  }
-  .navbar-bottom .nav-item a:hover i,
-  .navbar-bottom .nav-item a:hover span {
-    color: #4a81d4 !important;
-  }
-  .text-active {
-    color: #4a81d4 !important
-  }
-
-</style>
 
 <nav class="navbar fixed-bottom navbar-light bg-white shadow-sm d-lg-none navbar-bottom px-0">
   <div class="w-100 d-flex justify-content-between text-center position-relative mx-0 px-0">
@@ -338,13 +543,135 @@
 
   </div>
 </nav>
-<style>
-  /* transisi balik ke atas */
-  #kontakModalfront .modal-dialog.sheet-snap {
-    transition: transform .18s ease-out;
-  }
-</style>
 
+
+
+
+
+
+<!-- Modal Menu (Front) -->
+<div class="modal fade" id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true"  data-backdrop="false">
+  <div class="modal-dialog modal-dialog-scrollable modal-bottom modal-dialog-full" style="animation-duration:.5s;">
+    <div class="modal-content">
+      <div class="modal-header bg-blue text-white">
+        <h5 class="modal-title d-flex align-items-center text-white" id="menumoLabel">
+          <i class="fas fa-concierge-bell mr-2"></i> Menu
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Tutup">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body p-0">
+        <div class="menu-list">
+          
+
+
+<!--   <div class="row mt-1">
+    <div class="col-lg-12"> -->
+      <!-- <div class="card-box p-3"> -->
+        <div id="quickmobilem" class="quickmobilem-scroll d-flex text-center" tabindex="0" aria-label="Menu cepat geser">
+          <div class="quickmobilem-item">
+            <a href="<?= site_url('booking') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#17a2b8;"><span class="emoji-icon">📅</span></div>
+              <small class="menu-label">Booking</small>
+            </a>
+          </div>
+
+          <div class="quickmobilem-item">
+            <a href="<?= site_url('hal/jadwal') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#dc7633;"><span class="emoji-icon">⏰</span></div>
+              <small class="menu-label">Jadwal</small>
+            </a>
+          </div>
+
+          <div class="quickmobilem-item">
+            <a href="<?= site_url('hal/pengumuman') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#e74c3c;"><span class="emoji-icon">📣</span></div>
+              <small class="menu-label">Pengumuman</small>
+            </a>
+          </div>
+
+          <div class="quickmobilem-item">
+            <a href="<?= site_url('hal/struktur') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#8e44ad;"><span class="emoji-icon">🏛️</span></div>
+              <small class="menu-label">Struktur Organisasi</small>
+            </a>
+          </div>
+
+          <div class="quickmobilem-item">
+            <a href="<?= site_url('hal/alur') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#007bff;"><span class="emoji-icon">🧭</span></div>
+              <small class="menu-label">Tahapan Kunjungan</small>
+            </a>
+          </div>
+
+          <div class="quickmobilem-item">
+            <a href="<?= site_url('hal/panduan') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#3498db;"><span class="emoji-icon">📘</span></div>
+              <small class="menu-label">Panduan SIlaturahmi</small>
+            </a>
+          </div>
+
+          <div class="quickmobilem-item">
+            <a href="<?= site_url('hal/kontak') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#25D366;"><span class="emoji-icon">📞</span></div>
+              <small class="menu-label">Kontak</small>
+            </a>
+          </div>
+
+          <div class="quickmobilem-item">
+            <a href="<?= site_url('hal/privacy_policy') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#16a085;"><span class="emoji-icon">🔒</span></div>
+              <small class="menu-label">Kebijakan Privasi</small>
+            </a>
+          </div>
+
+          <div class="quickmobilem-item">
+            <a href="<?= site_url('hal') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#6c757d;"><span class="emoji-icon">📄</span></div>
+              <small class="menu-label">S&K</small>
+            </a>
+          </div>
+
+         
+        </div>
+          <!-- Tombol panah bawah (tutup modal) -->
+<div class="sheet-close-wrap text-center">
+  <button type="button"
+  id="btnSlideDownClose"
+          class="btn btn-sheet-close"
+          data-dismiss="modal"
+          aria-label="Tutup menu">
+    <i class="fas fa-chevron-down" aria-hidden="true"></i>
+  </button>
+</div>
+
+      <!-- </div> -->
+    </div>
+  </div>
+</div>
+        </div>
+      </div>
+    </div>
+<!--   </div>
+</div> -->
+
+<!-- Style khusus -->
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const m = document.getElementById('kontakModalfront');
+  if (m && m.parentNode !== document.body) document.body.appendChild(m);
+});
+</script>
+
+<script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>
+<script src="<?= base_url('assets/admin/js/app.min.js') ?>"></script>
+<script src="<?= base_url('assets/admin/js/sw.min.js') ?>"></script>
+<script src="<?= base_url('assets/js/install.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   const modal   = document.getElementById('kontakModalfront');
@@ -438,12 +765,7 @@ document.addEventListener('DOMContentLoaded', function(){
   window.addEventListener('mouseup',   onEnd);
 });
 </script>
-<style>
-  /* transisi balik/keluar singkat */
-  #kontakModalfront .modal-dialog.sheet-snap {
-    transition: transform .18s ease-out;
-  }
-</style>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function(){
@@ -573,331 +895,6 @@ document.addEventListener('DOMContentLoaded', function(){
   window.addEventListener('mouseup',   onEnd);
 });
 </script>
-
-<style type="text/css">
-
-  .modal-dialog.modal-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    transform: translateY(100%); 
-    transition: transform 0.3s ease-out; 
-    margin: 0;
-  }
-
-  .modal.fade.show .modal-dialog.modal-bottom {
-    transform: translateY(0); 
-  }
-  .modal-dialog-full {
-    max-width: 100%;
-  }
-
-  .modal-content-full {
-    height: 100%;
-    border-radius: 0;
-  }
-
-
-  .modal-content {
-    border-radius: 0; 
-    width: 100%; 
-    margin: 0;
-  }
-  /* Pastikan modal di atas backdrop */
-#kontakModalfront { z-index: 200000 !important; }        
-.modal-backdrop.show { z-index: 199990 !important; }     
-
-#topnav, .navbar, header { z-index: 199980; }
-/*:root { --topnav-h: 64px; } */
-
-/* Full width + full height */
-#kontakModalfront .modal-dialog {
-  max-width: 100%;
-  width: 100%;
-  height: 90%;
-  margin: 0;
-}
-
-/* Posisi “bottom sheet” + transisi */
-#kontakModalfront .modal-dialog.modal-bottom {
-  position: fixed;
-  inset: auto 0 0 0; /* top:auto; right:0; bottom:0; left:0 */
-  transform: translateY(100%);             /* start di bawah layar */
-  transition: transform .3s ease;          /* transisi utk buka & tutup */
-  will-change: transform;                  /* smoother */
-}
-
-/* Saat modal .show -> geser naik (terlihat) */
-#kontakModalfront.show .modal-dialog.modal-bottom {
-  transform: translateY(0);
-}
-
-/* Konten full-height + area body scrollable */
-#kontakModalfront .modal-content {
-  height: 100%;
-  border-radius: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-#kontakModalfront .modal-header,
-#kontakModalfront .modal-footer { flex-shrink: 0; }
-
-#kontakModalfront .modal-body {
-  flex: 1 1 auto;
-  overflow-y: auto;
-}
-
-/* Tumpukan z-index tetap di atas backdrop */
-#kontakModalfront { z-index: 200000 !important; }
-.modal-backdrop.show { z-index: 199990 !important; }
-
-</style>
-<style>
-  /* MOBILE-FIRST: 2 kolom */
-  #quickmobilem{
-    display: grid !important;            /* override d-flex */
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    overflow: visible;
-  }
-
-  /* Kartu & konten rata tengah */
-  #quickmobilem .quickmobilem-item{ display:flex; }
-  #quickmobilem .qcard{
-    width:100%;
-    display:flex; flex-direction:column; align-items:center;
-    text-align:center; gap:8px;
-    padding:12px 8px; border-radius:14px;
-    background:#f8f9fa; border:1px solid #eee;
-    transition: transform .2s ease, box-shadow .2s ease;
-  }
-  #quickmobilem .qcard:hover{ transform:translateY(-2px); box-shadow:0 6px 14px rgba(0,0,0,.08); }
-
-  /* Ikon bulat */
-  #quickmobilem .menu-circle{
-    width:56px; height:56px; margin:0 auto;
-    border-radius:50%; display:flex; align-items:center; justify-content:center;
-    color:#fff; box-shadow:0 4px 10px rgba(0,0,0,.12);
-  }
-  #quickmobilem .emoji-icon{ font-size:24px; line-height:1; }
-
-  /* Label */
-  #quickmobilem .menu-label{
-    display:block; width:100%; text-align:center;
-    margin-top:2px; font-weight:600; font-size:12px; color:#34495e;
-  }
-
-  /* SUPER KECIL (opsional) */
-  @media (max-width: 360px){
-    #quickmobilem .menu-circle{ width:50px; height:50px; }
-    #quickmobilem .emoji-icon{ font-size:22px; }
-    #quickmobilem .menu-label{ font-size:11px; }
-  }
-
-  /* LAPTOP/desktop: 4 kolom (Bootstrap lg ≥ 992px) */
-  @media (min-width: 992px){
-    #quickmobilem{ grid-template-columns: repeat(4, 1fr); gap: 16px; }
-  }
-
-</style>
-
-
-<!-- Modal Menu (Front) -->
-<div class="modal fade" id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true"  data-backdrop="false">
-  <div class="modal-dialog modal-dialog-scrollable modal-bottom modal-dialog-full" style="animation-duration:.5s;">
-    <div class="modal-content">
-      <div class="modal-header bg-blue text-white">
-        <h5 class="modal-title d-flex align-items-center text-white" id="menumoLabel">
-          <i class="fas fa-concierge-bell mr-2"></i> Menu
-        </h5>
-        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Tutup">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-
-      <div class="modal-body p-0">
-        <div class="menu-list">
-          
-
-
-<!--   <div class="row mt-1">
-    <div class="col-lg-12"> -->
-      <!-- <div class="card-box p-3"> -->
-        <div id="quickmobilem" class="quickmobilem-scroll d-flex text-center" tabindex="0" aria-label="Menu cepat geser">
-          <div class="quickmobilem-item">
-            <a href="<?= site_url('booking') ?>" class="qcard d-block text-decoration-none">
-              <div class="menu-circle" style="background:#17a2b8;"><span class="emoji-icon">📅</span></div>
-              <small class="menu-label">Booking</small>
-            </a>
-          </div>
-
-          <div class="quickmobilem-item">
-            <a href="<?= site_url('hal/jadwal') ?>" class="qcard d-block text-decoration-none">
-              <div class="menu-circle" style="background:#dc7633;"><span class="emoji-icon">⏰</span></div>
-              <small class="menu-label">Jadwal</small>
-            </a>
-          </div>
-
-          <div class="quickmobilem-item">
-            <a href="<?= site_url('hal/pengumuman') ?>" class="qcard d-block text-decoration-none">
-              <div class="menu-circle" style="background:#e74c3c;"><span class="emoji-icon">📣</span></div>
-              <small class="menu-label">Pengumuman</small>
-            </a>
-          </div>
-
-          <div class="quickmobilem-item">
-            <a href="<?= site_url('hal/struktur') ?>" class="qcard d-block text-decoration-none">
-              <div class="menu-circle" style="background:#8e44ad;"><span class="emoji-icon">🏛️</span></div>
-              <small class="menu-label">Struktur Organisasi</small>
-            </a>
-          </div>
-
-          <div class="quickmobilem-item">
-            <a href="<?= site_url('hal/alur') ?>" class="qcard d-block text-decoration-none">
-              <div class="menu-circle" style="background:#007bff;"><span class="emoji-icon">🧭</span></div>
-              <small class="menu-label">Tahapan Kunjungan</small>
-            </a>
-          </div>
-
-          <div class="quickmobilem-item">
-            <a href="<?= site_url('hal/panduan') ?>" class="qcard d-block text-decoration-none">
-              <div class="menu-circle" style="background:#3498db;"><span class="emoji-icon">📘</span></div>
-              <small class="menu-label">Panduan SIlaturahmi</small>
-            </a>
-          </div>
-
-          <div class="quickmobilem-item">
-            <a href="<?= site_url('hal/kontak') ?>" class="qcard d-block text-decoration-none">
-              <div class="menu-circle" style="background:#25D366;"><span class="emoji-icon">📞</span></div>
-              <small class="menu-label">Kontak</small>
-            </a>
-          </div>
-
-          <div class="quickmobilem-item">
-            <a href="<?= site_url('hal/privacy_policy') ?>" class="qcard d-block text-decoration-none">
-              <div class="menu-circle" style="background:#16a085;"><span class="emoji-icon">🔒</span></div>
-              <small class="menu-label">Kebijakan Privasi</small>
-            </a>
-          </div>
-
-          <div class="quickmobilem-item">
-            <a href="<?= site_url('hal') ?>" class="qcard d-block text-decoration-none">
-              <div class="menu-circle" style="background:#6c757d;"><span class="emoji-icon">📄</span></div>
-              <small class="menu-label">S&K</small>
-            </a>
-          </div>
-
-         
-        </div>
-          <!-- Tombol panah bawah (tutup modal) -->
-<div class="sheet-close-wrap text-center">
-  <button type="button"
-  id="btnSlideDownClose"
-          class="btn btn-sheet-close"
-          data-dismiss="modal"
-          aria-label="Tutup menu">
-    <i class="fas fa-chevron-down" aria-hidden="true"></i>
-  </button>
-</div>
-
-      <!-- </div> -->
-    </div>
-  </div>
-</div>
-        </div>
-      </div>
-    </div>
-<!--   </div>
-</div> -->
-
-<!-- Style khusus -->
-
-<style>
-  /*.bg-blue{ background:#1f6feb !important; }*/
-
-  #kontakModalfront .menu-list{
-    max-height:100%;          /* bikin bisa scroll */
-    overflow-y:auto;
-    padding:12px;
-  }
-  #kontakModalfront .menu-item{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:12px 14px;
-    margin:10px 12px;
-    border-radius:12px;
-    background:#c7d5ff;
-    font-weight:600;
-    color:#111 !important;
-    text-decoration:none !important;
-    transition:background .2s ease, transform .1s ease;
-  }
-  #kontakModalfront .menu-item:hover{ background:#b9c9ff; }
-  #kontakModalfront .menu-item:active{ transform:translateY(1px); }
-  #kontakModalfront .menu-item i{ width:22px; text-align:center; }
-
-  /* optional: scrollbar manis */
-  #kontakModalfront .menu-list::-webkit-scrollbar{ width:8px; }
-  #kontakModalfront .menu-list::-webkit-scrollbar-thumb{ background:#a9bbff; border-radius:8px; }
-  /* Bungkus tombol agar benar-benar center */
-.sheet-close-wrap{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  margin: 16px 0 8px;
-}
-
-/* Tombol bulat dengan panah ke bawah */
-.btn-sheet-close{
-  width:56px; height:56px;
-  border-radius:50%;
-  border:none;
-  outline:0;
-  background:#e9ecef;
-  box-shadow:0 6px 16px rgba(0,0,0,.12);
-  display:flex; align-items:center; justify-content:center;
-  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
-}
-
-.btn-sheet-close i{
-  font-size:20px;
-  line-height:1;
-  color:#343a40;
-}
-
-.btn-sheet-close:hover{
-  background:#dee2e6;
-  transform: translateY(1px);
-  box-shadow:0 4px 12px rgba(0,0,0,.10);
-}
-
-.btn-sheet-close:active{
-  transform: translateY(2px) scale(.98);
-}
-
-/* Aksesibilitas fokus keyboard */
-.btn-sheet-close:focus{
-  box-shadow:0 0 0 3px rgba(13,110,253,.25), 0 6px 16px rgba(0,0,0,.12);
-}
-
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const m = document.getElementById('kontakModalfront');
-  if (m && m.parentNode !== document.body) document.body.appendChild(m);
-});
-</script>
-
-<script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>
-<script src="<?= base_url('assets/admin/js/app.min.js') ?>"></script>
-<script src="<?= base_url('assets/admin/js/sw.min.js') ?>"></script>
-<script src="<?= base_url('assets/js/install.js') ?>"></script>
-
 <script>
   const base_url = "<?= base_url() ?>";
   function scrollToTop(){ window.scrollTo({ top: 0, behavior: 'smooth' }); }
