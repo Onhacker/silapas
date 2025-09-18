@@ -554,7 +554,7 @@ function loader(){
 function setLoading(isLoading, btn, opts){
   btn  = btn  || document.getElementById('btnUpdate');
   opts = opts || {};
-  const steps = opts.steps || ['Memvalidasi data…','Cek hari & jam…','Cek kuota pendamping…','Cek slot jadwal…','Menyimpan…','Kirim WhatsApp…'];
+  const steps = opts.steps || ['Memvalidasi data…','Cek hari & jam…','Cek kuota pendamping…','Cek slot jadwal…','Menyimpan…','Kirim Notifikasi…'];
   const intervalMs = opts.interval || 900;
   if (isLoading){
     if (btn.dataset.loadingActive === '1') return;
@@ -1316,7 +1316,7 @@ function loaderSteps(opts = {}) {
     'Cek kuota pendamping…',
     'Cek slot jadwal…',
     'Menyimpan…',
-    'Kirim WhatsApp…'
+    'Kirim Notifikasi…'
   ];
 
   let idx = Math.max(0, Math.min(+(opts.startIndex || 0), steps.length));

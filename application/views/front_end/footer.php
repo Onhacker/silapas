@@ -18,7 +18,7 @@
   }
 </script>
 
-  <style>
+<!--   <style>
     #playstoreBadge img { height: 56px; width: auto; }
     @media (max-width: 576px){
       #playstoreBadge img { height: 48px; }
@@ -378,8 +378,21 @@
 .modal-open { padding-right: 0 !important; }
 
 
-</style>
+              :root { --badge-h: 35px; } 
 
+              /* Pakai selector spesifik + !important biar menang dari aturan lain */
+              #playstoreBadge img,
+              #installButton img {
+                height: var(--badge-h) !important;
+                width: auto !important;
+                max-height: none !important;
+                display: inline-block;
+                vertical-align: middle;   /* sejajarkan baseline */
+              }
+
+              /* Jarak antar badge */
+              .store-badges a + a { margin-left: .5rem; }
+            </style> -->
 
 
 <div class="container-fluid mb-5">
@@ -422,22 +435,7 @@
           $playUrl     = 'https://play.google.com/store/apps/details?id=' . $playPackage;
           ?>
           <!-- Tambah di <head> atau CSS-mu -->
-            <style>
-              :root { --badge-h: 35px; } 
-
-              /* Pakai selector spesifik + !important biar menang dari aturan lain */
-              #playstoreBadge img,
-              #installButton img {
-                height: var(--badge-h) !important;
-                width: auto !important;
-                max-height: none !important;
-                display: inline-block;
-                vertical-align: middle;   /* sejajarkan baseline */
-              }
-
-              /* Jarak antar badge */
-              .store-badges a + a { margin-left: .5rem; }
-            </style>
+           
             <div class="text-center store-badges">
               <!-- Badge resmi Google Play -->
               <a id="playstoreBadge"
@@ -685,7 +683,8 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="<?= base_url('assets/admin/js/app.min.js') ?>"></script>
 <script src="<?= base_url('assets/admin/js/sw.min.js') ?>"></script>
 <script src="<?= base_url('assets/js/install.js') ?>"></script>
-<script>
+<script src="<?= base_url('assets/min/footer.min.js') ?>"></script>
+<!-- <script>
   $(document).on('click', '#btnOpenMenu, [data-target="#kontakModalfront"]', function(e){
   e.preventDefault();
   e.stopPropagation();
@@ -927,7 +926,7 @@ document.addEventListener('DOMContentLoaded', function(){
   window.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup',   onEnd);
 });
-</script>
+</script> -->
 <script>
   const base_url = "<?= base_url() ?>";
   function scrollToTop(){ window.scrollTo({ top: 0, behavior: 'smooth' }); }

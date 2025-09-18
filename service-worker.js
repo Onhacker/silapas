@@ -1,6 +1,6 @@
 /* ===== Service Worker ===== */
 
-const CACHE_NAME  = 'sila-49';                 // ⬅️ bump saat deploy
+const CACHE_NAME  = 'sila-50';                 // ⬅️ bump saat deploy
 const OFFLINE_URL = '/assets/offline.html';
 
 /* HTML publik yang boleh dicache (path tanpa query) */
@@ -51,6 +51,8 @@ const urlsToCache = [
   '/assets/admin/chart/accessibility.js',
   '/assets/min/home.min.css',
   '/assets/min/home.min.js',
+  '/assets/min/footer.min.js',
+  '/assets/min/head.min.css',
 ];
 
 /* === Helper === */
