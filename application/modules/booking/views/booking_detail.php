@@ -146,6 +146,50 @@ body.noblur-backdrop #app {
   .pendamping-table th, .pendamping-table td{ white-space:nowrap; }
   .pendamping-table code{ white-space:nowrap; word-break:normal; }
 }
+
+
+/* ==== HOTFIX: Daftar Pendamping pecah & menyempit di mobile ==== */
+
+/* 1) Paksa tabel pendamping tetap mode tabel normal, tidak jadi block/stack */
+.kv-table .pendamping-table{
+  width: 100% !important;
+  table-layout: auto !important;
+}
+.kv-table .pendamping-table thead,
+.kv-table .pendamping-table tbody,
+.kv-table .pendamping-table tr{
+  display: table-row !important;
+}
+.kv-table .pendamping-table th,
+.kv-table .pendamping-table td{
+  display: table-cell !important;
+  /* jangan pecah per karakter */
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+.kv-table .pendamping-table code{
+  white-space: nowrap !important;
+  word-break: normal !important;
+}
+
+/* 2) Kontainer responsifnya dipaksa melebar penuh & bisa scroll ke samping */
+.kv-table .kv-value > .table-responsive{
+  display:block !important;
+  width:100% !important;
+  overflow-x:auto !important;
+}
+
+/* 3) Form upload “Surat Tugas” & “Foto” biar tidak mepet/berantakan di HP */
+@media (max-width:576px){
+  .kv-table tr.kv-stack-mobile > td.kv-value > .form-group,
+  .kv-table tr.kv-stack-mobile > td.kv-value > .d-flex{
+    flex-wrap: wrap !important;
+  }
+}
+
+/* 4) (opsional tapi dianjurkan) matikan aturan lama yang bikin pecah per karakter */
+.kv-table code{ word-break: normal !important; white-space: nowrap !important; }
 </style>
 
 <div class="container-fluid">

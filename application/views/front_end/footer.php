@@ -35,12 +35,6 @@
     margin-top: 10px;
   }
 
-/*  .share-buttons p {
-    margin: 0;
-    font-weight: bold;
-    margin-right: 10px;
-  }
-  */
   .share-buttons button {
     display: flex;
     align-items: center;
@@ -698,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#kontakModalfront').modal({ backdrop:false, keyboard:true, show:true });
   return false;
 });
-  
+
 document.addEventListener('DOMContentLoaded', function(){
   const modal   = document.getElementById('kontakModalfront');
   const dialog  = modal.querySelector('.modal-dialog');           // .modal-bottom kamu
