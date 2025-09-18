@@ -251,10 +251,41 @@ body.noblur-backdrop #app {
     .kv-table-wrap { border: 0; }
   }
 </style>
+<!-- ====== OVERRIDE CSS: tetap 2 kolom di mobile ====== -->
+<style>
+  /* Lebar kolom label bisa diatur lewat var ini */
+  :root { --kv-label-w: 40%; }            /* mobile default */
+  @media (min-width: 768px){ :root { --kv-label-w: 34%; } }  /* tablet/desktop */
+
+  .kv-table { width:100%; table-layout: fixed; } /* fixed layout + wrap konten */
+  .kv-table th.kv-label, .kv-table td.kv-value{
+    vertical-align: top;
+    white-space: normal;           /* biar bisa turun baris */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .kv-table code { word-break: break-all; } /* NIK/teks tanpa spasi tetap bisa wrap */
+
+  /* --- OVERRIDE jika sebelumnya ada CSS yang men-stack baris di mobile --- */
+  @media (max-width: 576px){
+    .kv-table tr{ display: table-row !important; padding: 0 !important; }
+    .kv-table th.kv-label, .kv-table td.kv-value{
+      display: table-cell !important;
+      width: auto;
+      padding: .5rem .75rem;
+    }
+    /* Jika kamu sebelumnya menghilangkan border wrapper di mobile, kembalikan: */
+    .kv-table-wrap { border: 1px solid #eef0f3; }
+  }
+</style>
 
 <!-- ====== KONTEN (gantikan <dl>...</dl>) ====== -->
 <div class="table-responsive kv-table-wrap">
   <table class="table table-sm kv-table">
+    <colgroup>
+      <col style="width: var(--kv-label-w)">
+      <col> <!-- otomatis sisa lebar untuk isi -->
+    </colgroup>
     <tbody>
       <!-- Kode -->
       <tr>
