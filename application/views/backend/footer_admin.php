@@ -354,7 +354,7 @@ if (!function_exists('nav_class')) {
       admin_setting_web:       { a: document.getElementById("quick-setting-link") },
       admin_unit_tujuan:       { a: document.getElementById("quick-unit-link") },
       admin_unit_lain:       { a: document.getElementById("quick-unit-lain-link") },
-      admin_instansi_ref:       { a: document.getElementById("quick-instansi-ref-link") }
+      admin_instansi_ref:       { a: document.getElementById("quick-instansi-ref-link") },
       admin_pengumuman:       { a: document.getElementById("quick-pengumuman-ref-link") }
     };
 
