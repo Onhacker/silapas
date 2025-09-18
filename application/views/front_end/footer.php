@@ -679,12 +679,7 @@
 
 <script>
   // matikan handler bawaan Bootstrap di tombol ini, lalu buka manual
-$(document).on('click', '#btnOpenMenu, [data-target="#kontakModalfront"]', function(e){
-  e.preventDefault();
-  e.stopPropagation();
-  $('#kontakModalfront').modal({ backdrop:false, keyboard:true, show:true });
-  return false;
-});
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const m = document.getElementById('kontakModalfront');
@@ -697,6 +692,13 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="<?= base_url('assets/admin/js/sw.min.js') ?>"></script>
 <script src="<?= base_url('assets/js/install.js') ?>"></script>
 <script>
+  $(document).on('click', '#btnOpenMenu, [data-target="#kontakModalfront"]', function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  $('#kontakModalfront').modal({ backdrop:false, keyboard:true, show:true });
+  return false;
+});
+  
 document.addEventListener('DOMContentLoaded', function(){
   const modal   = document.getElementById('kontakModalfront');
   const dialog  = modal.querySelector('.modal-dialog');           // .modal-bottom kamu
