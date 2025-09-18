@@ -130,18 +130,7 @@
     0% { transform: scale(1) translateX(-50%) }
     50% { transform: scale(1.05) translateX(-48%) }
   }
-  .modal-dialog.modal-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    transform: translateY(100%);
-    transition: transform 0.3s ease-out;
-    margin: 0;
-  }
-  .modal.fade.show .modal-dialog.modal-bottom {
-    transform: translateY(0);
-  }
+
   .modal-dialog-full {
     max-width: 100%;
   }
@@ -201,7 +190,6 @@
   }
   /* Pastikan modal di atas backdrop */
 #kontakModalfront { z-index: 200000 !important; }        
-.modal-backdrop.show { z-index: 199990 !important; }     
 
 #topnav, .navbar, header { z-index: 199980; }
 /*:root { --topnav-h: 64px; } */
@@ -214,19 +202,6 @@
   margin: 0;
 }
 
-/* Posisi “bottom sheet” + transisi */
-#kontakModalfront .modal-dialog.modal-bottom {
-  position: fixed;
-  inset: auto 0 0 0; /* top:auto; right:0; bottom:0; left:0 */
-  transform: translateY(100%);             /* start di bawah layar */
-  transition: transform .3s ease;          /* transisi utk buka & tutup */
-  will-change: transform;                  /* smoother */
-}
-
-/* Saat modal .show -> geser naik (terlihat) */
-#kontakModalfront.show .modal-dialog.modal-bottom {
-  transform: translateY(0);
-}
 
 /* Konten full-height + area body scrollable */
 #kontakModalfront .modal-content {
@@ -362,12 +337,53 @@
 .btn-sheet-close:focus{
   box-shadow:0 0 0 3px rgba(13,110,253,.25), 0 6px 16px rgba(0,0,0,.12);
 }
+/* 1) Netralisir animasi Bootstrap HANYA utk dialog yg BUKAN bottom-sheet */
+#kontakModalfront.modal.fade .modal-dialog:not(.modal-bottom),
+#kontakModalfront.modal.show .modal-dialog:not(.modal-bottom){
+  transform: none !important;
+  transition: none !important;
+}
+
+/* 2) Bottom-sheet: pastikan transisinya hidup */
+#kontakModalfront .modal-dialog.modal-bottom{
+  transform: translateY(100%) translateZ(0);
+  transition: transform .28s ease !important;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+#kontakModalfront.show .modal-dialog.modal-bottom{
+  transform: translateY(0) translateZ(0);
+}
+
+/* 3) Pulihkan FADE pada kontainer modal (bukan backdrop) */
+#kontakModalfront.modal.fade{ opacity:0; transition: opacity .2s linear; }
+#kontakModalfront.modal.show{ opacity:1; }
+
+/* (opsional) hindari body geser saat modal buka */
+.modal-open{ padding-right:0 !important; }
 
 
-  /* transisi balik/keluar singkat */
-  #kontakModalfront .modal-dialog.sheet-snap {
-    transition: transform .18s ease-out;
-  }
+/* Satu-satunya animasi: slide dari bawah (bottom sheet) */
+#kontakModalfront .modal-dialog.modal-bottom{
+  position: fixed;
+  inset: auto 0 0 0;
+  margin: 0;
+  max-width: 100%;
+  width: 100%;
+  height: 90%;
+  transform: translateY(100%) translateZ(0);
+  transition: transform .28s ease;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+#kontakModalfront.show .modal-dialog.modal-bottom{
+  transform: translateY(0) translateZ(0);
+}
+
+/* Hindari shift layout saat body dpt padding-right otomatis */
+.modal-open { padding-right: 0 !important; }
+
+
 </style>
 
 
@@ -533,7 +549,7 @@
  
 
     <div class="nav-item">
-      <a href="#" class="<?= ($uri == 'hal/kontak' || $uri == 'hal/semua_menu' || $uri == 'hal/pengumuman' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModalfront">
+      <a href="#kontakModalfront" class="<?= ($uri == 'hal/kontak' || $uri == 'hal/semua_menu' || $uri == 'hal/pengumuman' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>" id="btnOpenMenu">
         <i class="fas fa-bars d-block mb-1"></i>
         <span class="small">Menu</span>
       </a>
@@ -662,6 +678,14 @@
 
 
 <script>
+  // matikan handler bawaan Bootstrap di tombol ini, lalu buka manual
+$(document).on('click', '#btnOpenMenu, [data-target="#kontakModalfront"]', function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  $('#kontakModalfront').modal({ backdrop:false, keyboard:true, show:true });
+  return false;
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   const m = document.getElementById('kontakModalfront');
   if (m && m.parentNode !== document.body) document.body.appendChild(m);
@@ -782,16 +806,29 @@ document.addEventListener('DOMContentLoaded', function(){
   let startY=0, lastY=0, lastT=0, dragging=false, consumed=false;
 
   // === fungsi tutup dengan slide ke bawah ===
-  function slideClose(){
-    dialog.classList.add('sheet-snap');
-    dialog.style.transform = `translateY(${THRESH+120}px)`;
-    dialog.addEventListener('transitionend', function endOnce(){
-      dialog.removeEventListener('transitionend', endOnce);
-      $(modal).modal('hide');
-      dialog.style.transform = '';
-      dialog.classList.remove('sheet-snap');
-    }, { once:true });
-  }
+ function slideClose(){
+  dialog.classList.add('sheet-snap');
+  dialog.style.transform = `translateY(${THRESH+120}px)`;
+
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    $(modal).modal('hide');
+    dialog.style.transform = '';
+    dialog.classList.remove('sheet-snap');
+  };
+
+  // kalau transisi ada → akan panggil ini
+  dialog.addEventListener('transitionend', function endOnce(){
+    dialog.removeEventListener('transitionend', endOnce);
+    finish();
+  }, { once:true });
+
+  // fallback jika transisi dimatikan/terhalang
+  setTimeout(finish, 300);
+}
+
 
   // === Bind tombol close & “panah” custom kalau ada ===
   // close bawaan bootstrap
