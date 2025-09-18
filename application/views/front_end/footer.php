@@ -701,8 +701,6 @@ document.addEventListener('DOMContentLoaded', function(){
   @media (min-width: 992px){
     #quickmobilem{ grid-template-columns: repeat(4, 1fr); gap: 16px; }
   }
-  /* Paling tegas: jangan render overlay sama sekali */
-.modal-backdrop { display: none !important; }
 
 </style>
 
