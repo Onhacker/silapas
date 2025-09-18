@@ -161,6 +161,8 @@
     }
     .image-container img{ display:none; }
     li.className = 'dropdown notification-list d-none d-md-block';
+    /* Hilangkan pull-to-refresh & efek stretch overscroll di Chrome Android/TWA */
+html, body { overscroll-behavior-y: none !important; }
 
   </style>
   <script>
