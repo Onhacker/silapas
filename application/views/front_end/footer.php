@@ -201,7 +201,7 @@
 <?php endif; ?>
 
 </div>
-
+<!-- Close -->
 
 <?php $uri = $this->uri->uri_string(); ?>
 <style>
@@ -327,7 +327,7 @@
     </div>
 
     <div class="nav-item">
-      <a href="#" class="<?= ($uri == 'hal/kontak' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModalfront">
+      <a href="<?= base_url('hal/semua_menu') ?>" class="<?= ($uri == 'hal/kontak' || $uri == 'hal/semua_menu' || $uri == 'hal/pengumuman' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>">
         <i class="fas fa-bars d-block mb-1"></i>
         <span class="small">Menu</span>
       </a>
@@ -369,8 +369,8 @@
     margin: 0;
   }
   /* Pastikan modal di atas backdrop */
-#kontakModalfront { z-index: 200000 !important; }        /* modal */
-.modal-backdrop.show { z-index: 199990 !important; }     /* backdrop (di bawah modal) */
+/*#kontakModalfront { z-index: 200000 !important; }        */
+/*.modal-backdrop.show { z-index: 199990 !important; }     */
 
 #topnav, .navbar, header { z-index: 199980; }
 /*:root { --topnav-h: 64px; } */
@@ -380,7 +380,7 @@
 </style>
 
 <!-- Modal Menu (Front) -->
-<div class="modal" id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
+<!-- <div class="modal" id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-scrollable modal-bottom fadeInUp animated modal-dialog-full" style="animation-duration:.5s;">
     <div class="modal-content">
       <div class="modal-header bg-blue text-white">
@@ -417,10 +417,10 @@
       </div>
     </div>
   </div>
-</div>
+</div> -->
 
 <!-- Style khusus -->
-<style>
+<!-- <style>
   /*.bg-blue{ background:#1f6feb !important; }*/
 
   #kontakModalfront .menu-list{
@@ -448,18 +448,14 @@
   /* optional: scrollbar manis */
   #kontakModalfront .menu-list::-webkit-scrollbar{ width:8px; }
   #kontakModalfront .menu-list::-webkit-scrollbar-thumb{ background:#a9bbff; border-radius:8px; }
-</style>
+</style> -->
 
-<script>
-// jQuery:
-// $('#kontakModalfront').appendTo('body');
-
-// Vanilla:
+<!-- <script>
 document.addEventListener('DOMContentLoaded', () => {
   const m = document.getElementById('kontakModalfront');
   if (m && m.parentNode !== document.body) document.body.appendChild(m);
 });
-</script>
+</script> -->
 
 <script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>
 <script src="<?= base_url('assets/admin/js/app.min.js') ?>"></script>

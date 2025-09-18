@@ -27,13 +27,150 @@ class Hal extends MX_Controller {
 
 	}
 
+	function semua_menu(){
+		$data["rec"]       = $this->fm->web_me();
+		$data["title"]     = "Semua Menu";
+		$data["deskripsi"] = "Semua Menu ".$data["rec"]->nama_website." ".$data["rec"]->type.".";
+		$data["prev"]      = base_url("assets/images/icon_app.png");
+		$this->load->view('semua_menu',$data);
+	}
+
+
 	function panduan(){
 		$data["rec"] = $this->fm->web_me();
 		$data["title"] = "Panduan Permohonan Kunjungan";
-		$data["deskripsi"] = "Panduan Permohonan Kunjungan menggunakan aplikasi SILATURAHMI. ".$data["rec"]->type.". .";
+		$data["deskripsi"] = "Panduan Permohonan Kunjungan menggunakan aplikasi ".$data["rec"]->nama_website." . ".$data["rec"]->type.". .";
 		$data["prev"] = base_url("assets/images/flow_icon.png");
 		$this->load->view('panduan',$data);
 
+	}
+
+	// Pastikan di __construct() controller publik Anda:
+// $this->load->model('M_pengumuman','mpg');
+
+	public function pengumuman()
+	{
+	    $this->load->driver('cache', ['adapter' => 'file']);
+
+	    $data["rec"]       = $this->fm->web_me();
+	    $data["title"]     = "Pengumuman";
+	    $data["deskripsi"] = "Pengumuman Pengunjung Tamu. ".$data["rec"]->type.".";
+	    $data["prev"]      = base_url("assets/images/pengumuman.webp");
+
+	    // View hanya rangka; data list diambil via AJAX /pengumuman_data
+	    $this->load->view('pengumuman', $data);
+	}
+
+	/** Endpoint JSON untuk listing (AJAX) */
+	public function pengumuman_data()
+	{
+	    $this->load->driver('cache', ['adapter' => 'file']);
+	    $this->load->model('M_pengumuman','mpg');
+
+	    $q        = trim((string)$this->input->get('q', true));
+	    $page     = (int)$this->input->get('page');     if ($page <= 0) $page = 1;
+	    $per_page = (int)$this->input->get('per_page'); if ($per_page <= 0) $per_page = 5;
+
+	    // Versi dari cache admin; fallback ke DB jika belum ada
+	    $ver = (int)$this->cache->get('pengumuman_ver');
+	    if (!$ver) $ver = (int)$this->mpg->last_changed_fallback();
+
+	    // ETag per kombinasi konten & query
+	    $etag = 'W/"pgm-'.$ver.'-'.md5($q.'|'.$page.'|'.$per_page).'"';
+	    $ifNone = trim((string)$this->input->server('HTTP_IF_NONE_MATCH'));
+	    if ($ifNone === $etag) {
+	        $this->output
+	            ->set_status_header(304)
+	            ->set_header('ETag: '.$etag)
+	            ->set_header('Cache-Control: public, max-age=30, stale-while-revalidate=120');
+	        return;
+	    }
+
+	    // Cache server-side untuk respon JSON (cepat!)
+	    $ckey = 'pgm_list_'.$ver.'_'.md5($q).'_'.$page.'_'.$per_page;
+	    $payload = $this->cache->get($ckey);
+	    if ($payload === false) {
+	        list($rows, $total) = $this->mpg->list_with_total($q, $page, $per_page);
+
+	        $items = [];
+	        foreach ($rows as $r) {
+	            $excerpt = $this->_excerpt(strip_tags(html_entity_decode($r['isi'] ?? '', ENT_QUOTES, 'UTF-8')), 180);
+	            $items[] = [
+	                'id'       => (int)$r['id'],
+	                'judul'    => $r['judul'],
+	                'tanggal'  => date('d M Y', strtotime($r['tanggal'])),
+	                'excerpt'  => $excerpt,
+	            ];
+	        }
+
+	        $pages = max(1, (int)ceil($total / $per_page));
+	        $payload = [
+	            'success' => true,
+	            'q'       => $q,
+	            'page'    => $page,
+	            'perPage' => $per_page,
+	            'pages'   => $pages,
+	            'total'   => $total,
+	            'items'   => $items,
+	        ];
+	        // Simpan 10 menit (aman—admin purge akan menghapus juga)
+	        $this->cache->save($ckey, $payload, 600);
+	    }
+
+	    $this->output
+	        ->set_content_type('application/json')
+	        ->set_header('ETag: '.$etag)
+	        ->set_header('Cache-Control: public, max-age=30, stale-while-revalidate=120')
+	        ->set_output(json_encode($payload));
+	}
+
+	/** Detail pengumuman publik */
+	public function detail_pengumuman($id = null)
+	{
+	    $this->load->driver('cache', ['adapter' => 'file']);
+	    $this->load->model('M_pengumuman','mpg');
+
+	    $id = (int)$id;
+	    $row = $this->mpg->get_one($id);
+	    if (!$row) { show_404(); return; }
+
+	    // Meta
+	    $desc = $this->_excerpt(strip_tags(html_entity_decode($row->isi ?? '', ENT_QUOTES, 'UTF-8')), 160);
+
+	    $data["rec"]       = $this->fm->web_me();
+	    $data["title"]     = $row->judul;
+	    $data["deskripsi"] = $desc;
+	    $data["prev"]      = base_url("assets/images/pengumuman.webp");
+	    $data["item"]      = $row;
+
+	    // ETag per detail
+	    $etag = 'W/"pgm-detail-'.$row->id.'-'.md5($row->judul.'|'.$row->tanggal.'|'.sha1($row->isi)).'"';
+	    $ifNone = trim((string)$this->input->server('HTTP_IF_NONE_MATCH'));
+	    if ($ifNone === $etag) {
+	        $this->output
+	            ->set_status_header(304)
+	            ->set_header('ETag: '.$etag)
+	            ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=300');
+	        return;
+	    }
+
+	    $this->output
+	         ->set_header('ETag: '.$etag)
+	         ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=300');
+
+	    $this->load->view('pengumuman_detail', $data);
+	}
+
+	/** Helper ringkas potong teks */
+	private function _excerpt(string $text, int $limit = 160): string
+	{
+	    $text = trim(preg_replace('/\s+/u',' ', $text));
+	    if (mb_strlen($text) <= $limit) return $text;
+	    $cut = mb_substr($text, 0, $limit);
+	    // potong di spasi terdekat
+	    $sp  = mb_strrpos($cut, ' ');
+	    if ($sp !== false) $cut = mb_substr($cut, 0, $sp);
+	    return rtrim($cut, ",.;:-— ").'…';
 	}
 
 	function alur(){
@@ -167,22 +304,31 @@ private function sort_tree_by_name(array &$nodes): void {
     }
 
     /** urutkan tree: root -> 'Kepala Lapas' dulu, sisanya alfabetis; anak tetap alfabetis */
+/** urutkan tree: root -> 'Kepala Lapas' (atau 'Kalapas') dulu, sisanya alfabetis; anak tetap alfabetis */
 private function sort_tree_custom(array &$nodes, int $depth = 0): void {
     usort($nodes, function($a, $b) use ($depth) {
-        // Hanya di depth 0 (root) kita prioritaskan 'Kepala Lapas'
         if ($depth === 0) {
-            $pa = (strcasecmp($a->nama_unit ?? '', 'Kepala Lapas') === 0) ? 0 : 1;
-            $pb = (strcasecmp($b->nama_unit ?? '', 'Kepala Lapas') === 0) ? 0 : 1;
+            $pa = $this->is_kalapas($a->nama_unit ?? '') ? 0 : 1;
+            $pb = $this->is_kalapas($b->nama_unit ?? '') ? 0 : 1;
             if ($pa !== $pb) return $pa <=> $pb;
         }
         // Default: alfabetis nama_unit, lalu id
         $c = strcasecmp($a->nama_unit ?? '', $b->nama_unit ?? '');
         return $c ?: ($a->id <=> $b->id);
     });
+
     foreach ($nodes as $n) {
         if (!empty($n->children)) $this->sort_tree_custom($n->children, $depth + 1);
     }
 }
+
+/** match variasi nama "Kepala Lapas" secara robust */
+private function is_kalapas(string $nama): bool {
+    $n = mb_strtolower(trim($nama), 'UTF-8');
+    // match "kepala lapas", "kalapas", atau "kepala lembaga pemasyarakatan"
+    return (bool) preg_match('~\b(kepala\s+lapas|kalapas|kepala\s+lembaga\s+pemasyarakatan)\b~u', $n);
+}
+
 
 
 	function get_data_desa() {

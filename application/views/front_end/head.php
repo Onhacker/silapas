@@ -161,7 +161,7 @@
     }
     .image-container img{ display:none; }
     li.className = 'dropdown notification-list d-none d-md-block';
-    
+
   </style>
   <script>
    
@@ -264,6 +264,12 @@
       <li class="has-submenu <?= ($uri === 'hal/struktur') ? 'active-menu' : '' ?>">
         <a href="<?= site_url('hal/struktur'); ?>"><i class="fe-users"></i> Struktur Organisasi</a>
       </li>
+      <li class="has-submenu <?= ($uri === 'hal/pengumuman') ? 'active-menu' : '' ?>">
+        <a href="<?= site_url('hal/pengumuman'); ?>">
+          <i class="fe-bell"></i> Pengumuman
+        </a>
+      </li>
+
 
       <!-- PANDUAN DROPDOWN -->
       <li class="has-submenu <?= ($uri === 'hal/panduan' || $uri === 'hal/alur') ? 'active-menu' : '' ?>">

@@ -49,7 +49,9 @@ class Api extends MX_Controller {
             [ 'label'=>'Unit Lain','url'=>site_url('admin_unit_lain'),
               'require'=>['Unit Lain','admin_unit_lain','user'] ],
             [ 'label'=>'Instansi Asal','url'=>site_url('admin_instansi_ref'),
-              'require'=>['Unit Lain','admin_instansi_ref','user'] ],
+              'require'=>['Pengumuman','admin_pengumuman','user'] ],
+            [ 'label'=>'Pengumuman','url'=>site_url('admin_pengumuman'),
+              'require'=>['Pengumuman','admin_pengumuman','user'] ],
         ]
     ];
 
@@ -190,6 +192,13 @@ public function get_menu_mobile()
             'url'     => site_url('Admin_instansi_ref'),
             'icon'    => 'mdi mdi-qrcode-scan',
             'require' => ['Admin_instansi_ref'] // cukup link modul
+        ],
+        [
+            'id'      => 'Admin_pengumuman',
+            'label'   => 'Pengumuman',
+            'url'     => site_url('Admin_pengumuman'),
+            'icon'    => 'mdi mdi-qrcode-scan',
+            'require' => ['Admin_pengumuman'] // cukup link modul
         ],
     ];
 

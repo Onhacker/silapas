@@ -88,9 +88,9 @@ $slides = [
             </a>
           </div>
           <div class="quickmenu-item">
-            <a href="<?= site_url('hal/struktur') ?>" class="qcard d-block text-decoration-none">
-              <div class="menu-circle" style="background:#dc7633;"><span class="emoji-icon">🕵️‍♂️</span></div>
-              <small class="menu-label">Struktur</small>
+            <a href="<?= site_url('hal/pengumuman') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#e74c3c;"><span class="emoji-icon">📣</span></div>
+              <small class="menu-label">Pengumuman</small>
             </a>
           </div>
           <div class="quickmenu-item">
@@ -103,6 +103,12 @@ $slides = [
             <a href="<?= site_url('hal/kontak') ?>" class="qcard d-block text-decoration-none">
               <div class="menu-circle" style="background:#25D366;"><span class="emoji-icon">💬</span></div>
               <small class="menu-label">Kontak</small>
+            </a>
+          </div>
+           <div class="quickmenu-item">
+            <a href="<?= site_url('hal/semua_menu') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#6f42c1;"><span class="emoji-icon">🗂️</span></div>
+              <small class="menu-label">Semua</small>
             </a>
           </div>
         </div>

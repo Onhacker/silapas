@@ -224,19 +224,21 @@ $us = $this->om->user();
 <?php } ?>
 
 
-<?php if (strtolower($controller) == "admin_instansi_ref" or strtolower($controller) == "admin_unit_lain"  or strtolower($controller) == "master_syarat" or strtolower($controller) == "admin_unit_tujuan") {?>
+<?php if (strtolower($controller) == "admin_instansi_ref" or strtolower($controller) == "admin_unit_lain"  or strtolower($controller) == "admin_pengumuman" or strtolower($controller) == "admin_unit_tujuan") {?>
    <script src="<?php echo base_url(); ?>assets/admin/datatables/js/jquery.dataTables.min.js"></script>
    <script src="<?php echo base_url(); ?>assets/admin/datatables/js/dataTables.bootstrap4.min.js"></script>
    <script src="<?php echo base_url("assets/admin") ?>/libs/jquery-toast/jquery.toast.min.js"></script>
-   <script src="<?php echo base_url("assets/admin/") ?>libs/select2/select2.min.js"></script>
-   
+   <script src="<?php echo base_url("assets/admin/") ?>libs/select2/select2.min.js"></script> 
 <?php } ?>
 
 <?php if (strtolower($controller) == "admin_dashboard" or strtolower($controller) == "admin_permohonan") {?>
    <script src="<?php echo base_url("assets/admin/") ?>libs/select2/select2.min.js"></script>
    <script src="<?php echo base_url("assets/admin") ?>/libs/tippy-js/tippy.all.min.js"></script>
 <?php } ?>
+<?php if (strtolower($controller) == "admin_pengumuman") {?>
+  <script src="<?= base_url('assets/admin/summernote/summernote-bs4.min.js'); ?>"></script>
 
+<?php } ?>
 <script>
     var base_url = "<?= base_url() ?>";
 </script>

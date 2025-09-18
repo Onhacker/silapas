@@ -293,6 +293,13 @@ if (!function_exists('nav_class')) {
             </a>
           <?php endif; ?>
 
+           <?php if (user_can_mod(['Admin_pengumuman'])): ?>
+            <a id="quick-pengumuman-ref-link" href="<?= site_url('Admin_pengumuman') ?>" class="menu-item" title="Instansi Asal">
+              <i class="fe-briefcase"></i><span>Pengumuman</span>
+            </a>
+          <?php endif; ?>
+
+
 
           <!-- Kontak -->
           <a href="<?= base_url('hal/kontak') ?>" class="menu-item">
@@ -348,6 +355,7 @@ if (!function_exists('nav_class')) {
       admin_unit_tujuan:       { a: document.getElementById("quick-unit-link") },
       admin_unit_lain:       { a: document.getElementById("quick-unit-lain-link") },
       admin_instansi_ref:       { a: document.getElementById("quick-instansi-ref-link") }
+      admin_pengumuman:       { a: document.getElementById("quick-pengumuman-ref-link") }
     };
 
     const setVis = (id, show) => {
