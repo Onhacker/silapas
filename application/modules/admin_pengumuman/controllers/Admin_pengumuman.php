@@ -32,7 +32,7 @@ class Admin_pengumuman extends Admin_Controller {
     }
 
     /** DataTables server-side */
-    public function get_data()
+    public function get_dataa()
     {
         $list = $this->dm->get_data();
         $data = [];
