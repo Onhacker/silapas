@@ -103,7 +103,7 @@
         </header>
         <p class="pgm-excerpt">${escapeHtml(item.excerpt)}</p>
         <div class="pgm-read">
-          <a class="btn btn-sm btn-outline-primary" href="${href}" aria-label="Baca selengkapnya tentang ${escapeHtml(item.judul)}">Baca selengkapnya</a>
+          <a class="btn btn-sm btn-outline-blue" href="${href}" aria-label="Baca selengkapnya tentang ${escapeHtml(item.judul)}">Baca selengkapnya</a>
         </div>
       </article>`;
   }
