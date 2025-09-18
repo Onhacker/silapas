@@ -191,7 +191,7 @@ html, body {
 
 /* Scroll di container saja */
 #app-scroll {
-  height: 100vh;
+  height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;   /* tetap halus */
   overscroll-behavior: contain;        /* blokir overscroll chain & P2R */
