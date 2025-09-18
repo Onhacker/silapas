@@ -108,6 +108,44 @@ body.noblur-backdrop #app {
 .chip .dot{width:.5rem;height:.5rem;border-radius:999px;background:#22c55e;display:inline-block}
 .longtext{line-height:1.7;white-space:pre-wrap;word-break:break-word;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px}
 .btn-copy{padding:.15rem .55rem;border-radius:8px}
+
+/* ====== Key/Value table – 2 kolom default, stack baris tertentu di mobile ====== */
+:root { --kv-label-w: 42%; }                 /* lebar kolom label di mobile */
+@media (min-width:768px){ :root { --kv-label-w: 34%; } }
+
+.kv-table-wrap{ border:1px solid #eef0f3; border-radius:14px; overflow:hidden; }
+.kv-table{ width:100%; margin:0; border-collapse:separate; border-spacing:0; table-layout:fixed; }
+.kv-table th.kv-label{
+  width:var(--kv-label-w); background:#fafbfc; color:#374151; font-weight:700;
+  padding:.6rem .75rem; vertical-align:top; white-space:nowrap;
+}
+.kv-table td.kv-value{ background:#fff; padding:.6rem .75rem; vertical-align:top; }
+.kv-table tr + tr th.kv-label, .kv-table tr + tr td.kv-value{ border-top:1px dashed #e5e7eb; }
+
+/* boleh bungkus kata, tapi JANGAN pecah setiap karakter (penyebab NIK turun) */
+.kv-table th, .kv-table td{ word-break:normal; overflow-wrap:anywhere; }
+.kv-table code{ white-space:nowrap; word-break:normal; }   /* <- stop pecah per karakter */
+
+/* Mobile: tetap 2 kolom, KECUALI baris dg .kv-stack-mobile */
+@media (max-width:576px){
+  .kv-table tr{ display:table-row !important; }
+  .kv-table th.kv-label, .kv-table td.kv-value{ display:table-cell !important; }
+
+  /* Baris berat (tabel pendamping, uploader, dll) dibuat full-width/stack */
+  .kv-table tr.kv-stack-mobile{ display:block !important; }
+  .kv-table tr.kv-stack-mobile > th.kv-label,
+  .kv-table tr.kv-stack-mobile > td.kv-value{
+    display:block !important; width:100% !important;
+    padding-left:.65rem; padding-right:.65rem;
+  }
+  .kv-table tr.kv-stack-mobile > th.kv-label{ background:transparent; color:#6b7280; }
+  .kv-table tr.kv-stack-mobile > td.kv-value{ background:transparent; }
+
+  /* Tabel pendamping: biar bisa scroll hor di layar sempit, dan NIK jangan pecah */
+  .kv-value .table-responsive{ margin-top:.35rem; }
+  .pendamping-table th, .pendamping-table td{ white-space:nowrap; }
+  .pendamping-table code{ white-space:nowrap; word-break:normal; }
+}
 </style>
 
 <div class="container-fluid">
@@ -243,173 +281,172 @@ body.noblur-backdrop #app {
       <!-- ====== KIRI ====== -->
       <div class="col-md-7">
         <div class="table-responsive kv-table-wrap">
-          <table class="table kv-table">
-            <colgroup><col style="width:var(--kv-label-w)"><col></colgroup>
-            <tbody>
-              <!-- Kode -->
-              <tr>
-                <th scope="row" class="kv-label">🔑 Kode</th>
-                <td class="kv-value">
-                  <span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
-                  <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>"><i class="mdi mdi-content-copy"></i></button>
-                </td>
-              </tr>
+  <table class="table table-sm kv-table">
+    <colgroup>
+      <col style="width:var(--kv-label-w)">
+      <col>
+    </colgroup>
+    <tbody>
+      <!-- contoh baris biasa: label kiri, isi kanan -->
+      <tr>
+        <th class="kv-label">🔑 Kode</th>
+        <td class="kv-value">
+          <span class="chip mr-2"><span class="dot"></span><span><?= html_escape($kode) ?></span></span>
+          <button class="btn btn-light btn-sm btn-copy" data-clip="<?= html_escape($kode) ?>">
+            <i class="mdi mdi-content-copy"></i>
+          </button>
+        </td>
+      </tr>
 
-              <tr><th class="kv-label">👤 Nama Tamu</th><td class="kv-value"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></td></tr>
-              <tr><th class="kv-label">🧑‍💼 Jabatan</th><td class="kv-value"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></td></tr>
+      <tr><th class="kv-label">👤 Nama Tamu</th><td class="kv-value"><?= html_escape($booking->nama_tamu) ?></td></tr>
+      <tr><th class="kv-label">🧑‍💼 Jabatan</th><td class="kv-value"><?= html_escape($booking->jabatan) ?></td></tr>
 
-              <tr>
-                <th class="kv-label">🪪 NIK</th>
-                <td class="kv-value">
-                  <?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
-                  <button type="button" class="btn btn-light btn-sm btn-copy ml-1" data-clip="<?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>"><i class="mdi mdi-content-copy"></i></button>
-                </td>
-              </tr>
+      <tr>
+        <th class="kv-label">🪪 NIK</th>
+        <td class="kv-value">
+          <code><?= html_escape($booking->nik) ?></code>
+          <button class="btn btn-light btn-sm btn-copy ml-1" data-clip="<?= html_escape($booking->nik) ?>">
+            <i class="mdi mdi-content-copy"></i>
+          </button>
+        </td>
+      </tr>
 
-              <tr><th class="kv-label">📍 Alamat</th><td class="kv-value"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></td></tr>
-              <tr><th class="kv-label">🎂 Tempat/Tanggal Lahir</th><td class="kv-value"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></td></tr>
+      <tr><th class="kv-label">📍 Alamat</th><td class="kv-value"><?= html_escape($booking->alamat) ?></td></tr>
+      <tr><th class="kv-label">🎂 Tempat/Tanggal Lahir</th><td class="kv-value"><?= html_escape($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir)) ?></td></tr>
 
-              <tr>
-                <th class="kv-label">📱 No. HP</th>
-                <td class="kv-value">
-                  <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
-                  <?php if ($hp_wa): ?>
-                    <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>"><i class="mdi mdi-whatsapp"></i></a>
-                  <?php endif; ?>
-                </td>
-              </tr>
+      <tr>
+        <th class="kv-label">📱 No. HP</th>
+        <td class="kv-value">
+          <?= html_escape($booking->no_hp) ?>
+          <?php if ($hp_wa): ?>
+            <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>">
+              <i class="mdi mdi-whatsapp"></i>
+            </a>
+          <?php endif; ?>
+        </td>
+      </tr>
 
-              <tr><th class="kv-label"><i class="mdi mdi-email-outline mr-1"></i> Email</th><td class="kv-value"><?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></td></tr>
-              <tr><th class="kv-label">🏢 Instansi Asal</th><td class="kv-value"><?= $instansi ?></td></tr>
-              <tr><th class="kv-label">🎯 Unit Tujuan</th><td class="kv-value"><?= $unit_nama ?></td></tr>
-              <tr><th class="kv-label">🏷️ Nama <?= $unit_nama ?></th><td class="kv-value"><?= $nama_petugas_instansi ?></td></tr>
+      <tr><th class="kv-label"><i class="mdi mdi-email-outline"></i> Email</th><td class="kv-value"><?= html_escape($booking->email) ?></td></tr>
+      <tr><th class="kv-label">🏢 Instansi Asal</th><td class="kv-value"><?= $instansi ?></td></tr>
+      <tr><th class="kv-label">🎯 Unit Tujuan</th><td class="kv-value"><?= $unit_nama ?></td></tr>
+      <tr><th class="kv-label">🏷️ Nama <?= $unit_nama ?></th><td class="kv-value"><?= $nama_petugas_instansi ?></td></tr>
 
-              <tr><th class="kv-label">📝 Keperluan</th><td class="kv-value"><div class="longtext"><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?></div></td></tr>
+      <tr><th class="kv-label">📝 Keperluan</th><td class="kv-value"><div class="longtext"><?= html_escape($booking->keperluan) ?></div></td></tr>
+      <tr><th class="kv-label">📅 Tanggal Kunjungan</th><td class="kv-value"><?= $hari_tgl ?></td></tr>
+      <tr><th class="kv-label">⏰ Jam</th><td class="kv-value"><?= $jam ?></td></tr>
 
-              <tr><th class="kv-label">📅 Tanggal Kunjungan</th><td class="kv-value"><?= $hari_tgl ?></td></tr>
-              <tr><th class="kv-label">⏰ Jam</th><td class="kv-value"><?= $jam ?></td></tr>
+      <tr>
+        <th class="kv-label">👥 Jumlah Pendamping</th>
+        <td class="kv-value"><span class="badge badge-pill badge-primary" style="font-size:.9rem;"><?= (int)$booking->jumlah_pendamping ?> orang</span></td>
+      </tr>
 
-              <tr>
-                <th class="kv-label">👥 Jumlah Pendamping</th>
-                <td class="kv-value"><span class="badge badge-pill badge-primary" style="font-size:.9rem;"><?= (int)($booking->jumlah_pendamping ?? 0) ?> orang</span></td>
-              </tr>
+      <?php if (!empty($pendamping_rows)): ?>
+      <!-- ===== Daftar Pendamping — STACK di mobile agar lebar penuh ===== -->
+      <tr class="kv-stack-mobile">
+        <th class="kv-label">👥 Daftar Pendamping</th>
+        <td class="kv-value">
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0 pendamping-table">
+              <thead class="thead-light">
+                <tr><th style="width:60px;">No</th><th style="width:200px;">NIK</th><th>Nama</th></tr>
+              </thead>
+              <tbody>
+                <?php foreach ($pendamping_rows as $i => $p): ?>
+                <tr>
+                  <td class="text-center"><?= $i+1 ?></td>
+                  <td><code><?= html_escape($p->nik) ?></code></td>
+                  <td><?= html_escape($p->nama) ?></td>
+                </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+      <?php elseif ((int)$booking->jumlah_pendamping > 0): ?>
+      <tr class="kv-stack-mobile">
+        <th class="kv-label">👥 Daftar Pendamping</th>
+        <td class="kv-value soft">Belum ada data pendamping.</td>
+      </tr>
+      <?php endif; ?>
 
-              <?php if (!empty($pendamping_rows)): ?>
-              <tr class="kv-stack">
-                <th class="kv-label">👥 Daftar Pendamping</th>
-                <td class="kv-value">
-                  <div class="table-responsive">
-                    <table class="table table-sm table-bordered mb-0">
-                      <thead class="thead-light">
-                        <tr><th style="width:60px;">No</th><th style="width:200px;">NIK</th><th>Nama</th></tr>
-                      </thead>
-                      <tbody>
-                        <?php foreach ($pendamping_rows as $i => $p): ?>
-                        <tr>
-                          <td class="text-center"><?= $i+1 ?></td>
-                          <td><code><?= htmlspecialchars($p->nik, ENT_QUOTES, 'UTF-8') ?></code></td>
-                          <td><?= htmlspecialchars($p->nama, ENT_QUOTES, 'UTF-8') ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                      </tbody>
-                    </table>
-                  </div>
-                </td>
-              </tr>
-              <?php elseif ((int)($booking->jumlah_pendamping ?? 0) > 0): ?>
-              <tr class="kv-stack"><th class="kv-label">👥 Daftar Pendamping</th><td class="kv-value soft">Belum ada data pendamping.</td></tr>
-              <?php endif; ?>
+      <?php if ($checkin_str): ?><tr><th class="kv-label">🕘 Check-in</th><td class="kv-value"><?= html_escape($checkin_str) ?></td></tr><?php endif; ?>
+      <?php if ($checkout_str): ?><tr><th class="kv-label">🕙 Check-out</th><td class="kv-value"><?= html_escape($checkout_str) ?></td></tr><?php endif; ?>
+      <?php if ($durasi): ?><tr><th class="kv-label">⏳ Durasi</th><td class="kv-value"><?= html_escape($durasi) ?></td></tr><?php endif; ?>
 
-              <?php if ($checkin_str): ?><tr><th class="kv-label">🕘 Check-in</th><td class="kv-value"><?= htmlspecialchars($checkin_str, ENT_QUOTES, 'UTF-8') ?></td></tr><?php endif; ?>
-              <?php if ($checkout_str): ?><tr><th class="kv-label">🕙 Check-out</th><td class="kv-value"><?= htmlspecialchars($checkout_str, ENT_QUOTES, 'UTF-8') ?></td></tr><?php endif; ?>
-              <?php if ($durasi): ?><tr><th class="kv-label">⏳ Durasi</th><td class="kv-value"><?= htmlspecialchars($durasi, ENT_QUOTES, 'UTF-8') ?></td></tr><?php endif; ?>
+      <!-- ===== Surat Tugas — STACK di mobile ===== -->
+      <tr class="kv-stack-mobile">
+        <th class="kv-label">📄 Surat Tugas</th>
+        <td class="kv-value">
+          <div id="surat_actions" class="mb-2">
+            <?php if ($surat_url): ?>
+              <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>"><i class="mdi mdi-file-pdf-box"></i> Lihat</button>
+              <a class="btn btn-sm btn-outline-secondary ml-1" href="<?= $surat_url ?>" download><i class="mdi mdi-download"></i> Unduh</a>
+            <?php else: ?>
+              <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
+            <?php endif; ?>
+          </div>
 
-              <!-- 📄 Surat Tugas -->
-              <tr class="kv-stack">
-                <th class="kv-label">📄 Surat Tugas</th>
-                <td class="kv-value">
-                  <div id="surat_actions" class="mb-2">
-                    <?php if ($surat_url): ?>
-                      <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
-                        <i class="mdi mdi-file-pdf-box"></i> Lihat
-                      </button>
-                      <a class="btn btn-sm btn-outline-secondary ml-1" href="<?= $surat_url ?>" download>
-                        <i class="mdi mdi-download"></i> Unduh
-                      </a>
-                    <?php else: ?>
-                      <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
-                    <?php endif; ?>
-                  </div>
+          <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
 
-                  <input type="hidden" id="kode_booking" value="<?= htmlspecialchars($booking->kode_booking, ENT_QUOTES, 'UTF-8') ?>">
+          <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
+            <input type="file" id="doc_surat" accept="application/pdf,image/*" class="d-none">
+            <button type="button" id="btnPickSurat" class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-file-upload-outline"></i> Pilih Berkas (PDF/JPG/PNG)</button>
+            <small id="pickSuratLabel" class="text-muted">Belum ada file</small>
+          </div>
 
-                  <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
-                    <input type="file" id="doc_surat" accept="application/pdf,image/*" class="d-none">
-                    <button type="button" id="btnPickSurat" class="btn btn-outline-secondary btn-sm">
-                      <i class="mdi mdi-file-upload-outline"></i> Pilih Berkas (PDF/JPG/PNG)
-                    </button>
-                    <small id="pickSuratLabel" class="text-muted">Belum ada file</small>
-                  </div>
+          <div id="surat_preview_wrap" class="mb-2" style="display:none;">
+            <img id="surat_preview_img" alt="Preview Surat Tugas" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;display:none;">
+            <div id="surat_preview_pdf" style="display:none;border:1px solid #e5e7eb;border-radius:8px;">
+              <div class="p-2 d-flex align-items-center justify-content-between">
+                <span><i class="mdi mdi-file-pdf-box"></i> <strong>PDF terpilih</strong></span>
+                <small class="text-muted">Pratinjau PDF terbatas di sebagian perangkat</small>
+              </div>
+              <embed id="surat_pdf_embed" type="application/pdf" width="100%" height="520px" style="border-top:1px solid #e5e7eb;">
+            </div>
+          </div>
 
-                  <div id="surat_preview_wrap" class="mb-2" style="display:none;">
-                    <img id="surat_preview_img" alt="Preview Surat Tugas" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;display:none;">
-                    <div id="surat_preview_pdf" style="display:none;border:1px solid #e5e7eb;border-radius:8px;">
-                      <div class="p-2 d-flex align-items-center justify-content-between">
-                        <span><i class="mdi mdi-file-pdf-box"></i> <strong>PDF terpilih</strong></span>
-                        <small class="text-muted">Pratinjau PDF terbatas di sebagian perangkat</small>
-                      </div>
-                      <embed id="surat_pdf_embed" type="application/pdf" width="100%" height="520px" style="border-top:1px solid #e5e7eb;">
-                    </div>
-                  </div>
+          <div class="d-flex align-items-center" style="gap:.5rem;">
+            <button type="button" id="btnSuratUpload" class="btn btn-blue btn-sm" disabled><i class="mdi mdi-cloud-upload"></i> Upload</button>
+            <button type="button" id="btnSuratReset" class="btn btn-light btn-sm" style="display:none;"><i class="mdi mdi-close-circle-outline"></i> Batal</button>
+            <small id="surat_status" class="text-muted ms-2"></small>
+          </div>
+        </td>
+      </tr>
 
-                  <div class="d-flex align-items-center" style="gap:.5rem;">
-                    <button type="button" id="btnSuratUpload" class="btn btn-primary btn-sm" disabled>
-                      <i class="mdi mdi-cloud-upload"></i> Upload
-                    </button>
-                    <button type="button" id="btnSuratReset" class="btn btn-light btn-sm" style="display:none;">
-                      <i class="mdi mdi-close-circle-outline"></i> Batal
-                    </button>
-                    <small id="surat_status" class="text-muted ms-2"></small>
-                  </div>
-                </td>
-              </tr>
+      <!-- ===== Foto — STACK di mobile ===== -->
+      <tr class="kv-stack-mobile" id="row_foto">
+        <th class="kv-label">🖼️ Foto</th>
+        <td class="kv-value" id="col_foto">
+          <div id="foto_actions" class="mb-2">
+            <?php if (!empty($foto_url)): ?>
+              <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalFoto_<?= $kode_safe ?>"><i class="mdi mdi-eye"></i> Lihat</button>
+              <a href="<?= $foto_url ?>" download class="btn btn-outline-secondary btn-sm ml-1"><i class="mdi mdi-download"></i> Unduh</a>
+            <?php else: ?>
+              <span class="soft" id="foto_empty">Belum ada dokumentasi. Foto dapat dilakukan saat check-in.</span>
+            <?php endif; ?>
+          </div>
 
-              <!-- 🖼️ Foto -->
-              <tr class="kv-stack" id="row_foto">
-                <th class="kv-label">🖼️ Foto</th>
-                <td class="kv-value" id="col_foto">
-                  <div id="foto_actions" class="mb-2">
-                    <?php if (!empty($foto_url)): ?>
-                      <div class="upload-actions">
-                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalFoto_<?= $kode_safe ?>"><i class="mdi mdi-eye"></i> Lihat</button>
-                        <a href="<?= $foto_url ?>" download class="btn btn-outline-secondary btn-sm ml-1"><i class="mdi mdi-download"></i> Unduh</a>
-                      </div>
-                    <?php else: ?>
-                      <span class="soft" id="foto_empty">Belum ada dokumentasi. Foto dapat dilakukan saat check-in.</span>
-                    <?php endif; ?>
-                  </div>
+          <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
+            <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
+            <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto</button>
+            <small id="pickLabel" class="text-muted">Belum ada file</small>
+          </div>
 
-                  <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
-                    <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
-                    <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto</button>
-                    <small id="pickLabel" class="text-muted">Belum ada file</small>
-                  </div>
+          <div id="doc_preview_wrap" class="mb-2" style="display:none;">
+            <img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;">
+          </div>
 
-                  <div id="doc_preview_wrap" class="mb-2" style="display:none;">
-                    <img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;">
-                  </div>
-
-                  <div class="d-flex align-items-center" style="gap:.5rem;">
-                    <button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled><i class="mdi mdi-cloud-upload"></i> Upload</button>
-                    <button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;"><i class="mdi mdi-close-circle-outline"></i> Batal</button>
-                    <small id="doc_status" class="text-muted ms-2"></small>
-                  </div>
-                </td>
-              </tr>
-
-            </tbody>
-          </table>
-        </div>
+          <div class="d-flex align-items-center" style="gap:.5rem;">
+            <button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled><i class="mdi mdi-cloud-upload"></i> Upload</button>
+            <button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;"><i class="mdi mdi-close-circle-outline"></i> Batal</button>
+            <small id="doc_status" class="text-muted ms-2"></small>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
         <!-- Modal Surat Tugas -->
         <div class="modal fade" id="modalSuratTugas_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
