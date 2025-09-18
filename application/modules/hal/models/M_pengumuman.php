@@ -12,31 +12,38 @@ class M_pengumuman extends CI_Model
         $off = ($page - 1) * $per_page;
         if ($off < 0) $off = 0;
 
-        $this->db->start_cache();
+        // ------- Hitung total -------
         $this->db->from('pengumuman');
 
         if ($q !== '') {
+            $q_esc = $this->db->escape_like_str($q); // aman terhadap wildcard
             $this->db->group_start()
-                ->like('judul', $q)
-                ->or_like('isi', $q)
-            ->group_end();
+                     ->like('judul', $q_esc, 'both', false) // false: sudah di-escape manual
+                     ->or_like('isi',   $q_esc, 'both', false)
+                     ->group_end();
         }
-        $this->db->stop_cache();
 
-        // Total
-        $total = (int)$this->db->count_all_results('', false);
+        $total = (int) $this->db->count_all_results(); // <- TANPA parameter kedua
 
-        // Rows
+        // ------- Ambil rows -------
+        $this->db->from('pengumuman');
+
+        if ($q !== '') {
+            $q_esc = $this->db->escape_like_str($q);
+            $this->db->group_start()
+                     ->like('judul', $q_esc, 'both', false)
+                     ->or_like('isi',   $q_esc, 'both', false)
+                     ->group_end();
+        }
+
         $this->db->select('id, judul, isi, tanggal, link_seo');
         $this->db->order_by('tanggal', 'DESC');
         $this->db->limit($per_page, $off);
         $rows = $this->db->get()->result_array();
 
-        // bersihkan cache builder
-        $this->db->flush_cache();
-
         return [$rows, $total];
     }
+
 
     /**
      * Fallback versi perubahan (ketika 'pengumuman_ver' belum ada).

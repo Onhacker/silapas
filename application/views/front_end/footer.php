@@ -325,13 +325,21 @@
         <span class="small">Struktur</span>
       </a>
     </div>
+ 
 
     <div class="nav-item">
-      <a href="<?= base_url('hal/semua_menu') ?>" class="<?= ($uri == 'hal/kontak' || $uri == 'hal/semua_menu' || $uri == 'hal/pengumuman' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>">
+      <a href="#" class="<?= ($uri == 'hal/kontak' || $uri == 'hal/semua_menu' || $uri == 'hal/pengumuman' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>" data-toggle="modal" data-target="#kontakModalfront">
         <i class="fas fa-bars d-block mb-1"></i>
         <span class="small">Menu</span>
       </a>
     </div>
+
+  <!--   <div class="nav-item">
+      <a href="<?= base_url('hal/semua_menu') ?>" class="<?= ($uri == 'hal/kontak' || $uri == 'hal/semua_menu' || $uri == 'hal/pengumuman' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>">
+        <i class="fas fa-bars d-block mb-1"></i>
+        <span class="small">Menu</span>
+      </a>
+    </div> -->
 
 
   </div>
@@ -369,19 +377,60 @@
     margin: 0;
   }
   /* Pastikan modal di atas backdrop */
-/*#kontakModalfront { z-index: 200000 !important; }        */
-/*.modal-backdrop.show { z-index: 199990 !important; }     */
+#kontakModalfront { z-index: 200000 !important; }        
+.modal-backdrop.show { z-index: 199990 !important; }     
 
 #topnav, .navbar, header { z-index: 199980; }
 /*:root { --topnav-h: 64px; } */
 
+/* Full width + full height */
+#kontakModalfront .modal-dialog {
+  max-width: 100%;
+  width: 100%;
+  height: 90%;
+  margin: 0;
+}
 
+/* Posisi “bottom sheet” + transisi */
+#kontakModalfront .modal-dialog.modal-bottom {
+  position: fixed;
+  inset: auto 0 0 0; /* top:auto; right:0; bottom:0; left:0 */
+  transform: translateY(100%);             /* start di bawah layar */
+  transition: transform .3s ease;          /* transisi utk buka & tutup */
+  will-change: transform;                  /* smoother */
+}
+
+/* Saat modal .show -> geser naik (terlihat) */
+#kontakModalfront.show .modal-dialog.modal-bottom {
+  transform: translateY(0);
+}
+
+/* Konten full-height + area body scrollable */
+#kontakModalfront .modal-content {
+  height: 100%;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#kontakModalfront .modal-header,
+#kontakModalfront .modal-footer { flex-shrink: 0; }
+
+#kontakModalfront .modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+/* Tumpukan z-index tetap di atas backdrop */
+#kontakModalfront { z-index: 200000 !important; }
+.modal-backdrop.show { z-index: 199990 !important; }
 
 </style>
 
+
 <!-- Modal Menu (Front) -->
-<!-- <div class="modal" id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-bottom fadeInUp animated modal-dialog-full" style="animation-duration:.5s;">
+<div class="modal fade" id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-bottom modal-dialog-full" style="animation-duration:.5s;">
     <div class="modal-content">
       <div class="modal-header bg-blue text-white">
         <h5 class="modal-title d-flex align-items-center text-white" id="menumoLabel">
@@ -394,37 +443,142 @@
 
       <div class="modal-body p-0">
         <div class="menu-list">
-          <a href="<?= base_url('hal/panduan') ?>" class="menu-item">
-            <i class="fas fa-file-alt"></i><span>Tata Cara Kunjungan</span>
-          </a>
+          <style>
+  /* MOBILE-FIRST: 2 kolom */
+  #quickmenu{
+    display: grid !important;            /* override d-flex */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    overflow: visible;
+  }
 
-          <a href="<?= base_url('hal/alur') ?>" class="menu-item">
-            <i class="fas fa-project-diagram"></i><span>Alur Kunjungan</span>
-          </a>
+  /* Kartu & konten rata tengah */
+  #quickmenu .quickmenu-item{ display:flex; }
+  #quickmenu .qcard{
+    width:100%;
+    display:flex; flex-direction:column; align-items:center;
+    text-align:center; gap:8px;
+    padding:12px 8px; border-radius:14px;
+    background:#f8f9fa; border:1px solid #eee;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  #quickmenu .qcard:hover{ transform:translateY(-2px); box-shadow:0 6px 14px rgba(0,0,0,.08); }
 
-          <a href="<?= base_url('hal/kontak') ?>" class="menu-item">
-            <i class="fas fa-address-book"></i><span>Kontak</span>
-          </a>
+  /* Ikon bulat */
+  #quickmenu .menu-circle{
+    width:56px; height:56px; margin:0 auto;
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    color:#fff; box-shadow:0 4px 10px rgba(0,0,0,.12);
+  }
+  #quickmenu .emoji-icon{ font-size:24px; line-height:1; }
 
-          <a href="<?= base_url('hal/privacy_policy') ?>" class="menu-item">
-            <i class="fas fa-user-shield"></i><span>Kebijakan Privasi</span>
-          </a>
+  /* Label */
+  #quickmenu .menu-label{
+    display:block; width:100%; text-align:center;
+    margin-top:2px; font-weight:600; font-size:12px; color:#34495e;
+  }
 
-          <a href="<?= base_url('hal') ?>" class="menu-item">
-            <i class="fas fa-file-contract"></i><span>Syarat &amp; Ketentuan</span>
-          </a>
+  /* SUPER KECIL (opsional) */
+  @media (max-width: 360px){
+    #quickmenu .menu-circle{ width:50px; height:50px; }
+    #quickmenu .emoji-icon{ font-size:22px; }
+    #quickmenu .menu-label{ font-size:11px; }
+  }
+
+  /* LAPTOP/desktop: 4 kolom (Bootstrap lg ≥ 992px) */
+  @media (min-width: 992px){
+    #quickmenu{ grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  }
+</style>
+
+
+
+  <div class="row mt-1">
+    <div class="col-lg-12">
+      <!-- <div class="card-box p-3"> -->
+        <div id="quickmenu" class="quickmenu-scroll d-flex text-center" tabindex="0" aria-label="Menu cepat geser">
+          <div class="quickmenu-item">
+            <a href="<?= site_url('booking') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#17a2b8;"><span class="emoji-icon">📅</span></div>
+              <small class="menu-label">Booking</small>
+            </a>
+          </div>
+
+          <div class="quickmenu-item">
+            <a href="<?= site_url('hal/jadwal') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#dc7633;"><span class="emoji-icon">⏰</span></div>
+              <small class="menu-label">Jadwal</small>
+            </a>
+          </div>
+
+          <div class="quickmenu-item">
+            <a href="<?= site_url('hal/pengumuman') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#e74c3c;"><span class="emoji-icon">📣</span></div>
+              <small class="menu-label">Pengumuman</small>
+            </a>
+          </div>
+
+          <div class="quickmenu-item">
+            <a href="<?= site_url('hal/struktur') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#8e44ad;"><span class="emoji-icon">🏛️</span></div>
+              <small class="menu-label">Struktur</small>
+            </a>
+          </div>
+
+          <div class="quickmenu-item">
+            <a href="<?= site_url('hal/alur') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#007bff;"><span class="emoji-icon">🧭</span></div>
+              <small class="menu-label">Tahapan</small>
+            </a>
+          </div>
+
+          <div class="quickmenu-item">
+            <a href="<?= site_url('hal/panduan') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#3498db;"><span class="emoji-icon">📘</span></div>
+              <small class="menu-label">Panduan</small>
+            </a>
+          </div>
+
+          <div class="quickmenu-item">
+            <a href="<?= site_url('hal/kontak') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#25D366;"><span class="emoji-icon">📞</span></div>
+              <small class="menu-label">Kontak</small>
+            </a>
+          </div>
+
+          <div class="quickmenu-item">
+            <a href="<?= site_url('hal/privacy_policy') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#16a085;"><span class="emoji-icon">🔒</span></div>
+              <small class="menu-label">Kebijakan Privasi</small>
+            </a>
+          </div>
+
+          <div class="quickmenu-item">
+            <a href="<?= site_url('hal') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#6c757d;"><span class="emoji-icon">📄</span></div>
+              <small class="menu-label">S&K</small>
+            </a>
+          </div>
+
+         
+        </div>
+
+      <!-- </div> -->
+    </div>
+  </div>
+</div>
         </div>
       </div>
     </div>
   </div>
-</div> -->
+</div>
 
 <!-- Style khusus -->
-<!-- <style>
+<style>
   /*.bg-blue{ background:#1f6feb !important; }*/
 
   #kontakModalfront .menu-list{
-    max-height:70vh;          /* bikin bisa scroll */
+    max-height:100%;          /* bikin bisa scroll */
     overflow-y:auto;
     padding:12px;
   }
@@ -448,14 +602,14 @@
   /* optional: scrollbar manis */
   #kontakModalfront .menu-list::-webkit-scrollbar{ width:8px; }
   #kontakModalfront .menu-list::-webkit-scrollbar-thumb{ background:#a9bbff; border-radius:8px; }
-</style> -->
+</style>
 
-<!-- <script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
   const m = document.getElementById('kontakModalfront');
   if (m && m.parentNode !== document.body) document.body.appendChild(m);
 });
-</script> -->
+</script>
 
 <script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>
 <script src="<?= base_url('assets/admin/js/app.min.js') ?>"></script>

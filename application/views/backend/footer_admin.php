@@ -154,7 +154,7 @@ if (!function_exists('nav_class')) {
       $menu_patterns = [
         'admin_permohonan','admin_profil/detail_profil','booking',
         'admin_dashboard/monitor','admin_scan','admin_user','hal/kontak',
-        'Admin_setting_web*','Admin_unit_tujuan*','Admin_unit_lain*'
+        'Admin_setting_web*','Admin_unit_tujuan*','Admin_unit_lain*','Admin_pengumuman*'
       ];
     ?>
     <div class="nav-item">
