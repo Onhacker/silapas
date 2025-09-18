@@ -23,9 +23,9 @@
 
         <!-- Pagination -->
         <div class="d-flex justify-content-between align-items-center mt-3">
-          <button id="btnPrev" class="btn btn-outline-secondary btn-sm"><i class="fe-chevron-left"></i>  </button>
+          <button id="btnPrev" class="btn btn-outline-secondary btn-sm"><i class="fe-chevron-left"></i> Sebelumnya</button>
           <div><span id="pagestat" class="text-muted small">Hal. 1/1</span></div>
-          <button id="btnNext" class="btn btn-outline-secondary btn-sm">  <i class="fe-chevron-right"></i></button>
+          <button id="btnNext" class="btn btn-outline-secondary btn-sm">Berikutnya <i class="fe-chevron-right"></i></button>
         </div>
       </div>
     </div>
@@ -33,7 +33,6 @@
 </div>
 
 <style>
-
 .pgm-card{ border:1px solid #e5e7eb; border-radius:16px; padding:16px; margin-bottom:12px; background:#fff; transition:box-shadow .2s }
 .pgm-card:hover{ box-shadow: 0 8px 20px rgba(0,0,0,.06); }
 .pgm-title{ font-weight:700; font-size:1.05rem; margin-bottom:.25rem }
@@ -46,16 +45,16 @@
 
 <script>
 (function(){
-  const LIST_URL   = "<?= site_url('hal/pengumuman_data') ?>";
-  const DETAIL_URL = "<?= site_url('hal/detail_pengumuman/') ?>"; // + id
+  const LIST_URL = "<?= site_url('hal/pengumuman_data') ?>";
+  const SEO_BASE = "<?= site_url('hal/detail_pengumuman/') ?>";
   let state = { q: "", page: 1, per_page: 5, pages: 1, loading: false };
 
-  const frm   = document.getElementById('frmSearch');
-  const qIn   = document.getElementById('q');
-  const list  = document.getElementById('listWrap');
-  const prev  = document.getElementById('btnPrev');
-  const next  = document.getElementById('btnNext');
-  const stat  = document.getElementById('pagestat');
+  const frm  = document.getElementById('frmSearch');
+  const qIn  = document.getElementById('q');
+  const list = document.getElementById('listWrap');
+  const prev = document.getElementById('btnPrev');
+  const next = document.getElementById('btnNext');
+  const stat = document.getElementById('pagestat');
 
   frm.addEventListener('submit', function(e){
     e.preventDefault();
@@ -77,19 +76,34 @@
     list.innerHTML = h;
   }
 
+  function slugify(s){
+    return (s||'')
+      .toString()
+      .normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-zA-Z0-9\s-]/g,'')
+      .trim().replace(/\s+/g,'-').replace(/-+/g,'-')
+      .toLowerCase();
+  }
+  function detailHref(item){
+    if (item.link_seo) return SEO_BASE + encodeURIComponent(item.link_seo);
+    const s = slugify(item.judul);
+    return SEO_BASE + item.id + (s ? '-' + s : '');
+  }
+
   function card(item){
-    const href = DETAIL_URL + item.id;
+    const href = detailHref(item);
+    const tgl  = item.tanggal_view || item.tanggal || '';
     return `
       <article class="pgm-card" aria-labelledby="t${item.id}">
         <header>
           <h2 class="pgm-title" id="t${item.id}">
             <a href="${href}" class="text-dark">${escapeHtml(item.judul)}</a>
           </h2>
-          <div class="pgm-date"><i class="fe-calendar"></i> ${escapeHtml(item.tanggal)}</div>
+          <div class="pgm-date"><i class="fe-calendar"></i> ${escapeHtml(tgl)}</div>
         </header>
         <p class="pgm-excerpt">${escapeHtml(item.excerpt)}</p>
         <div class="pgm-read">
-          <a class="btn btn-sm btn-outline-blue" href="${href}" aria-label="Baca selengkapnya tentang ${escapeHtml(item.judul)}">Baca selengkapnya</a>
+          <a class="btn btn-sm btn-outline-primary" href="${href}" aria-label="Baca selengkapnya tentang ${escapeHtml(item.judul)}">Baca selengkapnya</a>
         </div>
       </article>`;
   }
@@ -107,34 +121,32 @@
     url.searchParams.set('per_page', state.per_page);
 
     try{
-      const res = await fetch(url.toString(), { headers: { 'Accept':'application/json' } });
-      if (res.status === 304) {
-        // tidak berubah: biarkan tampilan sekarang (atau Anda bisa abaikan)
-        state.loading = false;
-        return;
-      }
+      const res = await fetch(url.toString(), {
+        headers: { 'Accept':'application/json' },
+        credentials: 'same-origin'
+      });
+      if (!res.ok) throw new Error('HTTP '+res.status);
       const j = await res.json();
       if (!j.success) throw new Error('Gagal memuat');
 
       state.pages = j.pages || 1;
       state.page  = j.page  || 1;
 
-      list.innerHTML = j.items.length
+      list.innerHTML = (j.items && j.items.length)
         ? j.items.map(card).join('')
         : '<div class="alert alert-info mb-0">Belum ada pengumuman yang cocok.</div>';
 
       prev.disabled = (state.page <= 1);
       next.disabled = (state.page >= state.pages);
-      stat.textContent = `Halaman ${state.page} / ${state.pages} • Total ${j.total} data`;
+      stat.textContent = `Halaman ${state.page} / ${state.pages} • Total ${j.total||0} data`;
     } catch(err){
-      list.innerHTML = '<div class="alert alert-danger">Gagal memuat data. Coba lagi.</div>';
       console.warn(err);
+      list.innerHTML = '<div class="alert alert-danger">Gagal memuat data. Coba lagi.</div>';
     } finally {
       state.loading = false;
     }
   }
 
-  // Muat awal
   fetchList();
 })();
 </script>

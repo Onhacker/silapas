@@ -45,133 +45,133 @@ class Hal extends MX_Controller {
 
 	}
 
-	// Pastikan di __construct() controller publik Anda:
-// $this->load->model('M_pengumuman','mpg');
+	 public function pengumuman()
+    {
+        $rec = $this->fm->web_me();
 
-	public function pengumuman()
-	{
-	    $this->load->driver('cache', ['adapter' => 'file']);
+        $data["rec"]       = $rec;
+        $data["title"]     = "Pengumuman";
+        $data["deskripsi"] = "Pengumuman Pengunjung Tamu. ".$rec->type.".";
+        $data["prev"]      = base_url("assets/images/pengumuman.webp");
 
-	    $data["rec"]       = $this->fm->web_me();
-	    $data["title"]     = "Pengumuman";
-	    $data["deskripsi"] = "Pengumuman Pengunjung Tamu. ".$data["rec"]->type.".";
-	    $data["prev"]      = base_url("assets/images/pengumuman.webp");
+        $this->load->view('pengumuman', $data);
+    }
 
-	    // View hanya rangka; data list diambil via AJAX /pengumuman_data
-	    $this->load->view('pengumuman', $data);
-	}
+    /** Endpoint JSON untuk listing (AJAX) */
+    public function pengumuman_data()
+    {
+    	$this->load->model('M_pengumuman', 'mpg');
+    	 $this->load->driver('cache', ['adapter' => 'file']);
+        $this->load->helper(['url', 'text']);
+        $q        = trim((string)$this->input->get('q', true));
+        $page     = (int)$this->input->get('page');     if ($page <= 0) $page = 1;
+        $per_page = (int)$this->input->get('per_page'); if ($per_page <= 0) $per_page = 5;
 
-	/** Endpoint JSON untuk listing (AJAX) */
-	public function pengumuman_data()
-	{
-	    $this->load->driver('cache', ['adapter' => 'file']);
-	    $this->load->model('M_pengumuman','mpg');
+        // Versi cache dari admin (dibump saat CRUD). Fallback: last_changed_fallback()
+        $ver = (int)$this->cache->get('pengumuman_ver');
+        if (!$ver) $ver = (int)$this->mpg->last_changed_fallback();
 
-	    $q        = trim((string)$this->input->get('q', true));
-	    $page     = (int)$this->input->get('page');     if ($page <= 0) $page = 1;
-	    $per_page = (int)$this->input->get('per_page'); if ($per_page <= 0) $per_page = 5;
+        // ETag per kombinasi konten & query
+        $etag   = 'W/"pgm-'.$ver.'-'.md5($q.'|'.$page.'|'.$per_page).'"';
+        $ifNone = trim((string)$this->input->server('HTTP_IF_NONE_MATCH'));
+        if ($ifNone === $etag) {
+            $this->output
+                ->set_status_header(304)
+                ->set_header('ETag: '.$etag)
+                ->set_header('Cache-Control: public, max-age=30, stale-while-revalidate=120');
+            return;
+        }
 
-	    // Versi dari cache admin; fallback ke DB jika belum ada
-	    $ver = (int)$this->cache->get('pengumuman_ver');
-	    if (!$ver) $ver = (int)$this->mpg->last_changed_fallback();
+        // Cache server-side untuk payload JSON
+        $ckey    = 'pgm_list_'.$ver.'_'.md5($q).'_'.$page.'_'.$per_page;
+        $payload = $this->cache->get($ckey);
 
-	    // ETag per kombinasi konten & query
-	    $etag = 'W/"pgm-'.$ver.'-'.md5($q.'|'.$page.'|'.$per_page).'"';
-	    $ifNone = trim((string)$this->input->server('HTTP_IF_NONE_MATCH'));
-	    if ($ifNone === $etag) {
-	        $this->output
-	            ->set_status_header(304)
-	            ->set_header('ETag: '.$etag)
-	            ->set_header('Cache-Control: public, max-age=30, stale-while-revalidate=120');
-	        return;
-	    }
+        if ($payload === false) {
+            list($rows, $total) = $this->mpg->list_with_total($q, $page, $per_page);
 
-	    // Cache server-side untuk respon JSON (cepat!)
-	    $ckey = 'pgm_list_'.$ver.'_'.md5($q).'_'.$page.'_'.$per_page;
-	    $payload = $this->cache->get($ckey);
-	    if ($payload === false) {
-	        list($rows, $total) = $this->mpg->list_with_total($q, $page, $per_page);
+            $items = [];
+            foreach ($rows as $r) {
+                $excerpt = $this->_excerpt(
+                    strip_tags(html_entity_decode($r['isi'] ?? '', ENT_QUOTES, 'UTF-8')),
+                    180
+                );
+                $items[] = [
+                    'id'           => (int)$r['id'],
+                    'judul'        => $r['judul'],
+                    'tanggal'      => $r['tanggal'],                                  // ISO (yyyy-mm-dd)
+                    'tanggal_view' => date('d M Y', strtotime($r['tanggal'])),
+                    'excerpt'      => $excerpt,
+                    'link_seo'     => $r['link_seo'],                                   // SEO URL
+                ];
+            }
 
-	        $items = [];
-	        foreach ($rows as $r) {
-	            $excerpt = $this->_excerpt(strip_tags(html_entity_decode($r['isi'] ?? '', ENT_QUOTES, 'UTF-8')), 180);
-	            $items[] = [
-	                'id'       => (int)$r['id'],
-	                'judul'    => $r['judul'],
-	                'tanggal'  => date('d M Y', strtotime($r['tanggal'])),
-	                'excerpt'  => $excerpt,
-	            ];
-	        }
+            $pages   = max(1, (int)ceil($total / $per_page));
+            $payload = [
+                'success' => true,
+                'q'       => $q,
+                'page'    => $page,
+                'perPage' => $per_page,
+                'pages'   => $pages,
+                'total'   => $total,
+                'items'   => $items,
+            ];
+            // simpan 10 menit (admin purge akan invalidasi via versi)
+            $this->cache->save($ckey, $payload, 600);
+        }
 
-	        $pages = max(1, (int)ceil($total / $per_page));
-	        $payload = [
-	            'success' => true,
-	            'q'       => $q,
-	            'page'    => $page,
-	            'perPage' => $per_page,
-	            'pages'   => $pages,
-	            'total'   => $total,
-	            'items'   => $items,
-	        ];
-	        // Simpan 10 menit (aman—admin purge akan menghapus juga)
-	        $this->cache->save($ckey, $payload, 600);
-	    }
+        $this->output
+            ->set_content_type('application/json')
+            ->set_header('ETag: '.$etag)
+            ->set_header('Cache-Control: public, max-age=30, stale-while-revalidate=120')
+            ->set_output(json_encode($payload));
+    }
 
-	    $this->output
-	        ->set_content_type('application/json')
-	        ->set_header('ETag: '.$etag)
-	        ->set_header('Cache-Control: public, max-age=30, stale-while-revalidate=120')
-	        ->set_output(json_encode($payload));
-	}
+    /** Detail pengumuman publik: terima slug | id | id-slug */
+    public function detail_pengumuman($key = null)
+    {
+        if (!$key) show_404();
 
-	/** Detail pengumuman publik */
-	public function detail_pengumuman($id = null)
-	{
-	    $this->load->driver('cache', ['adapter' => 'file']);
-	    $this->load->model('M_pengumuman','mpg');
+        $item = null;
 
-	    $id = (int)$id;
-	    $row = $this->mpg->get_one($id);
-	    if (!$row) { show_404(); return; }
+        // Pola id atau id-slug (contoh "123" atau "123-judul-seo")
+        if (preg_match('/^(\d+)(?:-.+)?$/', (string)$key, $m)) {
+            $id   = (int)$m[1];
+            $item = $this->db->get_where('pengumuman', ['id' => $id])->row();
+            if (!$item) show_404();
 
-	    // Meta
-	    $desc = $this->_excerpt(strip_tags(html_entity_decode($row->isi ?? '', ENT_QUOTES, 'UTF-8')), 160);
+            // Jika sudah punya slug dan URL bukan slug murni → redirect 301 ke SEO
+            if (!empty($item->link_seo) && $key !== $item->link_seo) {
+                redirect(site_url('hal/pengumuman/'.$item->link_seo), 'location', 301);
+                return;
+            }
+        } else {
+            // Anggap slug murni
+            $item = $this->db->get_where('pengumuman', ['link_seo' => $key])->row();
+            if (!$item) show_404();
+        }
 
-	    $data["rec"]       = $this->fm->web_me();
-	    $data["title"]     = $row->judul;
-	    $data["deskripsi"] = $desc;
-	    $data["prev"]      = base_url("assets/images/pengumuman.webp");
-	    $data["item"]      = $row;
+        // Meta
+        $rec = $this->fm->web_me();
+        $data["rec"]       = $rec;
+        $data["title"]     = $item->judul;
+        $data["deskripsi"] = $this->_excerpt(strip_tags($item->isi), 160);
+        $data["prev"]      = base_url("assets/images/flow_icon.png");
+        $data["item"]      = $item;
 
-	    // ETag per detail
-	    $etag = 'W/"pgm-detail-'.$row->id.'-'.md5($row->judul.'|'.$row->tanggal.'|'.sha1($row->isi)).'"';
-	    $ifNone = trim((string)$this->input->server('HTTP_IF_NONE_MATCH'));
-	    if ($ifNone === $etag) {
-	        $this->output
-	            ->set_status_header(304)
-	            ->set_header('ETag: '.$etag)
-	            ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=300');
-	        return;
-	    }
+        $this->load->view('pengumuman_detail', $data);
+    }
 
-	    $this->output
-	         ->set_header('ETag: '.$etag)
-	         ->set_header('Cache-Control: public, max-age=60, stale-while-revalidate=300');
+    /** Potong teks rapi */
+    private function _excerpt(string $text, int $limit = 160): string
+    {
+        $text = trim(preg_replace('/\s+/u',' ', $text));
+        if (mb_strlen($text) <= $limit) return $text;
+        $cut = mb_substr($text, 0, $limit);
+        $sp  = mb_strrpos($cut, ' ');
+        if ($sp !== false) $cut = mb_substr($cut, 0, $sp);
+        return rtrim($cut, ",.;:-— ").'…';
+    }
 
-	    $this->load->view('pengumuman_detail', $data);
-	}
-
-	/** Helper ringkas potong teks */
-	private function _excerpt(string $text, int $limit = 160): string
-	{
-	    $text = trim(preg_replace('/\s+/u',' ', $text));
-	    if (mb_strlen($text) <= $limit) return $text;
-	    $cut = mb_substr($text, 0, $limit);
-	    // potong di spasi terdekat
-	    $sp  = mb_strrpos($cut, ' ');
-	    if ($sp !== false) $cut = mb_substr($cut, 0, $sp);
-	    return rtrim($cut, ",.;:-— ").'…';
-	}
 
 	function alur(){
 		$data["rec"] = $this->fm->web_me();

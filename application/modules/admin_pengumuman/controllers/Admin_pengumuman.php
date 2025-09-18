@@ -6,6 +6,7 @@ class Admin_pengumuman extends Admin_Controller {
     public function __construct(){
         parent::__construct();
         $this->load->model('M_admin_pengumuman','dm');
+        $this->load->helper(['url','text']);
         cek_session_akses(get_class($this), $this->session->userdata('admin_session'));
     }
 
@@ -13,13 +14,9 @@ class Admin_pengumuman extends Admin_Controller {
     private function purge_public_caches()
     {
         $this->load->driver('cache', ['adapter' => 'file']);
-
-        // ❌ HAPUS baris ini agar cache lain tidak ikut terhapus
-        // $this->cache->clean();
-
-        // ✅ Cukup bump versi pengumuman
+        // ❌ JANGAN $this->cache->clean(); supaya cache lain tidak ikut terhapus.
+        // ✅ Cukup bump versi pengumuman (ETag/versi list publik akan berubah)
         $this->cache->save('pengumuman_ver', time(), 365*24*3600);
-
         $this->output->set_header('X-Cache-Purged: pengumuman');
     }
 
@@ -41,15 +38,14 @@ class Admin_pengumuman extends Admin_Controller {
             $row['cek']      = '<div class="checkbox checkbox-primary checkbox-single">'
                              . '<input type="checkbox" class="data-check" value="'.(int)$r->id.'"><label></label>'
                              . '</div>';
-            $row['no']       = ''; // diisi rowCallback
+            $row['no']       = ''; // diisi rowCallback di DataTable (index)
             $row['judul']    = htmlspecialchars($r->judul, ENT_QUOTES, 'UTF-8');
             $row['tanggal']  = htmlspecialchars(tgl_view($r->tanggal), ENT_QUOTES, 'UTF-8');
             $row['username'] = htmlspecialchars($r->username, ENT_QUOTES, 'UTF-8');
 
             $btnEdit  = '<button type="button" class="btn btn-sm btn-warning" onclick="edit('.(int)$r->id.')"><i class="fe-edit"></i> Edit</button>';
-            $data_aksi= $btnEdit;
+            $row['aksi'] = $btnEdit;
 
-            $row['aksi'] = $data_aksi;
             $data[] = $row;
         }
 
@@ -73,6 +69,13 @@ class Admin_pengumuman extends Admin_Controller {
         echo json_encode(["success"=>true,"data"=>$row]);
     }
 
+    /** Helper slug ringkas (kalau butuh lokal) */
+    private function _slugify($s){
+        $base = url_title(convert_accented_characters($s), '-', true);
+        if ($base === '') $base = 'pengumuman';
+        return substr($base, 0, 170); // sisakan space untuk suffix jika perlu
+    }
+
     /** Create */
     public function add()
     {
@@ -89,8 +92,15 @@ class Admin_pengumuman extends Admin_Controller {
         $isi      = $this->input->post('isi', false); // HTML OK
         $username = $this->session->userdata('admin_username') ?: 'admin';
 
+        // slug unik dari model
+        $slug = $this->dm->generate_unique_slug($judul);
+
         $ok = $this->db->insert('pengumuman', [
-            'judul'=>$judul,'isi'=>$isi,'tanggal'=>$tanggal,'username'=>$username
+            'judul'     => $judul,
+            'isi'       => $isi,
+            'tanggal'   => $tanggal,
+            'username'  => $username,
+            'link_seo'  => $slug,
         ]);
 
         if ($ok) { $this->purge_public_caches(); }
@@ -119,14 +129,25 @@ class Admin_pengumuman extends Admin_Controller {
         $tanggal = $this->input->post('tanggal', true);
         $isi     = $this->input->post('isi', false);
 
-        $exists = $this->db->where('id',$id)->count_all_results('pengumuman');
-        if ($exists == 0) {
+        $row = $this->db->get_where('pengumuman',['id'=>$id])->row();
+        if (!$row) {
             echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data tidak ditemukan"]); return;
         }
 
-        $ok = $this->db->where('id',$id)->update('pengumuman', [
-            'judul'=>$judul,'isi'=>$isi,'tanggal'=>$tanggal
-        ]);
+        // Apakah perlu regen slug?
+        $needSlug = (empty($row->link_seo) || trim($row->judul) !== trim($judul));
+
+        $data_update = [
+            'judul'   => $judul,
+            'isi'     => $isi,
+            'tanggal' => $tanggal,
+        ];
+
+        if ($needSlug) {
+            $data_update['link_seo'] = $this->dm->generate_unique_slug($judul, $id);
+        }
+
+        $ok = $this->db->where('id',$id)->update('pengumuman', $data_update);
 
         if ($ok) { $this->purge_public_caches(); }
 

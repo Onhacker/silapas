@@ -56,4 +56,29 @@ class M_admin_pengumuman extends CI_Model {
         $this->_base_q();
         return $this->db->count_all_results();
     }
+
+    /** Generate slug unik; jika $ignore_id diisi, exclude id tsb (update) */
+    public function generate_unique_slug($judul, $ignore_id = null)
+    {
+        $this->load->helper('url');
+
+        $base = url_title(convert_accented_characters($judul), '-', true);
+        if ($base === '') $base = 'pengumuman';
+        $base = substr($base, 0, 170);
+
+        $slug = $base;
+        $i = 1;
+
+        while (true) {
+            $this->db->from('pengumuman')->where('link_seo', $slug);
+            if ($ignore_id) $this->db->where('id !=', (int)$ignore_id);
+
+            $exists = (int)$this->db->count_all_results() > 0;
+            if (!$exists) break;
+
+            $slug = $base . '-' . (++$i);
+        }
+
+        return $slug;
+    }
 }
