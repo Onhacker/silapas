@@ -100,7 +100,7 @@ function edit(id=null){
 
   save_method='update';
   loader();
-  $.getJSON("<?= site_url('Admin_pengumuman/get_one/') ?>"+targetId)
+  $.getJSON("<?= site_url('admin_pengumuman/get_one/') ?>"+targetId)
     .done(function(r){
       close_loader();
       if (!r.success){ Swal.fire(r.title||'Gagal', r.pesan||'Tidak bisa mengambil data', 'error'); return; }
@@ -118,8 +118,8 @@ function edit(id=null){
 
 function simpan(){
   const url = (save_method === 'add')
-    ? "<?= site_url('Admin_pengumuman/add') ?>"
-    : "<?= site_url('Admin_pengumuman/update') ?>";
+    ? "<?= site_url('admin_pengumuman/add') ?>"
+    : "<?= site_url('admin_pengumuman/update') ?>";
 
   // Ambil HTML dari editor
   const htmlIsi = $('#isi').summernote('code');
@@ -165,7 +165,7 @@ function hapus_data(){
     if (!res.isConfirmed) return;
     loader();
     $.ajax({
-      url:"<?= site_url('Admin_pengumuman/hapus_data') ?>",
+      url:"<?= site_url('admin_pengumuman/hapus_data') ?>",
       type:"POST",
       data:{id:list_id},
       dataType:"json"
