@@ -289,6 +289,68 @@
   }
 
 </style>
+<!-- ========== KV TABLE: FINAL (tempel SEKALI saja, setelah CSS lain) ========== -->
+<style>
+  /* Proporsi kolom label (ubah 38–45% sesuai selera) */
+  :root { --kv-label-w: 40%; }
+  @media (min-width: 768px){ :root { --kv-label-w: 34%; } }
+
+  .kv-table-wrap { border: 1px solid #eef0f3; border-radius: 14px; overflow: hidden; }
+  .kv-table{ width:100%; table-layout: fixed; margin-bottom:0; border-collapse: separate; border-spacing:0; }
+  .kv-table th, .kv-table td{ vertical-align: top; }
+  .kv-table th.kv-label{
+    width: var(--kv-label-w);
+    font-weight: 700;
+    color: #374151;
+    background: #fafbfc;
+    white-space: nowrap;           /* label boleh satu baris */
+    box-sizing: border-box;
+  }
+  .kv-table td.kv-value{
+    background: #fff;
+    white-space: normal;           /* isi boleh turun baris */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
+  }
+  .kv-table code{ word-break: break-all; } /* NIK/teks tanpa spasi */
+
+  /* Garis antar baris */
+  .kv-table tr + tr th.kv-label,
+  .kv-table tr + tr td.kv-value{ border-top: 1px dashed #e5e7eb; }
+
+  /* SELURUH baris tetap 2 kolom di mobile */
+  @media (max-width: 576px){
+    .kv-table tr{ display: table-row !important; }
+    .kv-table th.kv-label, .kv-table td.kv-value{
+      display: table-cell !important;
+      padding: .5rem .75rem;
+      width: auto;
+    }
+    .kv-table-wrap { border: 1px solid #eef0f3; } /* pastikan border tampil */
+  }
+
+  /* KECUALI baris tertentu: stack di mobile (label di atas, isi full width) */
+  @media (max-width: 576px){
+    .kv-table tr.kv-stack-mobile{ display:block !important; padding:.4rem .5rem; }
+    .kv-table tr.kv-stack-mobile > th.kv-label,
+    .kv-table tr.kv-stack-mobile > td.kv-value{
+      display:block !important; width:100% !important; border-top:0 !important;
+      padding-left:.25rem; padding-right:.25rem;
+    }
+    .kv-table tr.kv-stack-mobile > th.kv-label{
+      background:transparent; color:#6b7280; font-size:.9rem; padding:.25rem 0;
+    }
+    .kv-table tr.kv-stack-mobile > td.kv-value{ padding-top:0; padding-bottom:.5rem; }
+
+    /* Biar konten di dalamnya benar-benar full */
+    .kv-table tr.kv-stack-mobile .table-responsive,
+    .kv-table tr.kv-stack-mobile .embed-responsive,
+    .kv-table tr.kv-stack-mobile img,
+    .kv-table tr.kv-stack-mobile .upload-actions,
+    .kv-table tr.kv-stack-mobile .form-group{ width:100%; }
+  }
+</style>
 
 <nav class="navbar fixed-bottom navbar-light bg-white shadow-sm d-lg-none navbar-bottom px-0">
   <div class="w-100 d-flex justify-content-between text-center position-relative mx-0 px-0">
