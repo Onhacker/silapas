@@ -106,7 +106,7 @@ $slides = [
             </a>
           </div>
            <div class="quickmenu-item">
-            <a href="<?= site_url('hal/semua_menu') ?>" class="qcard d-block text-decoration-none">
+            <a href="#" data-toggle="modal" data-target="#kontakModalfront" class="qcard d-block text-decoration-none">
               <div class="menu-circle" style="background:#6f42c1;"><span class="emoji-icon">🗂️</span></div>
               <small class="menu-label">Semua</small>
             </a>

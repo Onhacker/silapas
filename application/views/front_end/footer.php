@@ -334,12 +334,6 @@
       </a>
     </div>
 
-  <!--   <div class="nav-item">
-      <a href="<?= base_url('hal/semua_menu') ?>" class="<?= ($uri == 'hal/kontak' || $uri == 'hal/semua_menu' || $uri == 'hal/pengumuman' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>">
-        <i class="fas fa-bars d-block mb-1"></i>
-        <span class="small">Menu</span>
-      </a>
-    </div> -->
 
 
   </div>
@@ -426,28 +420,11 @@
 .modal-backdrop.show { z-index: 199990 !important; }
 
 </style>
-
-
-<!-- Modal Menu (Front) -->
-<div class="modal fade" id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-bottom modal-dialog-full" style="animation-duration:.5s;">
-    <div class="modal-content">
-      <div class="modal-header bg-blue text-white">
-        <h5 class="modal-title d-flex align-items-center text-white" id="menumoLabel">
-          <i class="fas fa-concierge-bell mr-2"></i> Menu
-        </h5>
-        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Tutup">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-
-      <div class="modal-body p-0">
-        <div class="menu-list">
-          <style>
+<style>
   /* MOBILE-FIRST: 2 kolom */
   #quickmobilem{
     display: grid !important;            /* override d-flex */
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     overflow: visible;
   }
@@ -492,9 +469,26 @@
 </style>
 
 
+<!-- Modal Menu (Front) -->
+<div class="modal fade" id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-bottom modal-dialog-full" style="animation-duration:.5s;">
+    <div class="modal-content">
+      <div class="modal-header bg-blue text-white">
+        <h5 class="modal-title d-flex align-items-center text-white" id="menumoLabel">
+          <i class="fas fa-concierge-bell mr-2"></i> Menu
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Tutup">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
 
-  <div class="row mt-1">
-    <div class="col-lg-12">
+      <div class="modal-body p-0">
+        <div class="menu-list">
+          
+
+
+<!--   <div class="row mt-1">
+    <div class="col-lg-12"> -->
       <!-- <div class="card-box p-3"> -->
         <div id="quickmobilem" class="quickmobilem-scroll d-flex text-center" tabindex="0" aria-label="Menu cepat geser">
           <div class="quickmobilem-item">
@@ -521,21 +515,21 @@
           <div class="quickmobilem-item">
             <a href="<?= site_url('hal/struktur') ?>" class="qcard d-block text-decoration-none">
               <div class="menu-circle" style="background:#8e44ad;"><span class="emoji-icon">🏛️</span></div>
-              <small class="menu-label">Struktur</small>
+              <small class="menu-label">Struktur Organisasi</small>
             </a>
           </div>
 
           <div class="quickmobilem-item">
             <a href="<?= site_url('hal/alur') ?>" class="qcard d-block text-decoration-none">
               <div class="menu-circle" style="background:#007bff;"><span class="emoji-icon">🧭</span></div>
-              <small class="menu-label">Tahapan</small>
+              <small class="menu-label">Tahapan Kunjungan</small>
             </a>
           </div>
 
           <div class="quickmobilem-item">
             <a href="<?= site_url('hal/panduan') ?>" class="qcard d-block text-decoration-none">
               <div class="menu-circle" style="background:#3498db;"><span class="emoji-icon">📘</span></div>
-              <small class="menu-label">Panduan</small>
+              <small class="menu-label">Panduan SIlaturahmi</small>
             </a>
           </div>
 
@@ -562,6 +556,15 @@
 
          
         </div>
+          <!-- Tombol panah bawah (tutup modal) -->
+<div class="sheet-close-wrap text-center">
+  <button type="button"
+          class="btn btn-sheet-close"
+          data-dismiss="modal"
+          aria-label="Tutup menu">
+    <i class="fas fa-chevron-down" aria-hidden="true"></i>
+  </button>
+</div>
 
       <!-- </div> -->
     </div>
@@ -570,10 +573,11 @@
         </div>
       </div>
     </div>
-  </div>
-</div>
+<!--   </div>
+</div> -->
 
 <!-- Style khusus -->
+
 <style>
   /*.bg-blue{ background:#1f6feb !important; }*/
 
@@ -602,6 +606,47 @@
   /* optional: scrollbar manis */
   #kontakModalfront .menu-list::-webkit-scrollbar{ width:8px; }
   #kontakModalfront .menu-list::-webkit-scrollbar-thumb{ background:#a9bbff; border-radius:8px; }
+  /* Bungkus tombol agar benar-benar center */
+.sheet-close-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin: 16px 0 8px;
+}
+
+/* Tombol bulat dengan panah ke bawah */
+.btn-sheet-close{
+  width:56px; height:56px;
+  border-radius:50%;
+  border:none;
+  outline:0;
+  background:#e9ecef;
+  box-shadow:0 6px 16px rgba(0,0,0,.12);
+  display:flex; align-items:center; justify-content:center;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.btn-sheet-close i{
+  font-size:20px;
+  line-height:1;
+  color:#343a40;
+}
+
+.btn-sheet-close:hover{
+  background:#dee2e6;
+  transform: translateY(1px);
+  box-shadow:0 4px 12px rgba(0,0,0,.10);
+}
+
+.btn-sheet-close:active{
+  transform: translateY(2px) scale(.98);
+}
+
+/* Aksesibilitas fokus keyboard */
+.btn-sheet-close:focus{
+  box-shadow:0 0 0 3px rgba(13,110,253,.25), 0 6px 16px rgba(0,0,0,.12);
+}
+
 </style>
 
 <script>
