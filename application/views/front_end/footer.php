@@ -338,6 +338,106 @@
 
   </div>
 </nav>
+<style>
+  /* transisi balik ke atas */
+  #kontakModalfront .modal-dialog.sheet-snap {
+    transition: transform .18s ease-out;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const modal   = document.getElementById('kontakModalfront');
+  const dialog  = modal.querySelector('.modal-dialog');           // .modal-bottom kamu
+  const body    = modal.querySelector('.modal-body');             // konten scrollable
+  const header  = modal.querySelector('.modal-header');           // area “handle”
+  const THRESH  = 100;                                            // px untuk tutup
+  const MAXY    = 400;                                            // batas translasi
+  const VELCLOSE= 0.45;                                           // kecepatan (px/ms)
+
+  let startY = 0, lastY = 0, lastT = 0, dragging = false, consumed = false;
+
+  function onStart(e){
+    const t = (e.touches ? e.touches[0] : e);
+    // hanya boleh mulai jika di header atau body scrollTop==0 (di paling atas)
+    const canStart = header.contains(t.target) || (body && body.scrollTop <= 0);
+    if (!canStart) return;
+
+    dragging = true;
+    consumed = false;
+    startY = lastY = t.clientY;
+    lastT  = performance.now();
+    dialog.classList.remove('sheet-animate-out');
+    dialog.classList.remove('sheet-animate-in');
+    dialog.classList.remove('sheet-snap');
+  }
+
+  function onMove(e){
+    if (!dragging) return;
+    const t = (e.touches ? e.touches[0] : e);
+    const dy = t.clientY - startY;
+    // hanya respons jika geser ke bawah (dy>0) dan body di top agar tak konflik scroll
+    if (dy > 0 && body && body.scrollTop <= 0){
+      e.preventDefault();                   // kunci scroll, ambil alih gesture
+      consumed = true;
+      const translate = Math.min(dy, MAXY); // batasi
+      dialog.style.transform = `translateY(${translate}px)`;
+    }
+    lastY = t.clientY;
+    lastT = performance.now();
+  }
+
+  function onEnd(){
+    if (!dragging) return;
+    dragging = false;
+
+    // hitung kecepatan “swipe”
+    const now = performance.now();
+    const dt  = Math.max(1, now - lastT);           // ms
+    const dy  = Math.max(0, lastY - startY);        // px
+    const v   = dy / dt;                            // px/ms
+
+    // keputusan: tutup atau snap back
+    const shouldClose = dy > THRESH || v > VELCLOSE;
+
+    dialog.classList.add('sheet-snap');             // aktifkan transisi singkat
+
+    if (shouldClose && consumed){
+      // animasi turun dulu, lalu hide modal
+      dialog.style.transform = `translateY(${Math.max(dy, THRESH)+120}px)`;
+      dialog.addEventListener('transitionend', function endOnce(){
+        dialog.removeEventListener('transitionend', endOnce);
+        $(modal).modal('hide');
+        // reset
+        dialog.style.transform = '';
+        dialog.classList.remove('sheet-snap');
+      }, { once:true });
+    } else {
+      // balik ke posisi semula
+      dialog.style.transform = 'translateY(0)';
+      dialog.addEventListener('transitionend', function endOnce(){
+        dialog.removeEventListener('transitionend', endOnce);
+        dialog.style.transform = '';
+        dialog.classList.remove('sheet-snap');
+      }, { once:true });
+    }
+  }
+
+  // reset transform ketika modal dibuka
+  $(modal).on('show.bs.modal', function(){
+    dialog.style.transform = '';
+    dialog.classList.remove('sheet-snap');
+  });
+
+  // bind touch + mouse (mouse opsional)
+  modal.addEventListener('touchstart', onStart, {passive:false});
+  modal.addEventListener('touchmove',  onMove,  {passive:false});
+  modal.addEventListener('touchend',   onEnd,   {passive:true});
+  modal.addEventListener('mousedown',  onStart);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup',   onEnd);
+});
+</script>
 
 <style type="text/css">
 
