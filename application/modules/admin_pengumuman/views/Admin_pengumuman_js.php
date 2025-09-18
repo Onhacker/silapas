@@ -52,7 +52,7 @@ $(document).ready(function(){
     processing:true,
     serverSide:true,
     scrollX:true,
-    ajax:{ url:"<?= site_url('Admin_pengumuman/get_data') ?>", type:"POST" },
+    ajax:{ url:"<?= site_url('admin_pengumuman/get_data') ?>", type:"POST" },
     columns:[
       {data:"cek", orderable:false},
       {data:"no",  orderable:false},  // diisi rowCallback
