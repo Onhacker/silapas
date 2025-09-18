@@ -84,40 +84,42 @@ class Hal extends MX_Controller {
 
         // Cache server-side untuk payload JSON
         $ckey    = 'pgm_list_'.$ver.'_'.md5($q).'_'.$page.'_'.$per_page;
-        $payload = $this->cache->get($ckey);
+		$payload = $this->cache->get($ckey);
 
-        if ($payload === false) {
-            list($rows, $total) = $this->mpg->list_with_total($q, $page, $per_page);
+		if ($payload === false) {
+		    list($rows, $total) = $this->mpg->list_with_total($q, $page, $per_page);
 
-            $items = [];
-            foreach ($rows as $r) {
-                $excerpt = $this->_excerpt(
-                    strip_tags(html_entity_decode($r['isi'] ?? '', ENT_QUOTES, 'UTF-8')),
-                    180
-                );
-                $items[] = [
-                    'id'           => (int)$r['id'],
-                    'judul'        => $r['judul'],
-                    'tanggal'      => $r['tanggal'],                                  // ISO (yyyy-mm-dd)
-                    'tanggal_view' => date('d M Y', strtotime($r['tanggal'])),
-                    'excerpt'      => $excerpt,
-                    'link_seo'     => $r['link_seo'],                                   // SEO URL
-                ];
-            }
+		    $items = [];
+		    foreach ($rows as $r) {
+		        $excerpt = $this->_excerpt(
+		            strip_tags(html_entity_decode($r['isi'] ?? '', ENT_QUOTES, 'UTF-8')),
+		            180
+		        );
+		        $items[] = [
+		            'id'           => (int)$r['id'],
+		            'judul'        => $r['judul'],
+		            'tanggal'      => $r['tanggal'],
+		            'tanggal_view' => date('d M Y', strtotime($r['tanggal'])),
+		            'excerpt'      => $excerpt,
+		            'link_seo'     => $r['link_seo'],
+		        ];
+		    }
 
-            $pages   = max(1, (int)ceil($total / $per_page));
-            $payload = [
-                'success' => true,
-                'q'       => $q,
-                'page'    => $page,
-                'perPage' => $per_page,
-                'pages'   => $pages,
-                'total'   => $total,
-                'items'   => $items,
-            ];
-            // simpan 10 menit (admin purge akan invalidasi via versi)
-            $this->cache->save($ckey, $payload, 600);
-        }
+		    $pages   = max(1, (int)ceil($total / $per_page));
+		    $payload = [
+		        'success' => true,
+		        'q'       => $q,
+		        'page'    => $page,
+		        'perPage' => $per_page,
+		        'pages'   => $pages,
+		        'total'   => $total,
+		        'items'   => $items,
+		    ];
+
+		    // ⬇️ Cache tanpa kedaluwarsa; akan “diganti” (overwrite) otomatis jika dipanggil lagi dengan key yang sama
+		    $this->cache->save($ckey, $payload, 0);
+		}
+
 
         $this->output
             ->set_content_type('application/json')
