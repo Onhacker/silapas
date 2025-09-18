@@ -23,9 +23,9 @@
 
         <!-- Pagination -->
         <div class="d-flex justify-content-between align-items-center mt-3">
-          <button id="btnPrev" class="btn btn-outline-secondary btn-sm"><i class="fe-chevron-left"></i> Sebelumnya</button>
+          <button id="btnPrev" class="btn btn-outline-secondary btn-sm"><i class="fe-chevron-left"></i> </button>
           <div><span id="pagestat" class="text-muted small">Hal. 1/1</span></div>
-          <button id="btnNext" class="btn btn-outline-secondary btn-sm">Berikutnya <i class="fe-chevron-right"></i></button>
+          <button id="btnNext" class="btn btn-outline-secondary btn-sm"> <i class="fe-chevron-right"></i></button>
         </div>
       </div>
     </div>
@@ -138,7 +138,7 @@
 
       prev.disabled = (state.page <= 1);
       next.disabled = (state.page >= state.pages);
-      stat.textContent = `Halaman ${state.page} / ${state.pages} • Total ${j.total||0} data`;
+      stat.textContent = `Hal. ${state.page} / ${state.pages} • Total ${j.total||0} data`;
     } catch(err){
       console.warn(err);
       list.innerHTML = '<div class="alert alert-danger">Gagal memuat data. Coba lagi.</div>';
