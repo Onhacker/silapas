@@ -701,11 +701,14 @@ document.addEventListener('DOMContentLoaded', function(){
   @media (min-width: 992px){
     #quickmobilem{ grid-template-columns: repeat(4, 1fr); gap: 16px; }
   }
+  /* Paling tegas: jangan render overlay sama sekali */
+.modal-backdrop { display: none !important; }
+
 </style>
 
 
 <!-- Modal Menu (Front) -->
-<div class="modal fade" id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true">
+<div class="modal fade" id="kontakModalfront" tabindex="-1" aria-labelledby="menumoLabel" aria-hidden="true" >
   <div class="modal-dialog modal-dialog-scrollable modal-bottom modal-dialog-full" style="animation-duration:.5s;">
     <div class="modal-content">
       <div class="modal-header bg-blue text-white">

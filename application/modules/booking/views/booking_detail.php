@@ -212,13 +212,71 @@ body.noblur-backdrop #app {
   .kv-table-wrap { border: 1px solid #eef0f3; border-radius: 14px; overflow: hidden; }
   .kv-table { margin-bottom: 0; }
   .kv-table th, .kv-table td { vertical-align: middle; }
-  .kv-table th.kv-label {
-    width: 34%;
-    font-weight: 700;
-    color: #374151;
-    background: #fafbfc;
-    white-space: nowrap;
+ .kv-table th.kv-label {
+  width: var(--kv-label-w);
+  font-weight: 700;
+  color: #374151;
+  background: #fafbfc;
+  white-space: nowrap;
+}
+/* Tetap 2 kolom di mobile */
+:root { --kv-label-w: 40%; }              /* mobile default; atur sesuai selera */
+@media (min-width: 768px){ :root { --kv-label-w: 34%; } }  /* tablet/desktop */
+
+.kv-table { width:100%; table-layout: fixed; }
+.kv-table th.kv-label, .kv-table td.kv-value{
+  vertical-align: top;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.kv-table code { word-break: break-all; }
+
+/* Paksa 2 kolom di mobile */
+@media (max-width: 576px){
+  .kv-table tr{ display: table-row !important; padding: 0 !important; }
+  .kv-table th.kv-label, .kv-table td.kv-value{
+    display: table-cell !important;
+    width: auto;
+    padding: .5rem .75rem;
   }
+  .kv-table-wrap { border: 1px solid #eef0f3; }
+}
+@media (max-width: 576px){
+  .kv-table tr.kv-stack-mobile{ 
+    display: block !important; 
+    padding: .4rem .5rem; 
+  }
+  .kv-table tr.kv-stack-mobile > th.kv-label,
+  .kv-table tr.kv-stack-mobile > td.kv-value{
+    display: block !important;
+    width: 100% !important;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  .kv-table tr.kv-stack-mobile > th.kv-label{
+    background: transparent; 
+    color: #6b7280; 
+    font-size: .9rem; 
+    padding-top: .25rem; 
+    padding-bottom: .25rem;
+    border-top: 0 !important;
+  }
+  .kv-table tr.kv-stack-mobile > td.kv-value{
+    padding-top: 0; 
+    padding-bottom: .5rem; 
+    border-top: 0 !important;
+  }
+
+  .kv-table tr.kv-stack-mobile .table-responsive,
+  .kv-table tr.kv-stack-mobile .embed-responsive,
+  .kv-table tr.kv-stack-mobile img,
+  .kv-table tr.kv-stack-mobile .upload-actions,
+  .kv-table tr.kv-stack-mobile .form-group{
+    width: 100%;
+  }
+}
+
   .kv-table td.kv-value { background: #fff; }
   .kv-table tr + tr th.kv-label,
   .kv-table tr + tr td.kv-value { border-top: 1px dashed #e5e7eb; }
@@ -236,20 +294,7 @@ body.noblur-backdrop #app {
   /* Long text clamp (opsional) */
   .longtext { white-space: pre-line; }
 
-  /* Mobile: jadikan tiap baris stacked (label di atas, isi di bawah) */
-  @media (max-width: 576px) {
-    .kv-table thead { display: none; }
-    .kv-table tr { display: block; padding: .65rem .75rem; }
-    .kv-table th.kv-label, .kv-table td.kv-value {
-      display: block; width: 100%;
-      border-top: 0 !important;
-    }
-    .kv-table th.kv-label {
-      background: transparent; padding: .25rem 0; font-size: .85rem; color:#6b7280;
-    }
-    .kv-table td.kv-value { background: transparent; padding: .25rem 0 .5rem 0; }
-    .kv-table-wrap { border: 0; }
-  }
+ 
 </style>
 <!-- ====== OVERRIDE CSS: tetap 2 kolom di mobile ====== -->
 <style>
