@@ -182,5 +182,30 @@
     </div>
 </div>
 </header>
+<style type="text/css">
+  /* Kunci root agar Chrome tidak mengaktifkan P2R di root scroller */
+html, body {
+  height: 100%;
+  overflow: hidden !important;
+}
 
-<div class="wrapper curved" style="--curve-h: 320px">
+/* Scroll di container saja */
+#app-scroll {
+  height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;   /* tetap halus */
+  overscroll-behavior: contain;        /* blokir overscroll chain & P2R */
+}
+
+</style>
+<script>
+(function () {
+  if (document.referrer && document.referrer.indexOf('android-app://') === 0) {
+    const st = document.createElement('style');
+    st.textContent = 'html,body{overscroll-behavior-y:none!important}';
+    document.head.appendChild(st);
+  }
+})();
+</script>
+
+<div class="wrapper curved" style="--curve-h: 320px" id="app-scroll">
