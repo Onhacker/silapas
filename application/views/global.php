@@ -29,6 +29,20 @@
   }
 }
 */
+/* Matikan semua top loader umum */
+.pace,
+.pace-inactive,
+.pace .pace-progress,
+.pace .pace-activity,
+#nprogress,
+#nprogress .bar,
+#nprogress .spinner,
+#topbar {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
