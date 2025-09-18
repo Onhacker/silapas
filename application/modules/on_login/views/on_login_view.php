@@ -387,7 +387,6 @@
     </div>
 </div>
 
-<?php $this->load->view("front_end/footer.php") ?>
 
 <!-- Scripts -->
 <script src="<?php echo base_url('assets/admin/js/jquery-3.1.1.min.js') ?>"></script>
