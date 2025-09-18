@@ -207,267 +207,311 @@ body.noblur-backdrop #app {
     <div class="row">
       <!-- KIRI -->
       <div class="col-md-7">
-        <dl class="mb-0">
-          <div class="kv-row row no-gutters align-items-center">
-            <dt class="col-sm-4 kv-label">🔑 Kode</dt>
-            <dd class="col-sm-8 kv-value">
-              <span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
-              <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>"><i class="mdi mdi-content-copy"></i></button>
-            </dd>
-          </div>
+       <!-- ====== STYLE (bisa taruh di atas view) ====== -->
+<style>
+  .kv-table-wrap { border: 1px solid #eef0f3; border-radius: 14px; overflow: hidden; }
+  .kv-table { margin-bottom: 0; }
+  .kv-table th, .kv-table td { vertical-align: middle; }
+  .kv-table th.kv-label {
+    width: 34%;
+    font-weight: 700;
+    color: #374151;
+    background: #fafbfc;
+    white-space: nowrap;
+  }
+  .kv-table td.kv-value { background: #fff; }
+  .kv-table tr + tr th.kv-label,
+  .kv-table tr + tr td.kv-value { border-top: 1px dashed #e5e7eb; }
 
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👤 Nama Tamu</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></dd></div>
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🧑‍💼 Jabatan</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></dd></div>
+  .chip {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .25rem .6rem; border-radius: 999px;
+    background: #f1f5f9; border: 1px solid #e2e8f0; font-weight: 600;
+  }
+  .chip .dot {
+    width: .5rem; height: .5rem; border-radius: 999px; background: #22c55e; display: inline-block;
+  }
+  .soft { color:#6b7280; }
 
-          <style>.kv-label .ico{display:inline-block;width:1.25em;text-align:center;margin-right:.4rem;}</style>
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label"><span class="ico" aria-hidden="true">🪪</span> NIK</dt>
-            <dd class="col-sm-8 kv-value">
-              <?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
-              <button type="button" class="btn btn-light btn-sm btn-copy ml-1" data-clip="<?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>"><i class="mdi mdi-content-copy"></i></button>
-            </dd>
-          </div>
+  /* Long text clamp (opsional) */
+  .longtext { white-space: pre-line; }
 
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label"><span class="ico" aria-hidden="true">📍</span> Alamat</dt>
-            <dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></dd>
-          </div>
+  /* Mobile: jadikan tiap baris stacked (label di atas, isi di bawah) */
+  @media (max-width: 576px) {
+    .kv-table thead { display: none; }
+    .kv-table tr { display: block; padding: .65rem .75rem; }
+    .kv-table th.kv-label, .kv-table td.kv-value {
+      display: block; width: 100%;
+      border-top: 0 !important;
+    }
+    .kv-table th.kv-label {
+      background: transparent; padding: .25rem 0; font-size: .85rem; color:#6b7280;
+    }
+    .kv-table td.kv-value { background: transparent; padding: .25rem 0 .5rem 0; }
+    .kv-table-wrap { border: 0; }
+  }
+</style>
 
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label"><span class="ico" aria-hidden="true">🎂</span> Tempat/Tanggal Lahir</dt>
-            <dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></dd>
-          </div>
+<!-- ====== KONTEN (gantikan <dl>...</dl>) ====== -->
+<div class="table-responsive kv-table-wrap">
+  <table class="table table-sm kv-table">
+    <tbody>
+      <!-- Kode -->
+      <tr>
+        <th scope="row" class="kv-label">🔑 Kode</th>
+        <td class="kv-value">
+          <span class="chip mr-2">
+            <span class="dot"></span>
+            <span><?= html_escape($kode) ?></span>
+          </span>
+          <button type="button" class="btn btn-light btn-sm btn-copy"
+                  data-clip="<?= html_escape($kode) ?>">
+            <i class="mdi mdi-content-copy"></i>
+          </button>
+        </td>
+      </tr>
 
-          <div class="kv-row row no-gutters align-items-center">
-            <dt class="col-sm-4 kv-label">📱 No. HP</dt>
-            <dd class="col-sm-8 kv-value">
-              <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
-              <?php if ($hp_wa): ?>
-                <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>"><i class="mdi mdi-whatsapp"></i></a>
-              <?php endif; ?>
-            </dd>
-          </div>
-          <div class="kv-row row no-gutters align-items-center">
-            <dt class="col-sm-4 kv-label">
-              <i class="fas fa-envelope mr-1" aria-hidden="true"></i> Email
-            </dt>
-            <dd class="col-sm-8 kv-value">
-              <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?>
-            </dd>
-          </div>
+      <tr>
+        <th scope="row" class="kv-label">👤 Nama Tamu</th>
+        <td class="kv-value"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></td>
+      </tr>
 
+      <tr>
+        <th scope="row" class="kv-label">🧑‍💼 Jabatan</th>
+        <td class="kv-value"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></td>
+      </tr>
 
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🏢 Instansi Asal</dt><dd class="col-sm-8 kv-value"><?= $instansi ?></dd></div>
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🎯 Unit Tujuan</dt><dd class="col-sm-8 kv-value"><?= $unit_nama ?></dd></div>
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🏷️ Nama <?= $unit_nama ?></dt><dd class="col-sm-8 kv-value"><?= $nama_petugas_instansi ?></dd></div>
+      <!-- NIK -->
+      <tr>
+        <th scope="row" class="kv-label">🪪 NIK</th>
+        <td class="kv-value">
+          <?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
+          <button type="button" class="btn btn-light btn-sm btn-copy ml-1"
+                  data-clip="<?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>">
+            <i class="mdi mdi-content-copy"></i>
+          </button>
+        </td>
+      </tr>
 
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label">📝 Keperluan</dt>
-            <dd class="col-sm-8"><div class="longtext"><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?></div></dd>
-          </div>
+      <tr>
+        <th scope="row" class="kv-label">📍 Alamat</th>
+        <td class="kv-value"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></td>
+      </tr>
 
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">📅 Tanggal Kunjungan</dt><dd class="col-sm-8 kv-value"><?= $hari_tgl ?></dd></div>
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏰ Jam</dt><dd class="col-sm-8 kv-value"><?= $jam ?></dd></div>
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👥 Jumlah Pendamping</dt><dd class="col-sm-8 kv-value"><span class="badge badge-pill badge-primary" style="font-size:.9rem;"><?= (int)$booking->jumlah_pendamping ?> orang</span></dd></div>
+      <tr>
+        <th scope="row" class="kv-label">🎂 Tempat/Tanggal Lahir</th>
+        <td class="kv-value">
+          <?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?>
+        </td>
+      </tr>
 
-          <?php if (!empty($pendamping_rows)): ?>
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
-            <dd class="col-sm-8 kv-value">
-              <div class="table-responsive">
-                <table class="table table-sm table-bordered mb-0">
-                  <thead class="thead-light">
-                    <tr><th style="width:60px;">No</th><th style="width:200px;">NIK</th><th>Nama</th></tr>
-                  </thead>
-                  <tbody>
-                    <?php foreach ($pendamping_rows as $i => $p): ?>
-                      <tr>
-                        <td class="text-center"><?= $i+1 ?></td>
-                        <td><code><?= htmlspecialchars($p->nik, ENT_QUOTES, 'UTF-8') ?></code></td>
-                        <td><?= htmlspecialchars($p->nama, ENT_QUOTES, 'UTF-8') ?></td>
-                      </tr>
-                    <?php endforeach; ?>
-                  </tbody>
-                </table>
-              </div>
-            </dd>
-          </div>
-          <?php elseif ((int)$booking->jumlah_pendamping > 0): ?>
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
-            <dd class="col-sm-8 kv-value soft">Belum ada data pendamping.</dd>
-          </div>
+      <!-- HP + WA -->
+      <tr>
+        <th scope="row" class="kv-label">📱 No. HP</th>
+        <td class="kv-value">
+          <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
+          <?php if ($hp_wa): ?>
+            <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener"
+               href="https://wa.me/<?= $hp_wa ?>">
+              <i class="mdi mdi-whatsapp"></i>
+            </a>
           <?php endif; ?>
+        </td>
+      </tr>
 
-          <?php if ($checkin_str): ?>
-            <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🕘 Check-in</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($checkin_str, ENT_QUOTES, 'UTF-8') ?></dd></div>
-          <?php endif; ?>
-          <?php if ($checkout_str): ?>
-            <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🕙 Check-out</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($checkout_str, ENT_QUOTES, 'UTF-8') ?></dd></div>
-          <?php endif; ?>
-          <?php if ($durasi): ?>
-            <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏳ Durasi</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($durasi, ENT_QUOTES, 'UTF-8') ?></dd></div>
-          <?php endif; ?>
-            
+      <!-- Email -->
+      <tr>
+        <th scope="row" class="kv-label"><i class="mdi mdi-email-outline mr-1" aria-hidden="true"></i> Email</th>
+        <td class="kv-value"><?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></td>
+      </tr>
 
-                      <!-- 📄 Surat Tugas (aksi lihat/unduh) -->
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label">📄 Surat Tugas</dt>
-            <dd class="col-sm-8" id="surat_actions">
-              <?php if ($surat_url): ?>
-                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
-                  <i class="mdi mdi-file-pdf-box"></i> Lihat
-                </button>
-                <a class="btn btn-sm btn-outline-secondary ml-1" href="<?= $surat_url ?>" download>
-                  <i class="mdi mdi-download"></i> Unduh
-                </a>
-              <?php else: ?>
-                <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
-              <?php endif; ?>
-            </dd>
-          <!-- </div> -->
+      <tr>
+        <th scope="row" class="kv-label">🏢 Instansi Asal</th>
+        <td class="kv-value"><?= $instansi ?></td>
+      </tr>
 
-              <!-- 📤 Uploader Surat Tugas -->
-            <!-- <div class="kv-row row no-gutters" id="row_surat_upload"> -->
-              <!-- <dt class="col-sm-4 kv-label">📤 Unggah Surat Tugas</dt> -->
-              <dd class="col-sm-8">
-                <!-- gunakan yang sudah ada kalau sebelumnya sudah dibuat -->
-                <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
+      <tr>
+        <th scope="row" class="kv-label">🎯 Unit Tujuan</th>
+        <td class="kv-value"><?= $unit_nama ?></td>
+      </tr>
 
-                <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
-                  <input type="file" id="doc_surat" accept="application/pdf,image/*" class="d-none">
-                  <button type="button" id="btnPickSurat" class="btn btn-outline-secondary btn-sm">
-                    <i class="mdi mdi-file-upload-outline"></i> Pilih Berkas (PDF/JPG/PNG)
-                  </button>
-                  <small id="pickSuratLabel" class="text-muted">Belum ada file</small>
-                </div>
+      <tr>
+        <th scope="row" class="kv-label">🏷️ Nama <?= $unit_nama ?></th>
+        <td class="kv-value"><?= $nama_petugas_instansi ?></td>
+      </tr>
 
-                <div id="surat_preview_wrap" class="mb-2" style="display:none;">
-                  <!-- preview gambar -->
-                  <img id="surat_preview_img" alt="Preview Surat Tugas" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;display:none;">
-                  <!-- preview pdf -->
-                  <div id="surat_preview_pdf" style="display:none;border:1px solid #e5e7eb;border-radius:8px;">
-                    <div class="p-2 d-flex align-items-center justify-content-between">
-                      <span><i class="mdi mdi-file-pdf-box"></i> <strong>PDF terpilih</strong></span>
-                      <small class="text-muted">Pratinjau PDF terbatas di sebagian perangkat</small>
-                    </div>
-                    <embed id="surat_pdf_embed" type="application/pdf" width="100%" height="520px" style="border-top:1px solid #e5e7eb;">
-                  </div>
-                </div>
+      <tr>
+        <th scope="row" class="kv-label">📝 Keperluan</th>
+        <td class="kv-value"><div class="longtext"><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?></div></td>
+      </tr>
 
-                <div class="d-flex align-items-center" style="gap:.5rem;">
-                  <button type="button" id="btnSuratUpload" class="btn btn-blue btn-sm" disabled>
-                    <i class="mdi mdi-cloud-upload"></i> Upload
-                  </button>
-                  <button type="button" id="btnSuratReset" class="btn btn-light btn-sm" style="display:none;">
-                    <i class="mdi mdi-close-circle-outline"></i> Batal
-                  </button>
-                  <small id="surat_status" class="text-muted ms-2"></small>
-                </div>
-              </dd>
-            </div>
+      <tr>
+        <th scope="row" class="kv-label">📅 Tanggal Kunjungan</th>
+        <td class="kv-value"><?= $hari_tgl ?></td>
+      </tr>
 
-           
-             
-            
+      <tr>
+        <th scope="row" class="kv-label">⏰ Jam</th>
+        <td class="kv-value"><?= $jam ?></td>
+      </tr>
 
-          <!-- 🖼️ Foto -->
-          <div class="kv-row row no-gutters" id="row_foto">
-            <dt class="col-sm-4 kv-label">🖼️ Foto</dt>
-            <dd class="col-sm-8" id="col_foto">
-              <div id="foto_actions">
-                <?php if (!empty($foto_url)): ?>
-                  <div class="upload-actions">
-                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalFoto_<?= $kode_safe ?>"><i class="mdi mdi-eye"></i> Lihat</button>
-                    <a href="<?= $foto_url ?>" download class="btn btn-outline-secondary btn-sm ml-1"><i class="mdi mdi-download"></i> Unduh</a>
-                  </div>
-                <?php else: ?>
-                  <span class="soft" id="foto_empty">Belum ada dokumentasi. Foto dapat dilakukan saat check-in.</span>
-                <?php endif; ?>
-              </div>
+      <tr>
+        <th scope="row" class="kv-label">👥 Jumlah Pendamping</th>
+        <td class="kv-value">
+          <span class="badge badge-pill badge-primary" style="font-size:.9rem;">
+            <?= (int)$booking->jumlah_pendamping ?> orang
+          </span>
+        </td>
+      </tr>
 
-              <!-- Uploader Foto Dokumentasi -->
-              <div class="mt-2">
-                <!-- <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>"> -->
-                <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
-                  <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
-                  <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto</button>
-                  <small id="pickLabel" class="text-muted">Belum ada file</small>
-                </div>
-                <div id="doc_preview_wrap" class="mb-2" style="display:none;"><img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;"></div>
-                <div class="d-flex align-items-center" style="gap:.5rem;">
-                  <button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled><i class="mdi mdi-cloud-upload"></i> Upload</button>
-                  <button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;"><i class="mdi mdi-close-circle-outline"></i> Batal</button>
-                  <small id="doc_status" class="text-muted ms-2"></small>
-                </div>
-              </div>
-            </dd>
+      <?php if (!empty($pendamping_rows)): ?>
+      <tr>
+        <th scope="row" class="kv-label">👥 Daftar Pendamping</th>
+        <td class="kv-value">
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0">
+              <thead class="thead-light">
+                <tr><th style="width:60px;">No</th><th style="width:200px;">NIK</th><th>Nama</th></tr>
+              </thead>
+              <tbody>
+                <?php foreach ($pendamping_rows as $i => $p): ?>
+                <tr>
+                  <td class="text-center"><?= $i+1 ?></td>
+                  <td><code><?= htmlspecialchars($p->nik, ENT_QUOTES, 'UTF-8') ?></code></td>
+                  <td><?= htmlspecialchars($p->nama, ENT_QUOTES, 'UTF-8') ?></td>
+                </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
           </div>
-          <!-- Modal Surat Tugas (selalu ada, konten diisi JS saat perlu) -->
-         <!-- Modal Surat Tugas (selalu ada) -->
-              <div class="modal fade" id="modalSuratTugas_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
-                <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-                  <div class="modal-content">
-                    <div class="modal-header py-2">
-                      <h6 class="modal-title"><i class="mdi mdi-file-document"></i> Surat Tugas</h6>
-                      <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                    </div>
+        </td>
+      </tr>
+      <?php elseif ((int)$booking->jumlah_pendamping > 0): ?>
+      <tr>
+        <th scope="row" class="kv-label">👥 Daftar Pendamping</th>
+        <td class="kv-value soft">Belum ada data pendamping.</td>
+      </tr>
+      <?php endif; ?>
 
-                    <!-- ISI MODAL: tampilkan pratinjau jika sudah ada $surat_url -->
-                    <div class="modal-body p-0" id="surat_modal_body">
-                      <?php if (!empty($surat_url)): ?>
-                        <?php if ($is_pdf): ?>
-                          <div class="embed-responsive embed-responsive-16by9">
-                            <iframe class="embed-responsive-item"
-                                    src="<?= $surat_url ?>#toolbar=1&navpanes=0&scrollbar=1"
-                                    allowfullscreen></iframe>
-                          </div>
-                        <?php elseif ($is_img): ?>
-                          <img src="<?= $surat_url ?>" class="img-fluid" alt="Surat Tugas">
-                        <?php else: ?>
-                          <div class="p-4">Format file tidak didukung untuk pratinjau. Silakan unduh.</div>
-                        <?php endif; ?>
-                      <?php else: ?>
-                        <div class="p-4 text-muted">
-                          Belum ada surat tugas. Silakan unggah dulu melalui form “📤 Unggah Surat Tugas”.
-                        </div>
-                      <?php endif; ?>
-                    </div>
+      <?php if ($checkin_str): ?>
+      <tr>
+        <th scope="row" class="kv-label">🕘 Check-in</th>
+        <td class="kv-value"><?= htmlspecialchars($checkin_str, ENT_QUOTES, 'UTF-8') ?></td>
+      </tr>
+      <?php endif; ?>
 
-                    <div class="modal-footer py-2">
-                      <?php if (!empty($surat_url)): ?>
-                        <a class="btn btn-outline-secondary" href="<?= $surat_url ?>" download>
-                          <i class="mdi mdi-download"></i> Unduh
-                        </a>
-                      <?php endif; ?>
-                      <button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
-                    </div>
-                  </div>
-                </div>
+      <?php if ($checkout_str): ?>
+      <tr>
+        <th scope="row" class="kv-label">🕙 Check-out</th>
+        <td class="kv-value"><?= htmlspecialchars($checkout_str, ENT_QUOTES, 'UTF-8') ?></td>
+      </tr>
+      <?php endif; ?>
+
+      <?php if ($durasi): ?>
+      <tr>
+        <th scope="row" class="kv-label">⏳ Durasi</th>
+        <td class="kv-value"><?= htmlspecialchars($durasi, ENT_QUOTES, 'UTF-8') ?></td>
+      </tr>
+      <?php endif; ?>
+
+      <!-- Surat Tugas -->
+      <tr>
+        <th scope="row" class="kv-label">📄 Surat Tugas</th>
+        <td class="kv-value">
+          <div id="surat_actions" class="mb-2">
+            <?php if ($surat_url): ?>
+              <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
+                <i class="mdi mdi-file-pdf-box"></i> Lihat
+              </button>
+              <a class="btn btn-sm btn-outline-secondary ml-1" href="<?= $surat_url ?>" download>
+                <i class="mdi mdi-download"></i> Unduh
+              </a>
+            <?php else: ?>
+              <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
+            <?php endif; ?>
+          </div>
+
+          <!-- Uploader Surat Tugas -->
+          <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
+          <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
+            <input type="file" id="doc_surat" accept="application/pdf,image/*" class="d-none">
+            <button type="button" id="btnPickSurat" class="btn btn-outline-secondary btn-sm">
+              <i class="mdi mdi-file-upload-outline"></i> Pilih Berkas (PDF/JPG/PNG)
+            </button>
+            <small id="pickSuratLabel" class="text-muted">Belum ada file</small>
+          </div>
+
+          <div id="surat_preview_wrap" class="mb-2" style="display:none;">
+            <img id="surat_preview_img" alt="Preview Surat Tugas"
+                 style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;display:none;">
+            <div id="surat_preview_pdf" style="display:none;border:1px solid #e5e7eb;border-radius:8px;">
+              <div class="p-2 d-flex align-items-center justify-content-between">
+                <span><i class="mdi mdi-file-pdf-box"></i> <strong>PDF terpilih</strong></span>
+                <small class="text-muted">Pratinjau PDF terbatas di sebagian perangkat</small>
               </div>
-
-
-
-          <!-- Modal Foto -->
-          <div class="modal fade" id="modalFoto_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-              <div class="modal-content">
-                <div class="modal-header py-2">
-                  <h6 class="modal-title"><i class="mdi mdi-image"></i> Foto Lampiran</h6>
-                  <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                </div>
-                <div class="modal-body text-center">
-                  <img id="foto_modal_img" src="<?= $foto_url ?? '' ?>" class="img-fluid" style="max-height:75vh" alt="Foto Lampiran">
-                </div>
-                <div class="modal-footer py-2">
-                  <a id="foto_modal_download" class="btn btn-outline-secondary" href="<?= !empty($foto_url)?$foto_url:'#' ?>" download style="<?= !empty($foto_url)?'':'display:none' ?>"><i class="mdi mdi-download"></i> Unduh</a>
-                  <button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
-                </div>
-              </div>
+              <embed id="surat_pdf_embed" type="application/pdf" width="100%" height="520px" style="border-top:1px solid #e5e7eb;">
             </div>
           </div>
 
-        </dl>
+          <div class="d-flex align-items-center" style="gap:.5rem;">
+            <button type="button" id="btnSuratUpload" class="btn btn-blue btn-sm" disabled>
+              <i class="mdi mdi-cloud-upload"></i> Upload
+            </button>
+            <button type="button" id="btnSuratReset" class="btn btn-light btn-sm" style="display:none;">
+              <i class="mdi mdi-close-circle-outline"></i> Batal
+            </button>
+            <small id="surat_status" class="text-muted ms-2"></small>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Foto -->
+      <tr id="row_foto">
+        <th scope="row" class="kv-label">🖼️ Foto</th>
+        <td class="kv-value" id="col_foto">
+          <div id="foto_actions" class="mb-2">
+            <?php if (!empty($foto_url)): ?>
+              <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalFoto_<?= $kode_safe ?>">
+                <i class="mdi mdi-eye"></i> Lihat
+              </button>
+              <a href="<?= $foto_url ?>" download class="btn btn-outline-secondary btn-sm ml-1">
+                <i class="mdi mdi-download"></i> Unduh
+              </a>
+            <?php else: ?>
+              <span class="soft" id="foto_empty">Belum ada dokumentasi. Foto dapat dilakukan saat check-in.</span>
+            <?php endif; ?>
+          </div>
+
+          <!-- Uploader Foto -->
+          <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
+            <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
+            <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm">
+              <i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto
+            </button>
+            <small id="pickLabel" class="text-muted">Belum ada file</small>
+          </div>
+
+          <div id="doc_preview_wrap" class="mb-2" style="display:none;">
+            <img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;">
+          </div>
+
+          <div class="d-flex align-items-center" style="gap:.5rem;">
+            <button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled>
+              <i class="mdi mdi-cloud-upload"></i> Upload
+            </button>
+            <button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;">
+              <i class="mdi mdi-close-circle-outline"></i> Batal
+            </button>
+            <small id="doc_status" class="text-muted ms-2"></small>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ====== (Modal Surat & Modal Foto kamu taruh di bawah sini; tidak perlu diubah) ====== -->
+
       </div>
 
       <!-- KANAN -->

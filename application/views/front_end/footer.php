@@ -438,6 +438,141 @@ document.addEventListener('DOMContentLoaded', function(){
   window.addEventListener('mouseup',   onEnd);
 });
 </script>
+<style>
+  /* transisi balik/keluar singkat */
+  #kontakModalfront .modal-dialog.sheet-snap {
+    transition: transform .18s ease-out;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const modal   = document.getElementById('kontakModalfront');
+  if (!modal) return;
+  const dialog  = modal.querySelector('.modal-dialog');
+  const body    = modal.querySelector('.modal-body');
+  const header  = modal.querySelector('.modal-header');
+
+  const THRESH   = 100;     // ambang px untuk tutup
+  const MAXY     = 400;     // batas translasi
+  const VELCLOSE = 0.45;    // px/ms
+
+  let startY=0, lastY=0, lastT=0, dragging=false, consumed=false;
+
+  // === fungsi tutup dengan slide ke bawah ===
+  function slideClose(){
+    dialog.classList.add('sheet-snap');
+    dialog.style.transform = `translateY(${THRESH+120}px)`;
+    dialog.addEventListener('transitionend', function endOnce(){
+      dialog.removeEventListener('transitionend', endOnce);
+      $(modal).modal('hide');
+      dialog.style.transform = '';
+      dialog.classList.remove('sheet-snap');
+    }, { once:true });
+  }
+
+  // === Bind tombol close & “panah” custom kalau ada ===
+  // close bawaan bootstrap
+  const builtinClose = modal.querySelector('[data-dismiss="modal"], .close');
+  if (builtinClose){
+    builtinClose.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      slideClose();
+    });
+  }
+  // kalau punya tombol panah sendiri: beri id="btnSlideDownClose"
+  const arrowBtn = modal.querySelector('#btnSlideDownClose');
+  if (arrowBtn){
+    arrowBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      slideClose();
+    });
+  }
+
+  // === Gesture swipe down ===
+  function isCloseControl(el){
+    return !!(el.closest('[data-dismiss="modal"]') || el.closest('.close') || el.closest('#btnSlideDownClose'));
+  }
+
+  function onStart(e){
+    const t = (e.touches ? e.touches[0] : e);
+    // kalau klik tombol close/panah → biarkan handler klik di atas yg jalan
+    if (isCloseControl(t.target)) return;
+
+    // hanya mulai kalau di header atau konten di top (tidak sedang scroll)
+    const canStart = header.contains(t.target) || (body && body.scrollTop <= 0);
+    if (!canStart) return;
+
+    dragging = true;
+    consumed = false;
+    startY = lastY = t.clientY;
+    lastT  = performance.now();
+    dialog.classList.remove('sheet-snap');
+  }
+
+  function onMove(e){
+    if (!dragging) return;
+    const t = (e.touches ? e.touches[0] : e);
+    const dy = t.clientY - startY;
+
+    if (dy > 0 && body && body.scrollTop <= 0){
+      // hanya tahan default kalau benar-benar geser ke bawah, supaya klik biasa tetap bekerja
+      e.preventDefault();
+      consumed = true;
+      const translate = Math.min(dy, MAXY);
+      dialog.style.transform = `translateY(${translate}px)`;
+    }
+    lastY = t.clientY;
+    lastT = performance.now();
+  }
+
+  function onEnd(){
+    if (!dragging) return;
+    dragging = false;
+
+    const now = performance.now();
+    const dt  = Math.max(1, now - lastT);
+    const dy  = Math.max(0, lastY - startY);
+    const v   = dy / dt;
+
+    const shouldClose = dy > THRESH || v > VELCLOSE;
+
+    dialog.classList.add('sheet-snap');
+    if (shouldClose && consumed){
+      dialog.style.transform = `translateY(${Math.max(dy, THRESH)+120}px)`;
+      dialog.addEventListener('transitionend', function endOnce(){
+        dialog.removeEventListener('transitionend', endOnce);
+        $(modal).modal('hide');
+        dialog.style.transform = '';
+        dialog.classList.remove('sheet-snap');
+      }, { once:true });
+    } else {
+      dialog.style.transform = 'translateY(0)';
+      dialog.addEventListener('transitionend', function endOnce(){
+        dialog.removeEventListener('transitionend', endOnce);
+        dialog.style.transform = '';
+        dialog.classList.remove('sheet-snap');
+      }, { once:true });
+    }
+  }
+
+  // reset saat modal dibuka
+  $(modal).on('show.bs.modal', function(){
+    dialog.style.transform = '';
+    dialog.classList.remove('sheet-snap');
+  });
+
+  // bind touch + mouse
+  modal.addEventListener('touchstart', onStart, {passive:false});
+  modal.addEventListener('touchmove',  onMove,  {passive:false});
+  modal.addEventListener('touchend',   onEnd,   {passive:true});
+  modal.addEventListener('mousedown',  onStart);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup',   onEnd);
+});
+</script>
 
 <style type="text/css">
 
@@ -659,6 +794,7 @@ document.addEventListener('DOMContentLoaded', function(){
           <!-- Tombol panah bawah (tutup modal) -->
 <div class="sheet-close-wrap text-center">
   <button type="button"
+  id="btnSlideDownClose"
           class="btn btn-sheet-close"
           data-dismiss="modal"
           aria-label="Tutup menu">
