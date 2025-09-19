@@ -207,7 +207,7 @@ body.noblur-backdrop #app {
     <div class="row">
       <!-- KIRI -->
       <div class="col-md-7">
-        <div class="card-box">
+        <!-- <div class="card-box"> -->
           <div class="media mb-3">
             <img class="d-flex mr-3 rounded-circle avatar-lg" src="assets/images/users/user-8.jpg" alt="Generic placeholder image">
             <div class="media-body">
@@ -243,7 +243,7 @@ body.noblur-backdrop #app {
 
           </div>
 
-        </div>
+        <!-- </div> -->
 
 
         <dl class="mb-0">
