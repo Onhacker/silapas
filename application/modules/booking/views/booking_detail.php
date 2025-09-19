@@ -256,7 +256,7 @@ body.noblur-backdrop #app {
 
             <?php if (!empty($pendamping_rows)): ?>
              <h4 class="font-13 text-dark text-uppercase mb-1">👥 Daftar Pendamping :</h4>
-             <div class="mb-3" style="font-weight: bold;">
+             <div class="mb-1" style="font-weight: bold;">
 
               <div class="table-responsive">
                 <table class="table table-striped mb-0">
@@ -307,7 +307,7 @@ body.noblur-backdrop #app {
                   <button type="button" id="btnPickSurat" class="btn btn-outline-secondary btn-sm">
                     <i class="mdi mdi-file-upload-outline"></i> Pilih Berkas (PDF/JPG/PNG)
                   </button>
-                  <small id="pickSuratLabel" class="text-muted">Belum ada file</small>
+                  <small id="pickSuratLabel" class="text-muted"><!-- Belum ada file --></small>
                 </div>
 
                 <div id="surat_preview_wrap" class="mb-2" style="display:none;">
@@ -333,6 +333,47 @@ body.noblur-backdrop #app {
                   <small id="surat_status" class="text-muted ms-2"></small>
                 </div>
               </div>
+
+              <h4 class="font-13 text-dark text-uppercase mb-1">🖼️ Foto Dokumentasi :</h4>
+              <div class="mb-1" id="col_foto" style="font-weight: bold;">
+               <!--   <div class="kv-row row no-gutters" id="row_foto">
+                <dt class="col-sm-4 kv-label">🖼️ Foto</dt>
+                <dd class="col-sm-8" id="col_foto"> -->
+                  <div id="foto_actions">
+                    <?php if (!empty($foto_url)): ?>
+                      <div class="upload-actions">
+                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalFoto_<?= $kode_safe ?>"><i class="mdi mdi-eye"></i> Lihat</button>
+                        <a href="<?= $foto_url ?>" download class="btn btn-outline-secondary btn-sm ml-1"><i class="mdi mdi-download"></i> Unduh</a>
+                      </div>
+                    <?php else: ?>
+                      <span class="soft" id="foto_empty">Belum ada dokumentasi. Foto dapat dilakukan saat check-in.</span>
+                    <?php endif; ?>
+                  </div>
+
+                  <!-- Uploader Foto Dokumentasi -->
+                  <div class="mt-2">
+                    <!-- <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>"> -->
+                    <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
+                      <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
+                      <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto</button>
+                      <small id="pickLabel" class="text-muted">Belum ada file</small>
+                    </div>
+                    <div id="doc_preview_wrap" class="mb-2" style="display:none;"><img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;"></div>
+                    <div class="d-flex align-items-center" style="gap:.5rem;">
+                      <button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled><i class="mdi mdi-cloud-upload"></i> Upload</button>
+                      <button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;"><i class="mdi mdi-close-circle-outline"></i> Batal</button>
+                      <small id="doc_status" class="text-muted ms-2"></small>
+                    </div>
+                  </div>
+              <!--   </dd>
+              </div>
+              </div> -->
+
+
+
+
+
+
             <!-- </div> -->
 
            <!--   <div class="kv-row row no-gutters">
@@ -483,37 +524,7 @@ body.noblur-backdrop #app {
             
 
           <!-- 🖼️ Foto -->
-          <div class="kv-row row no-gutters" id="row_foto">
-            <dt class="col-sm-4 kv-label">🖼️ Foto</dt>
-            <dd class="col-sm-8" id="col_foto">
-              <div id="foto_actions">
-                <?php if (!empty($foto_url)): ?>
-                  <div class="upload-actions">
-                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalFoto_<?= $kode_safe ?>"><i class="mdi mdi-eye"></i> Lihat</button>
-                    <a href="<?= $foto_url ?>" download class="btn btn-outline-secondary btn-sm ml-1"><i class="mdi mdi-download"></i> Unduh</a>
-                  </div>
-                <?php else: ?>
-                  <span class="soft" id="foto_empty">Belum ada dokumentasi. Foto dapat dilakukan saat check-in.</span>
-                <?php endif; ?>
-              </div>
-
-              <!-- Uploader Foto Dokumentasi -->
-              <div class="mt-2">
-                <!-- <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>"> -->
-                <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
-                  <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
-                  <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto</button>
-                  <small id="pickLabel" class="text-muted">Belum ada file</small>
-                </div>
-                <div id="doc_preview_wrap" class="mb-2" style="display:none;"><img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;"></div>
-                <div class="d-flex align-items-center" style="gap:.5rem;">
-                  <button type="button" id="btnDocUpload" class="btn btn-primary btn-sm" disabled><i class="mdi mdi-cloud-upload"></i> Upload</button>
-                  <button type="button" id="btnDocReset" class="btn btn-light btn-sm" style="display:none;"><i class="mdi mdi-close-circle-outline"></i> Batal</button>
-                  <small id="doc_status" class="text-muted ms-2"></small>
-                </div>
-              </div>
-            </dd>
-          </div>
+         
           <!-- Modal Surat Tugas (selalu ada, konten diisi JS saat perlu) -->
          <!-- Modal Surat Tugas (selalu ada) -->
               <div class="modal fade" id="modalSuratTugas_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
