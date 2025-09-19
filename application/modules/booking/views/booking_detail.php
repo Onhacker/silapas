@@ -1363,19 +1363,22 @@ function updateSuratSection(rawUrl) {
 
  upBtn.addEventListener('click', async ()=>{
   const f = fileInput.files && fileInput.files[0];
-  if(!f) return;
+  if (!f) return;
 
   statusEl.textContent = 'Mengunggah…';
-  upBtn.disabled = true; pickBtn.disabled = true; resetBtn.disabled = true;
+  upBtn.disabled = true; 
+  pickBtn.disabled = true; 
+  // JANGAN disable resetBtn, kita butuh bisa reset UI setelah sukses
 
-  try{
+  try {
     let fd = new FormData();
     fd.append('kode_booking', kode_booking);
+    fd.append('kode', kode_booking);          // kompatibilitas backend
     fd.append('surat_tugas', f);
 
-    fd = addCSRF(fd); // <-- penting!
+    fd = addCSRF(fd);
 
-    const res = await fetch(URL_UPLOAD, {
+    const res  = await fetch(URL_UPLOAD, {
       method: 'POST',
       body: fd,
       credentials: 'same-origin',
@@ -1383,22 +1386,31 @@ function updateSuratSection(rawUrl) {
     });
 
     const data = await res.json().catch(()=> ({}));
-    if(!res.ok || !data || data.ok !== true || !data.url){
+    const okFlag = data && (data.ok === true || data.ok === 1 || data.ok === '1' || data.status === true);
+
+    // Ambil URL: prioritas url/full_url/link; fallback ke file
+    let fileUrl = data.url || data.full_url || data.link || (data.file ? 'uploads/surat_tugas/' + data.file : '');
+    if (!res.ok || !okFlag || !fileUrl) {
       throw new Error(data?.msg || 'Upload gagal');
     }
-    updateSuratSection(data.url);
 
-    // ... (lanjutan update UI tetap sama)
+    updateSuratSection(fileUrl);
     statusEl.textContent = 'Berhasil diunggah ✓';
-    resetBtn.click();
-  }catch(err){
-    statusEl.textContent = 'Gagal mengunggah: ' + err.message;
+
+    // RESET UI secara manual (jangan rely ke click pada tombol yang mungkin disable)
+    clearSuratPreview();
+    fileInput.value = '';
+    label.textContent = 'Belum ada file';
+    upBtn.disabled = true;       // balik ke kondisi awal (perlu pilih file lagi)
+  } catch (err) {
+    statusEl.textContent = 'Gagal mengunggah: ' + (err.message || 'Unknown error');
     upBtn.disabled = false;
-  }finally{
+  } finally {
     pickBtn.disabled = false;
     resetBtn.disabled = false;
   }
 });
+
 
 })();
 </script>
