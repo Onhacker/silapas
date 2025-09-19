@@ -225,21 +225,24 @@ body.noblur-backdrop #app {
 
           <h5 class="mb-3 mt-4 text-uppercase bg-light p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
-            <h4 class="font-13 text-dark text-uppercase">🪪 NIK :</h4>
+            <h4 class="font-13 text-dabluerk text-uppercase">🪪 NIK :</h4>
             <p class="mb-3"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
             </p>
 
-            <h4 class="font-13 text-dark text-uppercase mb-1">🎂 Tempat/Tanggal Lahir :</h4>
+            <h4 class="font-13 text-blue text-uppercase mb-1">🎂 Tempat/Tanggal Lahir :</h4>
             <p class="mb-3"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></p>
 
-            <h4 class="font-13 text-muted text-uppercase mb-1">Company :</h4>
-            <p class="mb-3">Vine Corporation</p>
+            <h4 class="font-13 text-muted text-uppercase mb-1">📍 Alamat :</h4>
+            <p class="mb-3"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></p>
 
-            <h4 class="font-13 text-muted text-uppercase mb-1">Added :</h4>
-            <p class="mb-3"> April 22, 2016</p>
+            <h4 class="font-13 text-muted text-uppercase mb-1">📱 No. HP/WA :</h4>
+            <p class="mb-3"> <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
+              <?php if ($hp_wa): ?>
+                <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>"><i class="mdi mdi-whatsapp"></i></a>
+              <?php endif; ?></p>
 
-            <h4 class="font-13 text-muted text-uppercase mb-1">Updated :</h4>
-            <p class="mb-0"> Dec 13, 2017</p>
+            <h4 class="font-13 text-muted text-uppercase mb-1"><i class="fas fa-envelope mr-1" aria-hidden="true"></i> Email :</h4>
+            <p class="mb-0"> <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></p>
 
           </div>
 
@@ -258,7 +261,7 @@ body.noblur-backdrop #app {
           <!-- <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👤 Nama Tamu</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🧑‍💼 Jabatan</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></dd></div>
  -->
-          <style>.kv-label .ico{display:inline-block;width:1.25em;text-align:center;margin-right:.4rem;}</style>
+         <!--  <style>.kv-label .ico{display:inline-block;width:1.25em;text-align:center;margin-right:.4rem;}</style>
           <div class="kv-row row no-gutters">
             <dt class="col-sm-4 kv-label"><span class="ico" aria-hidden="true">🪪</span> NIK</dt>
             <dd class="col-sm-8 kv-value">
@@ -271,13 +274,13 @@ body.noblur-backdrop #app {
             <dt class="col-sm-4 kv-label"><span class="ico" aria-hidden="true">📍</span> Alamat</dt>
             <dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></dd>
           </div>
-
-          <div class="kv-row row no-gutters">
+ -->
+        <!--   <div class="kv-row row no-gutters">
             <dt class="col-sm-4 kv-label"><span class="ico" aria-hidden="true">🎂</span> Tempat/Tanggal Lahir</dt>
             <dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></dd>
-          </div>
+          </div> -->
 
-          <div class="kv-row row no-gutters align-items-center">
+        <!--   <div class="kv-row row no-gutters align-items-center">
             <dt class="col-sm-4 kv-label">📱 No. HP</dt>
             <dd class="col-sm-8 kv-value">
               <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
@@ -285,18 +288,18 @@ body.noblur-backdrop #app {
                 <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>"><i class="mdi mdi-whatsapp"></i></a>
               <?php endif; ?>
             </dd>
-          </div>
-          <div class="kv-row row no-gutters align-items-center">
+          </div> -->
+        <!--   <div class="kv-row row no-gutters align-items-center">
             <dt class="col-sm-4 kv-label">
               <i class="fas fa-envelope mr-1" aria-hidden="true"></i> Email
             </dt>
             <dd class="col-sm-8 kv-value">
               <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?>
             </dd>
-          </div>
+          </div> -->
 
 
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🏢 Instansi Asal</dt><dd class="col-sm-8 kv-value"><?= $instansi ?></dd></div>
+          <!-- <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🏢 Instansi Asal</dt><dd class="col-sm-8 kv-value"><?= $instansi ?></dd></div> -->
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🎯 Unit Tujuan</dt><dd class="col-sm-8 kv-value"><?= $unit_nama ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🏷️ Nama <?= $unit_nama ?></dt><dd class="col-sm-8 kv-value"><?= $nama_petugas_instansi ?></dd></div>
 
