@@ -251,7 +251,39 @@ body.noblur-backdrop #app {
             <div class="alert alert-info mb-3" role="alert">
               <i class="mdi mdi-alert-circle-outline mr-2"></i><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?>
             </div>
-          </div>
+            <h4 class="font-13 text-dark text-uppercase mb-1">👥 Pendamping :</h4>
+            <p class="mb-3" style="font-weight: bold;"><?= (int)$booking->jumlah_pendamping ?> orang</p>
+
+            <?php if (!empty($pendamping_rows)): ?>
+             <h4 class="font-13 text-dark text-uppercase mb-1">👥 Daftar Pendamping :</h4>
+             <div class="mb-3" style="font-weight: bold;">
+
+              <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>NIK</th>
+                      <th>Nama</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($pendamping_rows as $i => $p): ?>
+                      <tr>
+                        <td class="text-center"><?= $i+1 ?></td>
+                        <td><code><?= htmlspecialchars($p->nik, ENT_QUOTES, 'UTF-8') ?></code></td>
+                        <td><?= htmlspecialchars($p->nama, ENT_QUOTES, 'UTF-8') ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+
+              <?php elseif ((int)$booking->jumlah_pendamping > 0): ?>
+                <h4 class="font-13 text-muted text-uppercase mb-1">👥 Daftar Pendamping :</h4>
+                <p class="mb-3">Belum ada data pendamping.</p>
+              <?php endif; ?>
+            </div>
 
         <!-- </div> -->
 
@@ -319,7 +351,7 @@ body.noblur-backdrop #app {
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏰ Jam</dt><dd class="col-sm-8 kv-value"><?= $jam ?></dd></div> -->
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👥 Jumlah Pendamping</dt><dd class="col-sm-8 kv-value"><span class="badge badge-pill badge-primary" style="font-size:.9rem;"><?= (int)$booking->jumlah_pendamping ?> orang</span></dd></div>
 
-          <?php if (!empty($pendamping_rows)): ?>
+          <!-- <?php if (!empty($pendamping_rows)): ?>
           <div class="kv-row row no-gutters">
             <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
             <dd class="col-sm-8 kv-value">
@@ -346,7 +378,7 @@ body.noblur-backdrop #app {
             <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
             <dd class="col-sm-8 kv-value soft">Belum ada data pendamping.</dd>
           </div>
-          <?php endif; ?>
+          <?php endif; ?> -->
 
           <?php if ($checkin_str): ?>
             <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🕘 Check-in</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($checkin_str, ENT_QUOTES, 'UTF-8') ?></dd></div>
