@@ -973,7 +973,8 @@ function updateFotoSection(url) {
   if (mImg)  mImg.src  = bust;
   if (mDown) { mDown.href = bust; mDown.style.display = ''; }
 }
-
+</script>
+<script>
 function updateSuratSection(url) {
   const bust = url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now();
   const actions = document.getElementById('surat_actions');
@@ -1007,16 +1008,8 @@ function updateSuratSection(url) {
   const modal = document.querySelector('#modalSuratTugas_<?= $kode_safe ?> .modal-footer a.btn-outline-secondary');
   if (modal) { modal.href = bust; modal.style.display = ''; }
 }
-const data = await res.json().catch(()=> ({}));
-if(!res.ok || !data || data.ok !== true || !data.url){
-  throw new Error(data?.msg || 'Upload gagal');
-}
 
-// >>> Tambahkan baris ini <<<
-updateSuratSection(data.url);
 
-statusEl.textContent = 'Berhasil diunggah ✓';
-resetBtn.click();
 </script>
 
 <!-- Unifikasi handler modal/backdrop -->
@@ -1343,6 +1336,7 @@ resetBtn.click();
     if(!res.ok || !data || data.ok !== true || !data.url){
       throw new Error(data?.msg || 'Upload gagal');
     }
+    updateSuratSection(data.url);
 
     // ... (lanjutan update UI tetap sama)
     statusEl.textContent = 'Berhasil diunggah ✓';
