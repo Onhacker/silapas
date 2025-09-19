@@ -977,9 +977,9 @@ function updateFotoSection(url) {
 <script>
 function updateSuratSection(url) {
   const bust = url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now();
-  const actions = document.getElementById('surat_actions');
 
-  // Render tombol Lihat + Unduh
+  // Render tombol Lihat + Unduh di area aksi
+  const actions = document.getElementById('surat_actions');
   if (actions) {
     actions.innerHTML = `
       <button type="button" class="btn btn-sm btn-danger"
@@ -991,22 +991,33 @@ function updateSuratSection(url) {
       </a>`;
   }
 
-  // Update isi modal & tombol unduh di modal
-  const body   = document.getElementById('surat_modal_body');
-  const isPdf  = /\.pdf(\?|$)/i.test(bust);
+  // Update isi modal
+  const body = document.getElementById('surat_modal_body');
+  const isPdf = /\.pdf(\?|$)/i.test(bust);
   if (body) {
-    if (isPdf) {
-      body.innerHTML =
-        `<div class="embed-responsive embed-responsive-16by9">
+    body.innerHTML = isPdf
+      ? `<div class="embed-responsive embed-responsive-16by9">
            <iframe class="embed-responsive-item"
                    src="${bust}#toolbar=1&navpanes=0&scrollbar=1" allowfullscreen></iframe>
-         </div>`;
-    } else {
-      body.innerHTML = `<img src="${bust}" class="img-fluid" alt="Surat Tugas">`;
-    }
+         </div>`
+      : `<img src="${bust}" class="img-fluid" alt="Surat Tugas">`;
   }
-  const modal = document.querySelector('#modalSuratTugas_<?= $kode_safe ?> .modal-footer a.btn-outline-secondary');
-  if (modal) { modal.href = bust; modal.style.display = ''; }
+
+  // Pastikan tombol Unduh di footer ADA
+  const modalSel = '#modalSuratTugas_<?= $kode_safe ?>';
+  const footer   = document.querySelector(modalSel + ' .modal-footer');
+  if (footer) {
+    let a = footer.querySelector('a.btn-outline-secondary');
+    if (!a) {
+      a = document.createElement('a');
+      a.className = 'btn btn-outline-secondary';
+      a.innerHTML = '<i class="mdi mdi-download"></i> Unduh';
+      a.setAttribute('download', '');
+      footer.insertBefore(a, footer.firstChild);
+    }
+    a.href = bust;
+    a.style.display = '';
+  }
 }
 
 
