@@ -24,7 +24,7 @@ if (!function_exists('hari_id')) {
   .footer, .page-footer, footer { z-index: 1 !important; }
 </style>
 
-<style>
+<!-- <style>
   .kv-card{border:1px solid #e5e7eb;border-radius:14px}
   .kv-head{border-bottom:1px dashed #e5e7eb}
   .kv-label{color:#6b7280;font-size:.9rem}
@@ -42,7 +42,7 @@ if (!function_exists('hari_id')) {
   .mini-thumb{max-height:110px;object-fit:cover;cursor:pointer;border-radius:10px}
   .longtext{line-height:1.7;white-space:pre-wrap;word-break:break-word;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px}
   .btn-copy{padding:.15rem .55rem;border-radius:8px}
-</style>
+</style> -->
 <style>
 /* ===== Matikan blur backdrop KHUSUS saat modal PDF tampil ===== */
 body.noblur-backdrop .modal-backdrop {
@@ -192,7 +192,7 @@ body.noblur-backdrop #app {
   $edit_url   = site_url('booking/edit').'?t='.urlencode($booking->access_token ?? '');
 ?>
 
-<div class="card kv-card shadow-sm mb-3">
+<div class="card shadow-sm mb-3">
   <div class="card-body">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center kv-head pb-3 mb-3">
