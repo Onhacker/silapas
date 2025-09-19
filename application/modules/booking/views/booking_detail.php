@@ -228,7 +228,7 @@ body.noblur-backdrop #app {
             </div>
           </div>
 
-          <h5 class="mb-3 mt-4 text-uppercase text-white bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
+          <h5 class="mb-3 text-uppercase text-white bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
             <style>
               .kv-row{padding:.4rem 0;border-bottom:1px dashed #e5e7eb}
