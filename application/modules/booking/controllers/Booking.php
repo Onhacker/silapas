@@ -1968,7 +1968,7 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
         //         'uploaded_at'  => date('Y-m-d H:i:s'),
         //     ]);
         // }
-        if ($this->db->field_exists('surat_tugas', 'booking_tamu')) {
+        if ($this->db->field_exists('foto', 'booking_tamu')) {
             $this->db->where('kode_booking', $kode)->update('booking_tamu', ['foto' => $fname]);
         }
         return $this->json_exit([

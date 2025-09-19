@@ -777,7 +777,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <!-- ====== Uploader (SATU-SATUNYA) ====== -->
 <script>
 (function() {
-  const MAX_BYTES = 1.5 * 1024 * 1024;  // 1.5MB
+  const MAX_BYTES = 5 * 1024 * 1024;  // 1.5MB
   const MAX_SIDE  = 1600;               // sisi terpanjang saat resize
 
   const el = {
@@ -973,6 +973,50 @@ function updateFotoSection(url) {
   if (mImg)  mImg.src  = bust;
   if (mDown) { mDown.href = bust; mDown.style.display = ''; }
 }
+
+function updateSuratSection(url) {
+  const bust = url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now();
+  const actions = document.getElementById('surat_actions');
+
+  // Render tombol Lihat + Unduh
+  if (actions) {
+    actions.innerHTML = `
+      <button type="button" class="btn btn-sm btn-danger"
+              data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
+        <i class="mdi mdi-file-pdf-box"></i> Lihat
+      </button>
+      <a class="btn btn-sm btn-outline-secondary ml-1" href="${bust}" download>
+        <i class="mdi mdi-download"></i> Unduh
+      </a>`;
+  }
+
+  // Update isi modal & tombol unduh di modal
+  const body   = document.getElementById('surat_modal_body');
+  const isPdf  = /\.pdf(\?|$)/i.test(bust);
+  if (body) {
+    if (isPdf) {
+      body.innerHTML =
+        `<div class="embed-responsive embed-responsive-16by9">
+           <iframe class="embed-responsive-item"
+                   src="${bust}#toolbar=1&navpanes=0&scrollbar=1" allowfullscreen></iframe>
+         </div>`;
+    } else {
+      body.innerHTML = `<img src="${bust}" class="img-fluid" alt="Surat Tugas">`;
+    }
+  }
+  const modal = document.querySelector('#modalSuratTugas_<?= $kode_safe ?> .modal-footer a.btn-outline-secondary');
+  if (modal) { modal.href = bust; modal.style.display = ''; }
+}
+const data = await res.json().catch(()=> ({}));
+if(!res.ok || !data || data.ok !== true || !data.url){
+  throw new Error(data?.msg || 'Upload gagal');
+}
+
+// >>> Tambahkan baris ini <<<
+updateSuratSection(data.url);
+
+statusEl.textContent = 'Berhasil diunggah ✓';
+resetBtn.click();
 </script>
 
 <!-- Unifikasi handler modal/backdrop -->
