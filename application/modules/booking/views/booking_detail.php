@@ -242,7 +242,7 @@ body.noblur-backdrop #app {
               <?php endif; ?></p>
 
             <h4 class="font-13 text-dark text-uppercase mb-1"><i class="fas fa-envelope mr-1" aria-hidden="true"></i> Email :</h4>
-            <p class="mb-0"> <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></p>
+            <p class="mb-3"> <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></p>
 
             <h4 class="font-13 text-dark text-uppercase mb-1">📅 Waktu Kunjungan :</h4>
             <p class="mb-3"><?= $hari_tgl ?>, <?= $jam ?></p>
