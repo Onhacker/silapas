@@ -216,10 +216,6 @@ body.noblur-backdrop #app {
               <h4 class="mt-0 mb-1"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></h4>
               <p class="text-dark"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></p>
               <p class="text-dark">🏢 <?= $instansi ?></p>
-             
-              <!-- <a href="javascript: void(0);" class="btn- btn-xs btn-info ml-1">Send Email</a>
-              <a href="javascript: void(0);" class="btn- btn-xs btn-secondary ml-1">Call</a>
-              <a href="javascript: void(0);" class="btn- btn-xs btn-secondary ml-1">Edit</a> -->
             </div>
           </div>
 
