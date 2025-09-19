@@ -212,17 +212,17 @@ body.noblur-backdrop #app {
           <div class="media mb-3">
             <img class="d-flex mr-3 rounded-circle avatar-lg" src="assets/images/users/user-8.jpg" alt="Generic placeholder image">
             <div class="media-body">
-              <h4 class="mt-0 mb-1">Jade M. Walker</h4>
-              <p class="text-muted">Branch manager</p>
-              <p class="text-muted"><i class="mdi mdi-office-building"></i> Vine Corporation</p>
+              <h4 class="mt-0 mb-1"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></h4>
+              <p class="text-dark"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></p>
+              <p class="text-dark"><i class="mdi mdi-office-building"></i> <?= $instansi ?></p>
 
-              <a href="javascript: void(0);" class="btn- btn-xs btn-info">Send Email</a>
-              <a href="javascript: void(0);" class="btn- btn-xs btn-secondary">Call</a>
-              <a href="javascript: void(0);" class="btn- btn-xs btn-secondary">Edit</a>
+              <a href="javascript: void(0);" class="btn- btn-xs btn-info ml-1">Send Email</a>
+              <a href="javascript: void(0);" class="btn- btn-xs btn-secondary ml-1">Call</a>
+              <a href="javascript: void(0);" class="btn- btn-xs btn-secondary ml-1">Edit</a>
             </div>
           </div>
 
-          <h5 class="mb-3 mt-4 text-uppercase bg-light p-2"><i class="mdi mdi-account-circle mr-1"></i> Personal Information</h5>
+          <h5 class="mb-3 mt-4 text-uppercase bg-light p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
             <h4 class="font-13 text-muted text-uppercase">About Me :</h4>
             <p class="mb-3">
