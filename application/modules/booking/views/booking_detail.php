@@ -285,6 +285,35 @@ body.noblur-backdrop #app {
               <?php endif; ?>
             </div>
 
+            <h4 class="font-13 text-dark text-uppercase mb-1">📄 Surat Tugas :</h4>
+            <p class="mb-3" id="surat_actions" style="font-weight: bold;">
+            <?php if ($surat_url): ?>
+                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
+                  <i class="mdi mdi-file-pdf-box"></i> Lihat
+                </button>
+                <a class="btn btn-sm btn-outline-secondary ml-1" href="<?= $surat_url ?>" download>
+                  <i class="mdi mdi-download"></i> Unduh
+                </a>
+              <?php else: ?>
+                <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
+              <?php endif; ?>
+            </p>
+
+           <!--   <div class="kv-row row no-gutters">
+            <dt class="col-sm-4 kv-label">📄 Surat Tugas</dt>
+            <dd class="col-sm-8" id="surat_actions">
+              <?php if ($surat_url): ?>
+                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
+                  <i class="mdi mdi-file-pdf-box"></i> Lihat
+                </button>
+                <a class="btn btn-sm btn-outline-secondary ml-1" href="<?= $surat_url ?>" download>
+                  <i class="mdi mdi-download"></i> Unduh
+                </a>
+              <?php else: ?>
+                <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
+              <?php endif; ?>
+            </dd>
+ -->
         </div>
 
 
@@ -392,7 +421,7 @@ body.noblur-backdrop #app {
             
 
                       <!-- 📄 Surat Tugas (aksi lihat/unduh) -->
-          <div class="kv-row row no-gutters">
+         <!--  <div class="kv-row row no-gutters">
             <dt class="col-sm-4 kv-label">📄 Surat Tugas</dt>
             <dd class="col-sm-8" id="surat_actions">
               <?php if ($surat_url): ?>
@@ -405,7 +434,7 @@ body.noblur-backdrop #app {
               <?php else: ?>
                 <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
               <?php endif; ?>
-            </dd>
+            </dd> -->
           <!-- </div> -->
 
               <!-- 📤 Uploader Surat Tugas -->
