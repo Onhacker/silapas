@@ -207,14 +207,14 @@ body.noblur-backdrop #app {
     <div class="row">
       <!-- KIRI -->
       <div class="col-md-7">
-
         <div class="card-box">
           <div class="media mb-3">
             <img class="d-flex mr-3 rounded-circle avatar-lg" src="assets/images/users/user-8.jpg" alt="Generic placeholder image">
             <div class="media-body">
               <h4 class="mt-0 mb-1"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></h4>
               <p class="text-dark"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></p>
-              <p class="text-dark"><i class="mdi mdi-office-building"></i> <?= $instansi ?></p>
+              <p class="text-dark">🏢 <?= $instansi ?></p>
+              <p class="text-dark">🔑 Kode Booking</p>
               <span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
               <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>"><i class="mdi mdi-content-copy"></i></button>
               <!-- <a href="javascript: void(0);" class="btn- btn-xs btn-info ml-1">Send Email</a>
@@ -225,10 +225,8 @@ body.noblur-backdrop #app {
 
           <h5 class="mb-3 mt-4 text-uppercase bg-light p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
-            <h4 class="font-13 text-muted text-uppercase">About Me :</h4>
-            <p class="mb-3">
-              Hi I'm Johnathn Deo,has been the industry's standard dummy text ever since the
-              1500s, when an unknown printer took a galley of type.
+            <h4 class="font-13 text-dark text-uppercase">🪪 NIK :</h4>
+            <p class="mb-3"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
             </p>
 
             <h4 class="font-13 text-dark text-uppercase mb-1">🎂 Tempat/Tanggal Lahir :</h4>
@@ -249,17 +247,17 @@ body.noblur-backdrop #app {
 
 
         <dl class="mb-0">
-          <div class="kv-row row no-gutters align-items-center">
+         <!--  <div class="kv-row row no-gutters align-items-center">
             <dt class="col-sm-4 kv-label">🔑 Kode</dt>
             <dd class="col-sm-8 kv-value">
               <span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
               <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>"><i class="mdi mdi-content-copy"></i></button>
             </dd>
-          </div>
+          </div> -->
 
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👤 Nama Tamu</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></dd></div>
+          <!-- <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👤 Nama Tamu</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🧑‍💼 Jabatan</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></dd></div>
-
+ -->
           <style>.kv-label .ico{display:inline-block;width:1.25em;text-align:center;margin-right:.4rem;}</style>
           <div class="kv-row row no-gutters">
             <dt class="col-sm-4 kv-label"><span class="ico" aria-hidden="true">🪪</span> NIK</dt>
