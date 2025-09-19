@@ -975,10 +975,47 @@ function updateFotoSection(url) {
 }
 </script>
 <script>
-function updateSuratSection(url) {
-  const bust = url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now();
 
-  // Render tombol Lihat + Unduh di area aksi
+  // Base URL dari server
+const BASE_URL = <?= json_encode(rtrim(base_url(), '/')) ?>;
+
+function toAbsUrl(u) {
+  if (!u) return '';
+  if (/^https?:\/\//i.test(u)) return u;       // sudah absolut
+  if (u.startsWith('/')) return BASE_URL + u;  // "/uploads/.."
+  return BASE_URL + '/' + u.replace(/^\.?\//,''); // "uploads/.."
+}
+
+function withBust(u) {
+  const abs = toAbsUrl(u);
+  try {
+    const url = new URL(abs);
+    url.searchParams.set('v', Date.now());
+    return url.toString();
+  } catch (e) {
+    return abs + (abs.includes('?') ? '&' : '?') + 'v=' + Date.now();
+  }
+}
+
+function clearSuratPreview() {
+  const wrapPrev  = document.getElementById('surat_preview_wrap');
+  const prevImg   = document.getElementById('surat_preview_img');
+  const prevPdfBx = document.getElementById('surat_preview_pdf');
+  const pdfEmbed  = document.getElementById('surat_pdf_embed');
+
+  if (wrapPrev)  wrapPrev.style.display = 'none';
+  if (prevImg)   { prevImg.src = ''; prevImg.style.display = 'none'; }
+  if (prevPdfBx) { prevPdfBx.style.display = 'none'; }
+  if (pdfEmbed)  pdfEmbed.removeAttribute('src');
+}
+
+
+
+function updateSuratSection(rawUrl) {
+  if (!rawUrl) return;
+  const bust = withBust(rawUrl);
+
+  // Render tombol Lihat + Unduh
   const actions = document.getElementById('surat_actions');
   if (actions) {
     actions.innerHTML = `
@@ -993,32 +1030,34 @@ function updateSuratSection(url) {
 
   // Update isi modal
   const body = document.getElementById('surat_modal_body');
-  const isPdf = /\.pdf(\?|$)/i.test(bust);
   if (body) {
-    body.innerHTML = isPdf
-      ? `<div class="embed-responsive embed-responsive-16by9">
+    if (/\.pdf(\?|$)/i.test(bust)) {
+      body.innerHTML =
+        `<div class="embed-responsive embed-responsive-16by9">
            <iframe class="embed-responsive-item"
                    src="${bust}#toolbar=1&navpanes=0&scrollbar=1" allowfullscreen></iframe>
-         </div>`
-      : `<img src="${bust}" class="img-fluid" alt="Surat Tugas">`;
+         </div>`;
+    } else {
+      body.innerHTML = `<img src="${bust}" class="img-fluid" alt="Surat Tugas">`;
+    }
   }
 
   // Pastikan tombol Unduh di footer ADA
-  const modalSel = '#modalSuratTugas_<?= $kode_safe ?>';
-  const footer   = document.querySelector(modalSel + ' .modal-footer');
+  const footer = document.querySelector('#modalSuratTugas_<?= $kode_safe ?> .modal-footer');
   if (footer) {
     let a = footer.querySelector('a.btn-outline-secondary');
     if (!a) {
       a = document.createElement('a');
       a.className = 'btn btn-outline-secondary';
-      a.innerHTML = '<i class="mdi mdi-download"></i> Unduh';
       a.setAttribute('download', '');
+      a.innerHTML = '<i class="mdi mdi-download"></i> Unduh';
       footer.insertBefore(a, footer.firstChild);
     }
     a.href = bust;
     a.style.display = '';
   }
 }
+
 
 
 </script>
