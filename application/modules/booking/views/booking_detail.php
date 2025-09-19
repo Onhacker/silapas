@@ -298,7 +298,7 @@ body.noblur-backdrop #app {
                 <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
               <?php endif; ?>
             </p>
-            <div class="col-sm-8">
+            <!-- <div class="col-sm-8"> -->
                 <!-- gunakan yang sudah ada kalau sebelumnya sudah dibuat -->
                 <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
 
@@ -333,7 +333,7 @@ body.noblur-backdrop #app {
                   <small id="surat_status" class="text-muted ms-2"></small>
                 </div>
               </div>
-            </div>
+            <!-- </div> -->
 
            <!--   <div class="kv-row row no-gutters">
             <dt class="col-sm-4 kv-label">📄 Surat Tugas</dt>
