@@ -323,7 +323,7 @@ body.noblur-backdrop #app {
                   </div>
                 </div>
 
-                <div class="d-flex align-items-center" style="gap:.5rem;">
+                <div class="mb-3 d-flex align-items-center" style="gap:.5rem;">
                   <button type="button" id="btnSuratUpload" class="btn btn-blue btn-sm" disabled>
                     <i class="mdi mdi-cloud-upload"></i> Upload
                   </button>
