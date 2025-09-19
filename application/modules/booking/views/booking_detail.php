@@ -226,26 +226,26 @@ body.noblur-backdrop #app {
           <h5 class="mb-3 mt-4 text-uppercase bg-light p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
             <h4 class="font-13 text-dark text-uppercase">🪪 NIK :</h4>
-            <p class="mb-3"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
+            <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
             </p>
 
-            <h4 class="font-13 text-blue text-uppercase mb-1">🎂 Tempat/Tanggal Lahir :</h4>
-            <p class="mb-3"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></p>
+            <h4 class="font-13 text-dark text-uppercase mb-1">🎂 Tempat/Tanggal Lahir :</h4>
+            <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></p>
 
             <h4 class="font-13 text-dark text-uppercase mb-1">📍 Alamat :</h4>
-            <p class="mb-3"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></p>
+            <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></p>
 
             <h4 class="font-13 text-dark text-uppercase mb-1">📱 No. HP/WA :</h4>
-            <p class="mb-3"> <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
+            <p class="mb-3" style="font-weight: bold;"> <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
               <?php if ($hp_wa): ?>
                 <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>"><i class="mdi mdi-whatsapp"></i></a>
               <?php endif; ?></p>
 
             <h4 class="font-13 text-dark text-uppercase mb-1"><i class="fas fa-envelope mr-1" aria-hidden="true"></i> Email :</h4>
-            <p class="mb-3"> <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></p>
+            <p class="mb-3" style="font-weight: bold;"> <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></p>
 
             <h4 class="font-13 text-dark text-uppercase mb-1">📅 Waktu Kunjungan :</h4>
-            <p class="mb-3"><?= $hari_tgl ?>, <?= $jam ?></p>
+            <p class="mb-3" style="font-weight: bold;"><?= $hari_tgl ?>, <?= $jam ?></p>
 
             <h4 class="font-13 text-dark text-uppercase mb-1">📝 Keperluan :</h4>
             <div class="alert alert-info mb-3" role="alert">
