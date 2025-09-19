@@ -231,11 +231,11 @@ body.noblur-backdrop #app {
           <h5 class="mb-3 mt-4 text-uppercase text-white bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
             <style>
-  .kv-row{padding:.4rem 0;border-bottom:1px dashed #e5e7eb}
-  .kv-row:last-child{border-bottom:none}
-  .kv-label{font-size:.85rem;text-transform:uppercase;color:#334155;font-weight:700}
-  .kv-value{font-weight:600;color:#0f172a}
-</style>
+              .kv-row{padding:.4rem 0;border-bottom:1px dashed #e5e7eb}
+              .kv-row:last-child{border-bottom:none}
+              .kv-label{font-size:.85rem;text-transform:uppercase;color:#334155;font-weight:700}
+              .kv-value{font-weight:600;color:#0f172a}
+            </style>
 
 <div class="container-kv">
   <!-- KODE BOOKING -->
@@ -306,7 +306,7 @@ body.noblur-backdrop #app {
   <div class="row kv-row">
     <div class="col-12 col-md-4 kv-label">📝 Keperluan</div>
     <div class="col-12 col-md-8">
-      <p class="alert alert-info mb-0" role="alert">
+      <p class="alert alert-light bg-light text-dark border-0" role="alert">
         <i class="mdi mdi-alert-circle-outline mr-2"></i><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?>
       </p>
     </div>
