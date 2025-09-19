@@ -298,6 +298,42 @@ body.noblur-backdrop #app {
                 <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
               <?php endif; ?>
             </p>
+            <div class="col-sm-8">
+                <!-- gunakan yang sudah ada kalau sebelumnya sudah dibuat -->
+                <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
+
+                <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
+                  <input type="file" id="doc_surat" accept="application/pdf,image/*" class="d-none">
+                  <button type="button" id="btnPickSurat" class="btn btn-outline-secondary btn-sm">
+                    <i class="mdi mdi-file-upload-outline"></i> Pilih Berkas (PDF/JPG/PNG)
+                  </button>
+                  <small id="pickSuratLabel" class="text-muted">Belum ada file</small>
+                </div>
+
+                <div id="surat_preview_wrap" class="mb-2" style="display:none;">
+                  <!-- preview gambar -->
+                  <img id="surat_preview_img" alt="Preview Surat Tugas" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;display:none;">
+                  <!-- preview pdf -->
+                  <div id="surat_preview_pdf" style="display:none;border:1px solid #e5e7eb;border-radius:8px;">
+                    <div class="p-2 d-flex align-items-center justify-content-between">
+                      <span><i class="mdi mdi-file-pdf-box"></i> <strong>PDF terpilih</strong></span>
+                      <small class="text-muted">Pratinjau PDF terbatas di sebagian perangkat</small>
+                    </div>
+                    <embed id="surat_pdf_embed" type="application/pdf" width="100%" height="520px" style="border-top:1px solid #e5e7eb;">
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center" style="gap:.5rem;">
+                  <button type="button" id="btnSuratUpload" class="btn btn-blue btn-sm" disabled>
+                    <i class="mdi mdi-cloud-upload"></i> Upload
+                  </button>
+                  <button type="button" id="btnSuratReset" class="btn btn-light btn-sm" style="display:none;">
+                    <i class="mdi mdi-close-circle-outline"></i> Batal
+                  </button>
+                  <small id="surat_status" class="text-muted ms-2"></small>
+                </div>
+              </div>
+            </div>
 
            <!--   <div class="kv-row row no-gutters">
             <dt class="col-sm-4 kv-label">📄 Surat Tugas</dt>
@@ -315,7 +351,6 @@ body.noblur-backdrop #app {
             </dd>
  -->
         </div>
-      </div>
 
 
         <dl class="mb-0">
@@ -441,42 +476,7 @@ body.noblur-backdrop #app {
               <!-- 📤 Uploader Surat Tugas -->
             <!-- <div class="kv-row row no-gutters" id="row_surat_upload"> -->
               <!-- <dt class="col-sm-4 kv-label">📤 Unggah Surat Tugas</dt> -->
-              <dd class="col-sm-8">
-                <!-- gunakan yang sudah ada kalau sebelumnya sudah dibuat -->
-                <input type="hidden" id="kode_booking" value="<?= html_escape($booking->kode_booking) ?>">
-
-                <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
-                  <input type="file" id="doc_surat" accept="application/pdf,image/*" class="d-none">
-                  <button type="button" id="btnPickSurat" class="btn btn-outline-secondary btn-sm">
-                    <i class="mdi mdi-file-upload-outline"></i> Pilih Berkas (PDF/JPG/PNG)
-                  </button>
-                  <small id="pickSuratLabel" class="text-muted">Belum ada file</small>
-                </div>
-
-                <div id="surat_preview_wrap" class="mb-2" style="display:none;">
-                  <!-- preview gambar -->
-                  <img id="surat_preview_img" alt="Preview Surat Tugas" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;display:none;">
-                  <!-- preview pdf -->
-                  <div id="surat_preview_pdf" style="display:none;border:1px solid #e5e7eb;border-radius:8px;">
-                    <div class="p-2 d-flex align-items-center justify-content-between">
-                      <span><i class="mdi mdi-file-pdf-box"></i> <strong>PDF terpilih</strong></span>
-                      <small class="text-muted">Pratinjau PDF terbatas di sebagian perangkat</small>
-                    </div>
-                    <embed id="surat_pdf_embed" type="application/pdf" width="100%" height="520px" style="border-top:1px solid #e5e7eb;">
-                  </div>
-                </div>
-
-                <div class="d-flex align-items-center" style="gap:.5rem;">
-                  <button type="button" id="btnSuratUpload" class="btn btn-blue btn-sm" disabled>
-                    <i class="mdi mdi-cloud-upload"></i> Upload
-                  </button>
-                  <button type="button" id="btnSuratReset" class="btn btn-light btn-sm" style="display:none;">
-                    <i class="mdi mdi-close-circle-outline"></i> Batal
-                  </button>
-                  <small id="surat_status" class="text-muted ms-2"></small>
-                </div>
-              </dd>
-            </div>
+              
 
            
              
