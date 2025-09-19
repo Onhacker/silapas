@@ -26,6 +26,21 @@ if (!function_exists('hari_id')) {
   .chip .dot{width:.5rem;height:.5rem;border-radius:999px;background:#22c55e}
   .kv-label{color:#6b7280;font-size:.9rem}
 </style>
+<style>
+  .details-grid{
+    display:grid;
+    grid-template-columns: 1fr;          /* HP: 1 kolom */
+    gap: .75rem 1.25rem;
+  }
+  /* Laptop/desktop: 2 kolom */
+  @media (min-width: 992px){
+    .details-grid{ grid-template-columns: 1fr 1fr; }
+    .details-grid .span-2{ grid-column: 1 / -1; } /* item yang ingin full-width */
+  }
+  .details-grid .field h4{ margin-bottom:.35rem; }
+  .details-grid .field p{ margin-bottom:1rem; }
+</style>
+
 
 <!-- <style>
   .kv-card{border:1px solid #e5e7eb;border-radius:14px}
@@ -222,39 +237,72 @@ body.noblur-backdrop #app {
 
           <h5 class="mb-3 mt-4 text-uppercase text-white bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
-             <h4 class="font-13 text-dark text-uppercase">🔑 Kode Booking :</h4>
-            <p class="mb-3" style="font-weight: bold;"><span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
-              <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>"><i class="mdi mdi-content-copy"></i></button>
-            </p>
+            <div class="details-grid">
 
-            <h4 class="font-13 text-dark text-uppercase">🪪 NIK :</h4>
-            <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
-            </p>
+                <div class="field">
+                  <h4 class="font-13 text-dark text-uppercase">🔑 Kode Booking :</h4>
+                  <p class="mb-3" style="font-weight: bold;">
+                    <span class="chip mr-2">
+                      <span class="dot"></span><span><?= $kode ?></span>
+                    </span>
+                    <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>">
+                      <i class="mdi mdi-content-copy"></i>
+                    </button>
+                  </p>
+                </div>
 
-            <h4 class="font-13 text-dark text-uppercase mb-1">🎂 Tempat/Tanggal Lahir :</h4>
-            <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></p>
+                <div class="field">
+                  <h4 class="font-13 text-dark text-uppercase">🪪 NIK :</h4>
+                  <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?></p>
+                </div>
 
-            <h4 class="font-13 text-dark text-uppercase mb-1">📍 Alamat :</h4>
-            <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></p>
+                <div class="field">
+                  <h4 class="font-13 text-dark text-uppercase mb-1">🎂 Tempat/Tanggal Lahir :</h4>
+                  <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></p>
+                </div>
 
-            <h4 class="font-13 text-dark text-uppercase mb-1">📱 No. HP/WA :</h4>
-            <p class="mb-3" style="font-weight: bold;"> <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
-              <?php if ($hp_wa): ?>
-                <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>"><i class="mdi mdi-whatsapp"></i></a>
-              <?php endif; ?></p>
+                <div class="field">
+                  <h4 class="font-13 text-dark text-uppercase mb-1">📍 Alamat :</h4>
+                  <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></p>
+                </div>
 
-            <h4 class="font-13 text-dark text-uppercase mb-1"><i class="fas fa-envelope mr-1" aria-hidden="true"></i> Email :</h4>
-            <p class="mb-3" style="font-weight: bold;"> <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></p>
+                <div class="field">
+                  <h4 class="font-13 text-dark text-uppercase mb-1">📱 No. HP/WA :</h4>
+                  <p class="mb-3" style="font-weight: bold;">
+                    <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
+                    <?php if ($hp_wa): ?>
+                      <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>">
+                        <i class="mdi mdi-whatsapp"></i>
+                      </a>
+                    <?php endif; ?>
+                  </p>
+                </div>
 
-            <h4 class="font-13 text-dark text-uppercase mb-1">📅 Waktu Kunjungan :</h4>
-            <p class="mb-3" style="font-weight: bold;"><?= $hari_tgl ?>, <?= $jam ?></p>
+                <div class="field">
+                  <h4 class="font-13 text-dark text-uppercase mb-1"><i class="fas fa-envelope mr-1" aria-hidden="true"></i> Email :</h4>
+                  <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></p>
+                </div>
 
-            <h4 class="font-13 text-dark text-uppercase mb-1">📝 Keperluan :</h4>
-            <p class="alert alert-info mb-3" role="alert">
-              <i class="mdi mdi-alert-circle-outline mr-2"></i><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?>
-            </p>
-            <h4 class="font-13 text-dark text-uppercase mb-1">👥 Pendamping :</h4>
-            <p class="mb-1" style="font-weight: bold;"><?= (int)$booking->jumlah_pendamping ?> orang</p>
+                <div class="field">
+                  <h4 class="font-13 text-dark text-uppercase mb-1">📅 Waktu Kunjungan :</h4>
+                  <p class="mb-3" style="font-weight: bold;"><?= $hari_tgl ?>, <?= $jam ?></p>
+                </div>
+
+                <!-- Kalau mau “Keperluan” full width di layar besar, beri class span-2 -->
+                <div class="field span-2">
+                  <h4 class="font-13 text-dark text-uppercase mb-1">📝 Keperluan :</h4>
+                  <p class="alert alert-info mb-3" role="alert">
+                    <i class="mdi mdi-alert-circle-outline mr-2"></i><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?>
+                  </p>
+                </div>
+
+                <div class="field">
+                  <h4 class="font-13 text-dark text-uppercase mb-1">👥 Pendamping :</h4>
+                  <p class="mb-1" style="font-weight: bold;"><?= (int)$booking->jumlah_pendamping ?> orang</p>
+                </div>
+
+              </div>
+
 
             <?php if (!empty($pendamping_rows)): ?>
              <h4 class="font-13 text-dark text-uppercase mb-1">👥 Daftar Pendamping :</h4>
@@ -370,166 +418,8 @@ body.noblur-backdrop #app {
                   <h4 class="font-13 text-dark text-uppercase mb-1">🏷️ Nama <?= $unit_nama ?> :</h4>
                   <p class="mb-3" style="font-weight: bold;"><?= $nama_petugas_instansi ?></p>
 
-              <!--   </dd>
-              </div>
-              </div> -->
 
 
-
-
-
-
-            <!-- </div> -->
-
-           <!--   <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label">📄 Surat Tugas</dt>
-            <dd class="col-sm-8" id="surat_actions">
-              <?php if ($surat_url): ?>
-                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
-                  <i class="mdi mdi-file-pdf-box"></i> Lihat
-                </button>
-                <a class="btn btn-sm btn-outline-secondary ml-1" href="<?= $surat_url ?>" download>
-                  <i class="mdi mdi-download"></i> Unduh
-                </a>
-              <?php else: ?>
-                <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
-              <?php endif; ?>
-            </dd>
- -->
-        <!-- </div> -->
-
-
-        <!-- <dl class="mb-0"> -->
-         <!--  <div class="kv-row row no-gutters align-items-center">
-            <dt class="col-sm-4 kv-label">🔑 Kode</dt>
-            <dd class="col-sm-8 kv-value">
-              <span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
-              <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>"><i class="mdi mdi-content-copy"></i></button>
-            </dd>
-          </div> -->
-
-          <!-- <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👤 Nama Tamu</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></dd></div>
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🧑‍💼 Jabatan</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></dd></div>
- -->
-         <!--  <style>.kv-label .ico{display:inline-block;width:1.25em;text-align:center;margin-right:.4rem;}</style>
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label"><span class="ico" aria-hidden="true">🪪</span> NIK</dt>
-            <dd class="col-sm-8 kv-value">
-              <?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
-              <button type="button" class="btn btn-light btn-sm btn-copy ml-1" data-clip="<?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>"><i class="mdi mdi-content-copy"></i></button>
-            </dd>
-          </div>
-
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label"><span class="ico" aria-hidden="true">📍</span> Alamat</dt>
-            <dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></dd>
-          </div>
- -->
-        <!--   <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label"><span class="ico" aria-hidden="true">🎂</span> Tempat/Tanggal Lahir</dt>
-            <dd class="col-sm-8 kv-value"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></dd>
-          </div> -->
-
-        <!--   <div class="kv-row row no-gutters align-items-center">
-            <dt class="col-sm-4 kv-label">📱 No. HP</dt>
-            <dd class="col-sm-8 kv-value">
-              <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
-              <?php if ($hp_wa): ?>
-                <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>"><i class="mdi mdi-whatsapp"></i></a>
-              <?php endif; ?>
-            </dd>
-          </div> -->
-        <!--   <div class="kv-row row no-gutters align-items-center">
-            <dt class="col-sm-4 kv-label">
-              <i class="fas fa-envelope mr-1" aria-hidden="true"></i> Email
-            </dt>
-            <dd class="col-sm-8 kv-value">
-              <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?>
-            </dd>
-          </div> -->
-
-
-          <!-- <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🏢 Instansi Asal</dt><dd class="col-sm-8 kv-value"><?= $instansi ?></dd></div> -->
-         <!--  <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🎯 Unit Tujuan</dt><dd class="col-sm-8 kv-value"><?= $unit_nama ?></dd></div>
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🏷️ Nama <?= $unit_nama ?></dt><dd class="col-sm-8 kv-value"><?= $nama_petugas_instansi ?></dd></div>
-
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label">📝 Keperluan</dt>
-            <dd class="col-sm-8"><div class="longtext"><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?></div></dd>
-          </div> -->
-
-         <!--  <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">📅 Tanggal Kunjungan</dt><dd class="col-sm-8 kv-value"><?= $hari_tgl ?></dd></div>
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏰ Jam</dt><dd class="col-sm-8 kv-value"><?= $jam ?></dd></div> -->
-          <!-- <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👥 Jumlah Pendamping</dt><dd class="col-sm-8 kv-value"><span class="badge badge-pill badge-primary" style="font-size:.9rem;"><?= (int)$booking->jumlah_pendamping ?> orang</span></dd></div> -->
-
-          <!-- <?php if (!empty($pendamping_rows)): ?>
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
-            <dd class="col-sm-8 kv-value">
-              <div class="table-responsive">
-                <table class="table table-sm table-bordered mb-0">
-                  <thead class="thead-light">
-                    <tr><th style="width:60px;">No</th><th style="width:200px;">NIK</th><th>Nama</th></tr>
-                  </thead>
-                  <tbody>
-                    <?php foreach ($pendamping_rows as $i => $p): ?>
-                      <tr>
-                        <td class="text-center"><?= $i+1 ?></td>
-                        <td><code><?= htmlspecialchars($p->nik, ENT_QUOTES, 'UTF-8') ?></code></td>
-                        <td><?= htmlspecialchars($p->nama, ENT_QUOTES, 'UTF-8') ?></td>
-                      </tr>
-                    <?php endforeach; ?>
-                  </tbody>
-                </table>
-              </div>
-            </dd>
-          </div>
-          <?php elseif ((int)$booking->jumlah_pendamping > 0): ?>
-          <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label">👥 Daftar Pendamping</dt>
-            <dd class="col-sm-8 kv-value soft">Belum ada data pendamping.</dd>
-          </div>
-          <?php endif; ?> -->
-
-          <?php if ($checkin_str): ?>
-            <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🕘 Check-in</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($checkin_str, ENT_QUOTES, 'UTF-8') ?></dd></div>
-          <?php endif; ?>
-          <?php if ($checkout_str): ?>
-            <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🕙 Check-out</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($checkout_str, ENT_QUOTES, 'UTF-8') ?></dd></div>
-          <?php endif; ?>
-          <?php if ($durasi): ?>
-            <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏳ Durasi</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($durasi, ENT_QUOTES, 'UTF-8') ?></dd></div>
-          <?php endif; ?>
-            
-
-                      <!-- 📄 Surat Tugas (aksi lihat/unduh) -->
-         <!--  <div class="kv-row row no-gutters">
-            <dt class="col-sm-4 kv-label">📄 Surat Tugas</dt>
-            <dd class="col-sm-8" id="surat_actions">
-              <?php if ($surat_url): ?>
-                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
-                  <i class="mdi mdi-file-pdf-box"></i> Lihat
-                </button>
-                <a class="btn btn-sm btn-outline-secondary ml-1" href="<?= $surat_url ?>" download>
-                  <i class="mdi mdi-download"></i> Unduh
-                </a>
-              <?php else: ?>
-                <span class="soft" id="surat_empty">Belum ada surat tugas.</span>
-              <?php endif; ?>
-            </dd> -->
-          <!-- </div> -->
-
-              <!-- 📤 Uploader Surat Tugas -->
-            <!-- <div class="kv-row row no-gutters" id="row_surat_upload"> -->
-              <!-- <dt class="col-sm-4 kv-label">📤 Unggah Surat Tugas</dt> -->
-              
-
-           
-             
-            
-
-          <!-- 🖼️ Foto -->
-         
           <!-- Modal Surat Tugas (selalu ada, konten diisi JS saat perlu) -->
          <!-- Modal Surat Tugas (selalu ada) -->
               <div class="modal fade" id="modalSuratTugas_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
@@ -616,6 +506,16 @@ body.noblur-backdrop #app {
           <a href="<?= site_url('booking/print_pdf/'.$booking->kode_booking) ?>?t=<?= urlencode($booking->access_token ?? '') ?>&dl=1" class="btn btn-danger"><i class="mdi mdi-download"></i> Unduh</a>
         </div>
 
+          <?php if ($checkin_str): ?>
+            <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🕘 Check-in</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($checkin_str, ENT_QUOTES, 'UTF-8') ?></dd></div>
+          <?php endif; ?>
+          <?php if ($checkout_str): ?>
+            <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🕙 Check-out</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($checkout_str, ENT_QUOTES, 'UTF-8') ?></dd></div>
+          <?php endif; ?>
+          <?php if ($durasi): ?>
+            <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏳ Durasi</dt><dd class="col-sm-8 kv-value"><?= htmlspecialchars($durasi, ENT_QUOTES, 'UTF-8') ?></dd></div>
+          <?php endif; ?>
+            
         <!-- Tombol Edit Permohonan + keterangan -->
        <!-- Tombol Edit / Hapus -->
       <div class="mt-2">
