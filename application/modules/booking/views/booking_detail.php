@@ -27,18 +27,7 @@ if (!function_exists('hari_id')) {
   .kv-label{color:#6b7280;font-size:.9rem}
 </style>
 <style>
-  .details-grid{
-    display:grid;
-    grid-template-columns: 1fr;          /* HP: 1 kolom */
-    /*gap: .75rem 1.25rem;*/
-  }
-  /* Laptop/desktop: 2 kolom */
-  @media (min-width: 992px){
-    .details-grid{ grid-template-columns: 1fr 1fr; }
-    .details-grid .span-2{ grid-column: 1 / -1; } /* item yang ingin full-width */
-  }
-  .details-grid .field h4{ margin-bottom:.35rem; }
-  .details-grid .field p{ margin-bottom:1rem; }
+ 
   .kv-head{border-bottom:1px dashed #e5e7eb}
   .pill{display:inline-block;padding:.35rem .7rem;border-radius:999px;font-weight:700;font-size:.75rem;letter-spacing:.2px;color:#fff}
   .pill-primary{background:#2563eb}.pill-info{background:#0ea5e9}.pill-success{background:#16a34a}
@@ -241,71 +230,97 @@ body.noblur-backdrop #app {
 
           <h5 class="mb-3 mt-4 text-uppercase text-white bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
-            <div class="details-grid">
+            <style>
+  .kv-row{padding:.4rem 0;border-bottom:1px dashed #e5e7eb}
+  .kv-row:last-child{border-bottom:none}
+  .kv-label{font-size:.85rem;text-transform:uppercase;color:#334155;font-weight:700}
+  .kv-value{font-weight:600;color:#0f172a}
+</style>
 
-                <div class="field">
-                  <h4 class="font-13 text-dark text-uppercase">🔑 Kode Booking :</h4>
-                  <p class="mb-1" style="font-weight: bold;">
-                    <span class="chip mr-2">
-                      <span class="dot"></span><span><?= $kode ?></span>
-                    </span>
-                    <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>">
-                      <i class="mdi mdi-content-copy"></i>
-                    </button>
-                  </p>
-                </div>
+<div class="container-kv">
+  <!-- KODE BOOKING -->
+  <div class="row align-items-center kv-row">
+    <div class="col-12 col-md-4 kv-label">🔑 Kode Booking</div>
+    <div class="col-12 col-md-8 kv-value">
+      <span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
+      <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>">
+        <i class="mdi mdi-content-copy"></i>
+      </button>
+    </div>
+  </div>
 
-                <div class="field">
-                  <h4 class="font-13 text-dark text-uppercase">🪪 NIK :</h4>
-                  <p class="mb-1" style="font-weight: bold;"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?></p>
-                </div>
+  <!-- NIK -->
+  <div class="row align-items-center kv-row">
+    <div class="col-12 col-md-4 kv-label">🪪 NIK</div>
+    <div class="col-12 col-md-8 kv-value">
+      <?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
+    </div>
+  </div>
 
-                <div class="field">
-                  <h4 class="font-13 text-dark text-uppercase mb-1">🎂 Tempat/Tanggal Lahir :</h4>
-                  <p class="mb-1" style="font-weight: bold;"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></p>
-                </div>
+  <!-- TTL -->
+  <div class="row align-items-center kv-row">
+    <div class="col-12 col-md-4 kv-label">🎂 Tempat/Tanggal Lahir</div>
+    <div class="col-12 col-md-8 kv-value">
+      <?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?>
+    </div>
+  </div>
 
-                <div class="field">
-                  <h4 class="font-13 text-dark text-uppercase mb-1">📍 Alamat :</h4>
-                  <p class="mb-1" style="font-weight: bold;"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></p>
-                </div>
+  <!-- Alamat -->
+  <div class="row align-items-center kv-row">
+    <div class="col-12 col-md-4 kv-label">📍 Alamat</div>
+    <div class="col-12 col-md-8 kv-value">
+      <?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?>
+    </div>
+  </div>
 
-                <div class="field">
-                  <h4 class="font-13 text-dark text-uppercase mb-1">📱 No. HP/WA :</h4>
-                  <p class="mb-1" style="font-weight: bold;">
-                    <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
-                    <?php if ($hp_wa): ?>
-                      <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>">
-                        <i class="mdi mdi-whatsapp"></i>
-                      </a>
-                    <?php endif; ?>
-                  </p>
-                </div>
+  <!-- HP/WA -->
+  <div class="row align-items-center kv-row">
+    <div class="col-12 col-md-4 kv-label">📱 No. HP/WA</div>
+    <div class="col-12 col-md-8 kv-value">
+      <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
+      <?php if ($hp_wa): ?>
+        <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>">
+          <i class="mdi mdi-whatsapp"></i>
+        </a>
+      <?php endif; ?>
+    </div>
+  </div>
 
-                <div class="field">
-                  <h4 class="font-13 text-dark text-uppercase mb-1"><i class="fas fa-envelope mr-1" aria-hidden="true"></i> Email :</h4>
-                  <p class="mb-1" style="font-weight: bold;"><?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></p>
-                </div>
+  <!-- Email -->
+  <div class="row align-items-center kv-row">
+    <div class="col-12 col-md-4 kv-label"><i class="fas fa-envelope mr-1"></i> Email</div>
+    <div class="col-12 col-md-8 kv-value">
+      <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?>
+    </div>
+  </div>
 
-                <div class="field">
-                  <h4 class="font-13 text-dark text-uppercase mb-1">📅 Waktu Kunjungan :</h4>
-                  <p class="mb-1" style="font-weight: bold;"><?= $hari_tgl ?>, <?= $jam ?></p>
-                </div>
+  <!-- Waktu Kunjungan -->
+  <div class="row align-items-center kv-row">
+    <div class="col-12 col-md-4 kv-label">📅 Waktu Kunjungan</div>
+    <div class="col-12 col-md-8 kv-value">
+      <?= $hari_tgl ?>, <?= $jam ?>
+    </div>
+  </div>
 
-                <!-- Kalau mau “Keperluan” full width di layar besar, beri class span-2 -->
-                <div class="field span-2">
-                  <h4 class="font-13 text-dark text-uppercase mb-1">📝 Keperluan :</h4>
-                  <p class="alert alert-info mb-1" role="alert">
-                    <i class="mdi mdi-alert-circle-outline mr-2"></i><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?>
-                  </p>
-                </div>
+  <!-- Keperluan (boleh full width di desktop: tambah col-md-12 di value dan kosongkan label) -->
+  <div class="row kv-row">
+    <div class="col-12 col-md-4 kv-label">📝 Keperluan</div>
+    <div class="col-12 col-md-8">
+      <p class="alert alert-info mb-0" role="alert">
+        <i class="mdi mdi-alert-circle-outline mr-2"></i><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?>
+      </p>
+    </div>
+  </div>
 
-                <div class="field">
-                  <h4 class="font-13 text-dark text-uppercase mb-1">👥 Pendamping :</h4>
-                  <p class="mb-1" style="font-weight: bold;"><?= (int)$booking->jumlah_pendamping ?> orang</p>
-                </div>
+  <!-- Pendamping -->
+  <div class="row align-items-center kv-row">
+    <div class="col-12 col-md-4 kv-label">👥 Pendamping</div>
+    <div class="col-12 col-md-8 kv-value">
+      <?= (int)$booking->jumlah_pendamping ?> orang
+    </div>
+  </div>
+</div>
 
-              </div>
 
 
             <?php if (!empty($pendamping_rows)): ?>
