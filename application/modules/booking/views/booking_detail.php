@@ -223,7 +223,7 @@ body.noblur-backdrop #app {
             </div>
           </div>
 
-          <h5 class="mb-3 mt-4 text-uppercase bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
+          <h5 class="mb-3 mt-4 text-uppercase text-white bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
             <h4 class="font-13 text-dark text-uppercase">🪪 NIK :</h4>
             <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
@@ -256,7 +256,7 @@ body.noblur-backdrop #app {
 
             <?php if (!empty($pendamping_rows)): ?>
              <h4 class="font-13 text-dark text-uppercase mb-1">👥 Daftar Pendamping :</h4>
-             <div class="mb-1" style="font-weight: bold;">
+             <div class="mb-3" style="font-weight: bold;">
 
               <div class="table-responsive">
                 <table class="table table-striped mb-0">
@@ -281,7 +281,7 @@ body.noblur-backdrop #app {
 
               <?php elseif ((int)$booking->jumlah_pendamping > 0): ?>
                 <h4 class="font-13 text-muted text-uppercase mb-1">👥 Daftar Pendamping :</h4>
-                <p class="mb-3">Belum ada data pendamping.</p>
+                <p>Belum ada data pendamping.</p>
               <?php endif; ?>
             </div>
 
@@ -365,7 +365,7 @@ body.noblur-backdrop #app {
                       <small id="doc_status" class="text-muted ms-2"></small>
                     </div>
                   </div>
-                  <h5 class="mb-3 mt-4 text-uppercase bg-warning p-2"><i class="mdi mdi-account-circle mr-1"></i> Tujuan Instansi</h5>
+                  <h5 class="mb-3 mt-4 text-uppercase text-white bg-success p-2"><i class="mdi mdi-account-circle mr-1"></i> Tujuan Instansi</h5>
                   <h4 class="font-13 text-dark text-uppercase mb-1">🎯 Unit Tujuan :</h4>
                   <p class="mb-3" style="font-weight: bold;"><?= $unit_nama ?></p>
                   <h4 class="font-13 text-dark text-uppercase mb-1">🏷️ Nama <?= $unit_nama ?> :</h4>
