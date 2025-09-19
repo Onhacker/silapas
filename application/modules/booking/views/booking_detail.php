@@ -976,8 +976,6 @@ function updateFotoSection(url) {
 </script>
 <script>
 
-  // Base URL dari server
-const BASE_URL = <?= json_encode(rtrim(base_url(), '/')) ?>;
 
 function toAbsUrl(u) {
   if (!u) return '';
@@ -1024,22 +1022,7 @@ function ensureSuratPath(u){
   return BASE_URL + '/' + SURAT_DIR + fname;    // paksa ke folder surat_tugas
 }
 
-function withBust(u){
-  const abs = ensureSuratPath(u);
-  try { const url = new URL(abs); url.searchParams.set('v', Date.now()); return url.toString(); }
-  catch { return abs + (abs.includes('?') ? '&' : '?') + 'v=' + Date.now(); }
-}
 
-function clearSuratPreview(){
-  const wrap = document.getElementById('surat_preview_wrap');
-  const img  = document.getElementById('surat_preview_img');
-  const box  = document.getElementById('surat_preview_pdf');
-  const emb  = document.getElementById('surat_pdf_embed');
-  if (wrap) wrap.style.display = 'none';
-  if (img)  { img.src = ''; img.style.display = 'none'; }
-  if (box)  box.style.display = 'none';
-  if (emb)  emb.removeAttribute('src');
-}
 
 
 
@@ -1345,57 +1328,115 @@ function clearSuratPreview(){
     statusEl.textContent = '';
   });
 
+
+// === Surat helpers (S I N G L E   V E R S I O N) ===
+const BASE_URL  = <?= json_encode(rtrim(base_url(), '/')) ?>;
+const SURAT_DIR = 'uploads/surat_tugas/';
+
+function ensureSuratPath(u){
+  if (!u) return '';
+  if (/^https?:\/\//i.test(u)) return u;
+  u = String(u).replace(/^\.?\//,'');
+  const fname = u.split('/').pop();
+  // jika server ngasih "surat_....pdf" atau "uploads/surat_tugas/xxx.pdf" dua2nya aman
+  return BASE_URL + '/' + (u.includes(SURAT_DIR) ? u : (SURAT_DIR + fname));
+}
+
+function suratBust(u){
+  const abs = ensureSuratPath(u);
+  try { const url = new URL(abs); url.searchParams.set('v', Date.now()); return url.toString(); }
+  catch { return abs + (abs.includes('?') ? '&' : '?') + 'v=' + Date.now(); }
+}
+
+function clearSuratPreview(){
+  const wrap = document.getElementById('surat_preview_wrap');
+  const img  = document.getElementById('surat_preview_img');
+  const box  = document.getElementById('surat_preview_pdf');
+  const emb  = document.getElementById('surat_pdf_embed');
+  if (wrap) wrap.style.display = 'none';
+  if (img)  { img.src = ''; img.style.display = 'none'; }
+  if (box)  box.style.display = 'none';
+  if (emb)  emb.removeAttribute('src');
+}
+
+function updateSuratSection(rawUrl){
+  const url = suratBust(rawUrl);
+
+  // Tombol Lihat & Unduh di area detail
+  const actions = document.getElementById('surat_actions');
+  if (actions) {
+    actions.innerHTML = `
+      <button type="button" class="btn btn-sm btn-danger"
+              data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
+        <i class="mdi mdi-file-pdf-box"></i> Lihat
+      </button>
+      <a class="btn btn-sm btn-outline-secondary ml-1" href="${url}" download>
+        <i class="mdi mdi-download"></i> Unduh
+      </a>`;
+  }
+
+  // Isi modal
+  const body = document.getElementById('surat_modal_body');
+  if (body) {
+    if (/\.pdf(\?|$)/i.test(url)) {
+      body.innerHTML = `
+        <div class="embed-responsive embed-responsive-16by9">
+          <iframe class="embed-responsive-item"
+                  src="${url}#toolbar=1&navpanes=0&scrollbar=1" allowfullscreen></iframe>
+        </div>`;
+    } else {
+      body.innerHTML = `<img src="${url}" class="img-fluid" alt="Surat Tugas">`;
+    }
+  }
+
+  // Tombol unduh di footer modal
+  const footerBtn = document.querySelector('#modalSuratTugas_<?= $kode_safe ?> .modal-footer a.btn-outline-secondary');
+  if (footerBtn) { footerBtn.href = url; footerBtn.style.display = ''; }
+}
+
  upBtn.addEventListener('click', async ()=>{
   const f = fileInput.files && fileInput.files[0];
   if (!f) return;
 
   statusEl.textContent = 'Mengunggah…';
-  upBtn.disabled = true; 
-  pickBtn.disabled = true; 
-  // JANGAN disable resetBtn, kita butuh bisa reset UI setelah sukses
+  upBtn.disabled  = true;
+  pickBtn.disabled = true;
+  // resetBtn TIDAK kita disable supaya user tetap bisa batal bila perlu
 
-  try{
-  let fd = new FormData();
-  fd.append('kode_booking', kode_booking);
-  fd.append('kode', kode_booking);        // kompatibel jika backend baca 'kode'
-  fd.append('surat_tugas', f);
-  fd = addCSRF(fd);
+  try {
+    let fd = new FormData();
+    fd.append('kode_booking', kode_booking);
+    fd.append('kode', kode_booking);      // jaga-jaga backend baca 'kode'
+    fd.append('surat_tugas', f);
+    fd = addCSRF(fd);
 
-  const res  = await fetch(URL_UPLOAD, {
-    method: 'POST',
-    body: fd,
-    credentials: 'same-origin',
-    headers: {'X-Requested-With':'XMLHttpRequest'}
-  });
+    const res  = await fetch(URL_UPLOAD, {
+      method: 'POST',
+      body: fd,
+      credentials: 'same-origin',
+      headers: {'X-Requested-With':'XMLHttpRequest'}
+    });
 
-  const data   = await res.json().catch(()=> ({}));
-  const okFlag = data && (data.ok === true || data.ok === 1 || data.ok === '1' || data.status === true);
+    const data = await res.json().catch(()=> ({}));
+    const ok   = data && (data.ok === true || data.ok === 1 || data.ok === '1' || data.status === true);
+    const raw  = data.url || data.full_url || data.link || data.file || '';
 
-  // Ambil apa pun yang dikirim backend
-  const rawUrl = data.url || data.full_url || data.link || data.file || '';
-  if (!res.ok || !okFlag || !rawUrl) throw new Error(data?.msg || 'Upload gagal');
+    if (!res.ok || !ok || !raw) throw new Error(data?.msg || 'Upload gagal');
 
-  updateSuratSection(rawUrl);             // <-- ini yang betulin path /uploads/surat_tugas/...
-  statusEl.textContent = 'Berhasil diunggah ✓';
+    updateSuratSection(raw);              // pastikan URL jadi /uploads/surat_tugas/...
+    statusEl.textContent = 'Berhasil diunggah ✓';
 
-  // Reset preview & input
-  clearSuratPreview();
-  fileInput.value   = '';
-  label.textContent = 'Belum ada file';
-  upBtn.disabled    = true;               // balik ke kondisi awal
-} catch(err){
-  statusEl.textContent = 'Gagal mengunggah: ' + (err.message || 'Unknown error');
-  upBtn.disabled = false;
-} finally {
-  pickBtn.disabled  = false;
-  resetBtn.disabled = false;              // jangan pernah disable saat sukses
-}
- catch (err) {
+    // Bersihkan preview & reset UI
+    clearSuratPreview();
+    fileInput.value   = '';
+    label.textContent = 'Belum ada file';
+    upBtn.disabled    = true;
+    resetBtn.style.display = 'none';
+  } catch (err) {
     statusEl.textContent = 'Gagal mengunggah: ' + (err.message || 'Unknown error');
     upBtn.disabled = false;
   } finally {
     pickBtn.disabled = false;
-    resetBtn.disabled = false;
   }
 });
 
