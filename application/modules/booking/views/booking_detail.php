@@ -39,6 +39,10 @@ if (!function_exists('hari_id')) {
   }
   .details-grid .field h4{ margin-bottom:.35rem; }
   .details-grid .field p{ margin-bottom:1rem; }
+  .kv-head{border-bottom:1px dashed #e5e7eb}
+  .pill{display:inline-block;padding:.35rem .7rem;border-radius:999px;font-weight:700;font-size:.75rem;letter-spacing:.2px;color:#fff}
+  .pill-primary{background:#2563eb}.pill-info{background:#0ea5e9}.pill-success{background:#16a34a}
+  .pill-warning{background:#f59e0b}.pill-danger{background:#ef4444}.pill-secondary{background:#64748b}
 </style>
 
 
