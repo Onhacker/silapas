@@ -248,9 +248,9 @@ body.noblur-backdrop #app {
             <p class="mb-3" style="font-weight: bold;"><?= $hari_tgl ?>, <?= $jam ?></p>
 
             <h4 class="font-13 text-dark text-uppercase mb-1">📝 Keperluan :</h4>
-            <div class="alert alert-info mb-3" role="alert">
+            <p class="alert alert-info mb-3" role="alert">
               <i class="mdi mdi-alert-circle-outline mr-2"></i><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?>
-            </div>
+            </p>
             <h4 class="font-13 text-dark text-uppercase mb-1">👥 Pendamping :</h4>
             <p class="mb-3" style="font-weight: bold;"><?= (int)$booking->jumlah_pendamping ?> orang</p>
 
@@ -349,7 +349,7 @@ body.noblur-backdrop #app {
 
          <!--  <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">📅 Tanggal Kunjungan</dt><dd class="col-sm-8 kv-value"><?= $hari_tgl ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏰ Jam</dt><dd class="col-sm-8 kv-value"><?= $jam ?></dd></div> -->
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👥 Jumlah Pendamping</dt><dd class="col-sm-8 kv-value"><span class="badge badge-pill badge-primary" style="font-size:.9rem;"><?= (int)$booking->jumlah_pendamping ?> orang</span></dd></div>
+          <!-- <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">👥 Jumlah Pendamping</dt><dd class="col-sm-8 kv-value"><span class="badge badge-pill badge-primary" style="font-size:.9rem;"><?= (int)$booking->jumlah_pendamping ?> orang</span></dd></div> -->
 
           <!-- <?php if (!empty($pendamping_rows)): ?>
           <div class="kv-row row no-gutters">
