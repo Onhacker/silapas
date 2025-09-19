@@ -219,7 +219,7 @@ body.noblur-backdrop #app {
       <!-- KIRI -->
       <div class="col-md-7">
         <!-- <div class="card-box"> -->
-          <div class="media mb-3">
+          <div class="media mb-0">
             <img class="d-flex mr-3 rounded-circle avatar-lg" src="assets/images/users/user-8.jpg" alt="Generic placeholder image">
             <div class="media-body">
               <h4 class="mt-0 mb-1"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></h4>
