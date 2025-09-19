@@ -223,7 +223,7 @@ body.noblur-backdrop #app {
             </div>
           </div>
 
-          <h5 class="mb-3 mt-4 text-uppercase bg-light p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
+          <h5 class="mb-3 mt-4 text-uppercase bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
             <h4 class="font-13 text-dark text-uppercase">🪪 NIK :</h4>
             <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
@@ -356,7 +356,7 @@ body.noblur-backdrop #app {
                     <div class="form-group mb-2 d-flex align-items-center" style="gap:.5rem;">
                       <input type="file" id="doc_photo" accept="image/*" capture="environment" class="d-none">
                       <button type="button" id="btnPick" class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-image-plus"></i> Ambil / Pilih Foto</button>
-                      <small id="pickLabel" class="text-muted">Belum ada file</small>
+                      <small id="pickLabel" class="text-muted"><!-- Belum ada file --></small>
                     </div>
                     <div id="doc_preview_wrap" class="mb-2" style="display:none;"><img id="doc_preview" alt="Preview" style="max-width:100%;border:1px solid #e5e7eb;border-radius:8px;"></div>
                     <div class="d-flex align-items-center" style="gap:.5rem;">
@@ -365,6 +365,12 @@ body.noblur-backdrop #app {
                       <small id="doc_status" class="text-muted ms-2"></small>
                     </div>
                   </div>
+                  <h5 class="mb-3 mt-4 text-uppercase bg-warning p-2"><i class="mdi mdi-account-circle mr-1"></i> Tujuan Instansi</h5>
+                  <h4 class="font-13 text-dark text-uppercase mb-1">🎯 Unit Tujuan :</h4>
+                  <p class="mb-3" style="font-weight: bold;"><?= $unit_nama ?></p>
+                  <h4 class="font-13 text-dark text-uppercase mb-1">🏷️ Nama <?= $unit_nama ?> :</h4>
+                  <p class="mb-3" style="font-weight: bold;"><?= $nama_petugas_instansi ?></p>
+
               <!--   </dd>
               </div>
               </div> -->
@@ -394,7 +400,7 @@ body.noblur-backdrop #app {
         <!-- </div> -->
 
 
-        <dl class="mb-0">
+        <!-- <dl class="mb-0"> -->
          <!--  <div class="kv-row row no-gutters align-items-center">
             <dt class="col-sm-4 kv-label">🔑 Kode</dt>
             <dd class="col-sm-8 kv-value">
@@ -445,13 +451,13 @@ body.noblur-backdrop #app {
 
 
           <!-- <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🏢 Instansi Asal</dt><dd class="col-sm-8 kv-value"><?= $instansi ?></dd></div> -->
-          <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🎯 Unit Tujuan</dt><dd class="col-sm-8 kv-value"><?= $unit_nama ?></dd></div>
+         <!--  <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🎯 Unit Tujuan</dt><dd class="col-sm-8 kv-value"><?= $unit_nama ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">🏷️ Nama <?= $unit_nama ?></dt><dd class="col-sm-8 kv-value"><?= $nama_petugas_instansi ?></dd></div>
 
           <div class="kv-row row no-gutters">
             <dt class="col-sm-4 kv-label">📝 Keperluan</dt>
             <dd class="col-sm-8"><div class="longtext"><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?></div></dd>
-          </div>
+          </div> -->
 
          <!--  <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">📅 Tanggal Kunjungan</dt><dd class="col-sm-8 kv-value"><?= $hari_tgl ?></dd></div>
           <div class="kv-row row no-gutters"><dt class="col-sm-4 kv-label">⏰ Jam</dt><dd class="col-sm-8 kv-value"><?= $jam ?></dd></div> -->
@@ -589,7 +595,7 @@ body.noblur-backdrop #app {
             </div>
           </div>
 
-        </dl>
+        <!-- </dl> -->
       </div>
 
       <!-- KANAN -->
