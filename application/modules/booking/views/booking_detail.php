@@ -30,7 +30,7 @@ if (!function_exists('hari_id')) {
   .details-grid{
     display:grid;
     grid-template-columns: 1fr;          /* HP: 1 kolom */
-    gap: .75rem 1.25rem;
+    /*gap: .75rem 1.25rem;*/
   }
   /* Laptop/desktop: 2 kolom */
   @media (min-width: 992px){
@@ -241,7 +241,7 @@ body.noblur-backdrop #app {
 
                 <div class="field">
                   <h4 class="font-13 text-dark text-uppercase">🔑 Kode Booking :</h4>
-                  <p class="mb-3" style="font-weight: bold;">
+                  <p class="mb-1" style="font-weight: bold;">
                     <span class="chip mr-2">
                       <span class="dot"></span><span><?= $kode ?></span>
                     </span>
@@ -253,22 +253,22 @@ body.noblur-backdrop #app {
 
                 <div class="field">
                   <h4 class="font-13 text-dark text-uppercase">🪪 NIK :</h4>
-                  <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?></p>
+                  <p class="mb-1" style="font-weight: bold;"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
 
                 <div class="field">
                   <h4 class="font-13 text-dark text-uppercase mb-1">🎂 Tempat/Tanggal Lahir :</h4>
-                  <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></p>
+                  <p class="mb-1" style="font-weight: bold;"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
 
                 <div class="field">
                   <h4 class="font-13 text-dark text-uppercase mb-1">📍 Alamat :</h4>
-                  <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></p>
+                  <p class="mb-1" style="font-weight: bold;"><?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
 
                 <div class="field">
                   <h4 class="font-13 text-dark text-uppercase mb-1">📱 No. HP/WA :</h4>
-                  <p class="mb-3" style="font-weight: bold;">
+                  <p class="mb-1" style="font-weight: bold;">
                     <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
                     <?php if ($hp_wa): ?>
                       <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>">
@@ -280,18 +280,18 @@ body.noblur-backdrop #app {
 
                 <div class="field">
                   <h4 class="font-13 text-dark text-uppercase mb-1"><i class="fas fa-envelope mr-1" aria-hidden="true"></i> Email :</h4>
-                  <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></p>
+                  <p class="mb-1" style="font-weight: bold;"><?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
 
                 <div class="field">
                   <h4 class="font-13 text-dark text-uppercase mb-1">📅 Waktu Kunjungan :</h4>
-                  <p class="mb-3" style="font-weight: bold;"><?= $hari_tgl ?>, <?= $jam ?></p>
+                  <p class="mb-1" style="font-weight: bold;"><?= $hari_tgl ?>, <?= $jam ?></p>
                 </div>
 
                 <!-- Kalau mau “Keperluan” full width di layar besar, beri class span-2 -->
                 <div class="field span-2">
                   <h4 class="font-13 text-dark text-uppercase mb-1">📝 Keperluan :</h4>
-                  <p class="alert alert-info mb-3" role="alert">
+                  <p class="alert alert-info mb-1" role="alert">
                     <i class="mdi mdi-alert-circle-outline mr-2"></i><?= htmlspecialchars($booking->keperluan, ENT_QUOTES, 'UTF-8') ?>
                   </p>
                 </div>
