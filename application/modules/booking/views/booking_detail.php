@@ -598,13 +598,6 @@ body.noblur-backdrop #app {
         <!-- </dl> -->
       </div>
     </div>
-  </div>
-</div>
-</div>
-</div>
-</div>
-</div>
-
 
       <!-- KANAN -->
       <div class="col-md-5 mt-3 mt-md-0">
