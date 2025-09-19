@@ -286,7 +286,7 @@ body.noblur-backdrop #app {
             </div>
 
             <h4 class="font-13 text-dark text-uppercase mb-1">📄 Surat Tugas :</h4>
-            <p class="mb-3" id="surat_actions" style="font-weight: bold;">
+            <p class="mb-1" id="surat_actions" style="font-weight: bold;">
             <?php if ($surat_url): ?>
                 <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
                   <i class="mdi mdi-file-pdf-box"></i> Lihat
@@ -350,7 +350,7 @@ body.noblur-backdrop #app {
               <?php endif; ?>
             </dd>
  -->
-        </div>
+        <!-- </div> -->
 
 
         <dl class="mb-0">
