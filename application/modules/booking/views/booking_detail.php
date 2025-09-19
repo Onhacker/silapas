@@ -227,6 +227,7 @@ body.noblur-backdrop #app {
           <div class="">
              <h4 class="font-13 text-dark text-uppercase">🔑 Kode Booking :</h4>
             <p class="mb-3" style="font-weight: bold;"><span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
+              <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>"><i class="mdi mdi-content-copy"></i></button>
             </p>
 
             <h4 class="font-13 text-dark text-uppercase">🪪 NIK :</h4>
