@@ -22,6 +22,8 @@ if (!function_exists('hari_id')) {
 
   /* kalau footer Anda fixed dan punya z-index besar, turunkan */
   .footer, .page-footer, footer { z-index: 1 !important; }
+  .chip{display:inline-flex;align-items:center;gap:.4rem;padding:.28rem .6rem;border-radius:999px;background:#f1f5f9}
+  .chip .dot{width:.5rem;height:.5rem;border-radius:999px;background:#22c55e}
 </style>
 
 <!-- <style>
@@ -214,9 +216,7 @@ body.noblur-backdrop #app {
               <h4 class="mt-0 mb-1"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></h4>
               <p class="text-dark"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></p>
               <p class="text-dark">🏢 <?= $instansi ?></p>
-              <p class="text-dark">🔑 Kode Booking</p>
-              <span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
-              <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>"><i class="mdi mdi-content-copy"></i></button>
+             
               <!-- <a href="javascript: void(0);" class="btn- btn-xs btn-info ml-1">Send Email</a>
               <a href="javascript: void(0);" class="btn- btn-xs btn-secondary ml-1">Call</a>
               <a href="javascript: void(0);" class="btn- btn-xs btn-secondary ml-1">Edit</a> -->
@@ -225,6 +225,10 @@ body.noblur-backdrop #app {
 
           <h5 class="mb-3 mt-4 text-uppercase text-white bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
+             <h4 class="font-13 text-dark text-uppercase">🔑 Kode Booking :</h4>
+            <p class="mb-3" style="font-weight: bold;"><span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
+            </p>
+
             <h4 class="font-13 text-dark text-uppercase">🪪 NIK :</h4>
             <p class="mb-3" style="font-weight: bold;"><?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
             </p>
