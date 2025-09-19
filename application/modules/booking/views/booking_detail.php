@@ -215,10 +215,11 @@ body.noblur-backdrop #app {
               <h4 class="mt-0 mb-1"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></h4>
               <p class="text-dark"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></p>
               <p class="text-dark"><i class="mdi mdi-office-building"></i> <?= $instansi ?></p>
-
-              <a href="javascript: void(0);" class="btn- btn-xs btn-info ml-1">Send Email</a>
+              <span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
+              <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>"><i class="mdi mdi-content-copy"></i></button>
+              <!-- <a href="javascript: void(0);" class="btn- btn-xs btn-info ml-1">Send Email</a>
               <a href="javascript: void(0);" class="btn- btn-xs btn-secondary ml-1">Call</a>
-              <a href="javascript: void(0);" class="btn- btn-xs btn-secondary ml-1">Edit</a>
+              <a href="javascript: void(0);" class="btn- btn-xs btn-secondary ml-1">Edit</a> -->
             </div>
           </div>
 
@@ -230,8 +231,8 @@ body.noblur-backdrop #app {
               1500s, when an unknown printer took a galley of type.
             </p>
 
-            <h4 class="font-13 text-muted text-uppercase mb-1">Date of Birth :</h4>
-            <p class="mb-3"> March 23, 1984 (34 Years)</p>
+            <h4 class="font-13 text-dark text-uppercase mb-1">🎂 Tempat/Tanggal Lahir :</h4>
+            <p class="mb-3"><?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?></p>
 
             <h4 class="font-13 text-muted text-uppercase mb-1">Company :</h4>
             <p class="mb-3">Vine Corporation</p>
