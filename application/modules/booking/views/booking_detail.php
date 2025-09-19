@@ -285,7 +285,7 @@ body.noblur-backdrop #app {
               <?php endif; ?>
             </div>
 
-        <!-- </div> -->
+        </div>
 
 
         <dl class="mb-0">
