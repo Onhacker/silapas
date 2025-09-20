@@ -341,10 +341,21 @@ if (!function_exists('hari_id')) {
                 <h5 class="mb-3 mt-4 text-uppercase text-white bg-blue p-2">
                   <i class="mdi mdi-account-circle mr-1"></i> Tujuan Instansi
                 </h5>
-                <h4 class="font-13 text-dark text-uppercase mb-1">🎯 Unit Tujuan :</h4>
-                <p class="mb-3" style="font-weight: bold;"><?= $unit_nama ?></p>
-                <h4 class="font-13 text-dark text-uppercase mb-1">🏷️ Nama <?= $unit_nama ?> :</h4>
-                <p class="mb-3" style="font-weight: bold;"><?= $nama_petugas_instansi ?></p>
+
+                <div class="row align-items-center kv-row">
+                  <div class="col-12 col-md-4 kv-label">🎯 Unit Tujuan</div>
+                  <div class="col-12 col-md-8 kv-value">
+                    <?= $unit_nama ?>&nbsp;&nbsp;&nbsp;&nbsp;
+                  </div>
+                </div>
+
+                <div class="row align-items-center kv-row">
+                  <div class="col-12 col-md-4 kv-label">🏷️ Nama <?= $unit_nama ?></div>
+                  <div class="col-12 col-md-8 kv-value">&nbsp;&nbsp;&nbsp;&nbsp;
+                    <?= $nama_petugas_instansi ?>
+                  </div>
+                </div>
+
 
                 <!-- Modal Surat Tugas -->
                 <div class="modal fade" id="modalSuratTugas_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
@@ -450,7 +461,7 @@ if (!function_exists('hari_id')) {
                     </div>
 
                     <!-- Tombol upload -->
-                    <div class="mb-3 d-flex align-items-center" style="gap:.5rem;">
+                    <div class="d-flex align-items-center" style="gap:.5rem;">
                       <button type="button" id="btnSuratUpload" class="btn btn-blue btn-sm" disabled>
                         <i class="mdi mdi-cloud-upload"></i> Upload
                       </button>
@@ -499,7 +510,7 @@ if (!function_exists('hari_id')) {
                 </div>
 
                 <!-- Kartu QR -->
-                <div class="border rounded p-3 text-center mb-3">
+                <div class="border rounded p-3 text-center mt-3 mb-3">
                   <div class="kv-label mb-2"><i class="mdi mdi-qrcode"></i> QR Code Booking</div>
                   <?php if ($qr_exists): ?>
                     <div class="qr-wrap"><img src="<?= $qr_url ?>" alt="QR Booking <?= $kode ?>" class="img-fluid" loading="lazy"/></div>
