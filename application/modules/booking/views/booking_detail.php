@@ -199,7 +199,7 @@ if (!function_exists('hari_id')) {
             ?>
 
             <div class="row">
-              
+              <div class="col-md-12">
                 <div class="media mb-0">
                   <img class="d-flex mr-3 rounded-circle avatar-lg"
                        src="<?= htmlspecialchars($src, ENT_QUOTES, 'UTF-8') ?>"
@@ -212,6 +212,7 @@ if (!function_exists('hari_id')) {
                     <p class="text-dark">🏢 <?= $instansi ?></p>
                   </div>
                 </div>
+              </div>
                 <!-- KIRI -->
               <div class="col-md-7">
                 <h5 class="mb-3 text-uppercase text-white bg-blue p-2">
