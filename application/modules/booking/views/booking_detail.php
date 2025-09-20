@@ -362,14 +362,17 @@ body.noblur-backdrop #app {
               <?php endif; ?>
             </div>
 
-            
+           
+              </div>
+
+              
                   <h5 class="mb-3 mt-4 text-uppercase text-white bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Tujuan Instansi</h5>
                   <h4 class="font-13 text-dark text-uppercase mb-1">🎯 Unit Tujuan :</h4>
                   <p class="mb-3" style="font-weight: bold;"><?= $unit_nama ?></p>
                   <h4 class="font-13 text-dark text-uppercase mb-1">🏷️ Nama <?= $unit_nama ?> :</h4>
                   <p class="mb-3" style="font-weight: bold;"><?= $nama_petugas_instansi ?></p>
 
-</div>
+
 
           <!-- Modal Surat Tugas (selalu ada, konten diisi JS saat perlu) -->
          <!-- Modal Surat Tugas (selalu ada) -->
@@ -440,8 +443,7 @@ body.noblur-backdrop #app {
     </div>
 
       <!-- KANAN -->
-      <div class="col-md-5 mt-3 mt-md-0">
-        <h4 class="font-13 text-dark text-uppercase mb-1">📄 Surat Tugas :</h4>
+       <h4 class="font-13 text-dark text-uppercase mb-1">📄 Surat Tugas :</h4>
             <div class="mb-1" id="surat_actions" style="font-weight: bold;">
             <?php if ($surat_url): ?>
                 <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalSuratTugas_<?= $kode_safe ?>">
@@ -488,9 +490,7 @@ body.noblur-backdrop #app {
                   </button>
                   <small id="surat_status" class="text-muted ms-2"></small>
                 </div>
-              </div>
-
-              <h4 class="font-13 text-dark text-uppercase mb-1">🖼️ Foto Dokumentasi :</h4>
+<h4 class="font-13 text-dark text-uppercase mb-1">🖼️ Foto Dokumentasi :</h4>
               <div class="mb-1" id="col_foto" style="font-weight: bold;">
                   <div id="foto_actions">
                     <?php if (!empty($foto_url)): ?>
@@ -518,6 +518,7 @@ body.noblur-backdrop #app {
                       <small id="doc_status" class="text-muted ms-2"></small>
                     </div>
                   </div>
+      <div class="col-md-5 mt-3 mt-md-0">
         <div class="border rounded p-3 text-center mb-3">
           <div class="kv-label mb-2"><i class="mdi mdi-qrcode"></i> QR Code Booking</div>
           <?php if ($qr_exists): ?>
