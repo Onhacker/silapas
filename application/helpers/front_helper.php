@@ -23,7 +23,40 @@ function generate_qr_payload($kode_booking) {
     return $payload;
 }
 
+if (!function_exists('kategori_logo_url')) {
+          function kategori_logo_url($kategori){
+            $CI =& get_instance();
+            $CI->load->helper('url');
 
+            $kat = strtolower(trim((string)$kategori));
+            $map = [
+              'opd'    => 'assets/images/logo/opd_sulsel.svg',
+              'pn'     => 'assets/images/logo/mahkamah_agung.svg',
+              'pa'     => 'assets/images/logo/mahkamah_agung.svg',
+              'ptun'   => 'assets/images/logo/mahkamah_agung.svg',
+              'kejari' => 'assets/images/logo/kejaksaan_ri.svg',
+              'cabjari'=> 'assets/images/logo/kejaksaan_ri.svg',
+              'bnn'    => 'assets/images/logo/bnn.svg',
+              'kodim'  => 'assets/images/logo/tni_ad.svg',
+              'kejati' => 'assets/images/logo/kejaksaan_ri.svg',
+            ];
+            $path = $map[$kat] ?? 'assets/logo/default.png';
+            return base_url($path);
+          }
+        }
+
+        if (!function_exists('kategori_label')) {
+          function kategori_label($kategori){
+            $kat = strtolower(trim((string)$kategori));
+            $label = [
+              'opd'=>'OPD Sulawesi Selatan', 'pn'=>'Pengadilan Negeri', 'pa'=>'Pengadilan Agama',
+              'ptun'=>'PTUN', 'kejari'=>'Kejaksaan Negeri', 'cabjari'=>'Cabang Kejaksaan Negeri',
+              'bnn'=>'BNN', 'kodim'=>'Kodim', 'kejati'=>'Kejaksaan Tinggi'
+            ];
+            return $label[$kat] ?? strtoupper($kat ?: 'LOGO');
+          }
+        }
+        
 function no_wa($wa){
         $wa = preg_replace('/[^0-9]/', '', $wa); // hapus semua karakter selain angka
 
