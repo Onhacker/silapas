@@ -338,7 +338,7 @@ if (!function_exists('hari_id')) {
                   <p>Belum ada data pendamping.</p>
                 <?php endif; ?>
 
-                <h5 class="mb-3 mt-4 text-uppercase text-white bg-blue p-2">
+                <h5 class="mb-2 mt-3 text-uppercase text-white bg-blue p-2">
                   <i class="mdi mdi-account-circle mr-1"></i> Tujuan Instansi
                 </h5>
 
@@ -418,7 +418,9 @@ if (!function_exists('hari_id')) {
 
               <!-- KANAN -->
               <div class="col-md-5 mt-3 mt-md-0">
-
+                <h5 class="mb-2 mt-3 text-uppercase text-white bg-blue p-2">
+                  <i class="mdi mdi-account-circle mr-1"></i> Berkas
+                </h5>
                 <!-- ====== KV-ROW: SURAT TUGAS ====== -->
                 <div class="row align-items-center kv-row">
                   <div class="col-12 col-md-4 kv-label">📄 Surat Tugas</div>
