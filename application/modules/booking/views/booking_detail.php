@@ -199,8 +199,7 @@ if (!function_exists('hari_id')) {
             ?>
 
             <div class="row">
-              <!-- KIRI -->
-              <div class="col-md-7">
+              
                 <div class="media mb-0">
                   <img class="d-flex mr-3 rounded-circle avatar-lg"
                        src="<?= htmlspecialchars($src, ENT_QUOTES, 'UTF-8') ?>"
@@ -213,7 +212,8 @@ if (!function_exists('hari_id')) {
                     <p class="text-dark">🏢 <?= $instansi ?></p>
                   </div>
                 </div>
-
+                <!-- KIRI -->
+              <div class="col-md-7">
                 <h5 class="mb-3 text-uppercase text-white bg-blue p-2">
                   <i class="mdi mdi-account-circle mr-1"></i> Detail Booking
                 </h5>
@@ -417,8 +417,8 @@ if (!function_exists('hari_id')) {
               </div><!-- /col-md-7 -->
 
               <!-- KANAN -->
-              <div class="col-md-5 mt-3 mt-md-0">
-                <h5 class="mb-2 mt-3 text-uppercase text-white bg-blue p-2">
+              <div class="col-md-5 mt-md-0">
+                <h5 class="mb-2 text-uppercase text-white bg-blue p-2">
                   <i class="mdi mdi-account-circle mr-1"></i> Berkas
                 </h5>
                 <!-- ====== KV-ROW: SURAT TUGAS ====== -->
