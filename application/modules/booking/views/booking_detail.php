@@ -224,7 +224,6 @@ body.noblur-backdrop #app {
       <div class="col-md-7">
         <!-- <div class="card-box"> -->
           <div class="media mb-0">
-            <!-- <img class="d-flex mr-3 rounded-circle avatar-lg" src="assets/images/users/user-8.jpg" alt="Generic placeholder image"> -->
             <img class="d-flex mr-3 rounded-circle avatar-lg"
             src="<?= htmlspecialchars($src, ENT_QUOTES, 'UTF-8') ?>"
             alt="<?= htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') ?>"
@@ -261,7 +260,7 @@ body.noblur-backdrop #app {
   <!-- NIK -->
   <div class="row align-items-center kv-row">
     <div class="col-12 col-md-4 kv-label">🪪 NIK</div>
-    <div class="col-12 col-md-8 kv-value">
+    <div class="col-12 col-md-8 kv-value">&nbsp;&nbsp;&nbsp;&nbsp;
       <?= htmlspecialchars($booking->nik, ENT_QUOTES, 'UTF-8') ?>
     </div>
   </div>
