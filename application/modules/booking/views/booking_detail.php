@@ -339,7 +339,7 @@ if (!function_exists('hari_id')) {
                   <p>Belum ada data pendamping.</p>
                 <?php endif; ?>
 
-                <h5 class="mb-2 mt-3 text-uppercase text-white bg-blue p-2">
+                <h5 class="mb-2 mt-3 text-uppercase text-white bg-success p-2">
                   <i class="mdi mdi-account-circle mr-1"></i> Tujuan Instansi
                 </h5>
 
