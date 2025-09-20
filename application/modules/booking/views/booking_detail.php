@@ -214,13 +214,27 @@ body.noblur-backdrop #app {
         </div>
       </div>
     </div>
+    <?php
+    $src = kategori_logo_url($booking->target_kategori ?? '');
+    $alt = kategori_label($booking->target_kategori ?? '');
+    ?>
+    <img class="d-flex mr-3 rounded-circle avatar-lg"
+    src="<?= htmlspecialchars($src, ENT_QUOTES, 'UTF-8') ?>"
+    alt="<?= htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') ?>"
+    loading="lazy"
+    onerror="this.onerror=null;this.src='<?= base_url('assets/logo/default.png') ?>';">
 
     <div class="row">
       <!-- KIRI -->
       <div class="col-md-7">
         <!-- <div class="card-box"> -->
           <div class="media mb-0">
-            <img class="d-flex mr-3 rounded-circle avatar-lg" src="assets/images/users/user-8.jpg" alt="Generic placeholder image">
+            <!-- <img class="d-flex mr-3 rounded-circle avatar-lg" src="assets/images/users/user-8.jpg" alt="Generic placeholder image"> -->
+            <img class="d-flex mr-3 rounded-circle avatar-lg"
+            src="<?= htmlspecialchars($src, ENT_QUOTES, 'UTF-8') ?>"
+            alt="<?= htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') ?>"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='<?= base_url('assets/logo/default.png') ?>';">
             <div class="media-body">
               <h4 class="mt-0 mb-1"><?= htmlspecialchars($booking->nama_tamu, ENT_QUOTES, 'UTF-8') ?></h4>
               <p class="text-dark"><?= htmlspecialchars($booking->jabatan, ENT_QUOTES, 'UTF-8') ?></p>
