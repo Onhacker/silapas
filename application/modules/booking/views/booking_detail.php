@@ -250,7 +250,7 @@ body.noblur-backdrop #app {
   <div class="row align-items-center kv-row">
     <div class="col-12 col-md-4 kv-label">🔑 Kode Booking</div>
     <div class="col-12 col-md-8 kv-value">
-      <span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="chip mr-2"><span class="dot"></span><span><?= $kode ?></span></span>
       <button type="button" class="btn btn-light btn-sm btn-copy" data-clip="<?= $kode ?>">
         <i class="mdi mdi-content-copy"></i>
       </button>
@@ -268,7 +268,7 @@ body.noblur-backdrop #app {
   <!-- TTL -->
   <div class="row align-items-center kv-row">
     <div class="col-12 col-md-4 kv-label">🎂 Tempat/Tanggal Lahir</div>
-    <div class="col-12 col-md-8 kv-value">
+    <div class="col-12 col-md-8 kv-value">&nbsp;&nbsp;&nbsp;&nbsp;
       <?= htmlspecialchars($booking->tempat_lahir.", ".tgl_view($booking->tanggal_lahir), ENT_QUOTES, 'UTF-8') ?>
     </div>
   </div>
@@ -276,7 +276,7 @@ body.noblur-backdrop #app {
   <!-- Alamat -->
   <div class="row align-items-center kv-row">
     <div class="col-12 col-md-4 kv-label">📍 Alamat</div>
-    <div class="col-12 col-md-8 kv-value">
+    <div class="col-12 col-md-8 kv-value">&nbsp;&nbsp;&nbsp;&nbsp;
       <?= htmlspecialchars($booking->alamat, ENT_QUOTES, 'UTF-8') ?>
     </div>
   </div>
@@ -284,7 +284,7 @@ body.noblur-backdrop #app {
   <!-- HP/WA -->
   <div class="row align-items-center kv-row">
     <div class="col-12 col-md-4 kv-label">📱 No. HP/WA</div>
-    <div class="col-12 col-md-8 kv-value">
+    <div class="col-12 col-md-8 kv-value">&nbsp;&nbsp;&nbsp;&nbsp;
       <?= htmlspecialchars($booking->no_hp, ENT_QUOTES, 'UTF-8') ?>
       <?php if ($hp_wa): ?>
         <a class="btn btn-light btn-sm ml-1" target="_blank" rel="noopener" href="https://wa.me/<?= $hp_wa ?>">
@@ -297,7 +297,7 @@ body.noblur-backdrop #app {
   <!-- Email -->
   <div class="row align-items-center kv-row">
     <div class="col-12 col-md-4 kv-label"><i class="fas fa-envelope mr-1"></i> Email</div>
-    <div class="col-12 col-md-8 kv-value">
+    <div class="col-12 col-md-8 kv-value">&nbsp;&nbsp;&nbsp;&nbsp;
       <?= htmlspecialchars($booking->email, ENT_QUOTES, 'UTF-8') ?>
     </div>
   </div>
@@ -305,7 +305,7 @@ body.noblur-backdrop #app {
   <!-- Waktu Kunjungan -->
   <div class="row align-items-center kv-row">
     <div class="col-12 col-md-4 kv-label">📅 Waktu Kunjungan</div>
-    <div class="col-12 col-md-8 kv-value">
+    <div class="col-12 col-md-8 kv-value">&nbsp;&nbsp;&nbsp;&nbsp;
       <?= $hari_tgl ?>, <?= $jam ?>
     </div>
   </div>
@@ -323,7 +323,7 @@ body.noblur-backdrop #app {
   <!-- Pendamping -->
   <div class="row align-items-center kv-row">
     <div class="col-12 col-md-4 kv-label">👥 Pendamping</div>
-    <div class="col-12 col-md-8 kv-value">
+    <div class="col-12 col-md-8 kv-value">&nbsp;&nbsp;&nbsp;&nbsp;
       <?= (int)$booking->jumlah_pendamping ?> orang
     </div>
   </div>
