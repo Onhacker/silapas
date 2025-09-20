@@ -593,6 +593,30 @@ if (!function_exists('hari_id')) {
     </div>
   </div>
 </div>
+<!-- Modal PDF Ringkasan (HARUS ADA agar tombol Lihat berfungsi) -->
+<div class="modal fade" id="modalPDF_<?= $kode_safe ?>" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title mb-0">Pratinjau PDF – <?= $kode ?></h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body p-0" style="background:#f8f9fa;">
+        <iframe
+          src="<?= site_url('booking/print_pdf/'.$booking->kode_booking) ?>?t=<?= urlencode($booking->access_token ?? '') ?>&dl=0#view=FitH"
+          style="width:100%; height:80vh; border:0;"></iframe>
+      </div>
+      <div class="modal-footer py-2">
+        <a href="<?= site_url('booking/print_pdf/'.$booking->kode_booking) ?>?t=<?= urlencode($booking->access_token ?? '') ?>&dl=1"
+           class="btn btn-danger">
+          <i class="mdi mdi-download"></i> Unduh PDF
+        </a>
+        <button type="button" class="btn btn-light" data-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <?php $this->load->view("front_end/footer.php") ?>
 
