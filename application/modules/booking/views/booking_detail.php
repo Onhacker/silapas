@@ -344,8 +344,8 @@ if (!function_exists('hari_id')) {
 
                 <div class="row align-items-center kv-row">
                   <div class="col-12 col-md-4 kv-label">🎯 Unit Tujuan</div>
-                  <div class="col-12 col-md-8 kv-value">
-                    <?= $unit_nama ?>&nbsp;&nbsp;&nbsp;&nbsp;
+                  <div class="col-12 col-md-8 kv-value">&nbsp;&nbsp;&nbsp;&nbsp;
+                    <?= $unit_nama ?>
                   </div>
                 </div>
 
