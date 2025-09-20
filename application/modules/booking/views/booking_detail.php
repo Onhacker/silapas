@@ -369,7 +369,7 @@ body.noblur-backdrop #app {
                   <h4 class="font-13 text-dark text-uppercase mb-1">🏷️ Nama <?= $unit_nama ?> :</h4>
                   <p class="mb-3" style="font-weight: bold;"><?= $nama_petugas_instansi ?></p>
 
-
+</div>
 
           <!-- Modal Surat Tugas (selalu ada, konten diisi JS saat perlu) -->
          <!-- Modal Surat Tugas (selalu ada) -->
