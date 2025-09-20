@@ -239,7 +239,7 @@ body.noblur-backdrop #app {
           <h5 class="mb-3 text-uppercase text-white bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Detail Booking</h5>
           <div class="">
             <style>
-              .kv-row{padding:.4rem 0;border-bottom:1px dashed #e5e7eb}
+              .kv-row{padding:.4rem 0;border-bottom:1px dashed #4a81d4}
               .kv-row:last-child{border-bottom:none}
               .kv-label{font-size:.85rem;text-transform:uppercase;color:#334155;font-weight:700}
               .kv-value{font-weight:600;color:#0f172a}
@@ -439,7 +439,7 @@ body.noblur-backdrop #app {
                       <small id="doc_status" class="text-muted ms-2"></small>
                     </div>
                   </div>
-                  <h5 class="mb-3 mt-4 text-uppercase text-white bg-success p-2"><i class="mdi mdi-account-circle mr-1"></i> Tujuan Instansi</h5>
+                  <h5 class="mb-3 mt-4 text-uppercase text-white bg-blue p-2"><i class="mdi mdi-account-circle mr-1"></i> Tujuan Instansi</h5>
                   <h4 class="font-13 text-dark text-uppercase mb-1">🎯 Unit Tujuan :</h4>
                   <p class="mb-3" style="font-weight: bold;"><?= $unit_nama ?></p>
                   <h4 class="font-13 text-dark text-uppercase mb-1">🏷️ Nama <?= $unit_nama ?> :</h4>
