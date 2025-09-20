@@ -218,12 +218,7 @@ body.noblur-backdrop #app {
     $src = kategori_logo_url($booking->target_kategori ?? '');
     $alt = kategori_label($booking->target_kategori ?? '');
     ?>
-    <img class="d-flex mr-3 rounded-circle avatar-lg"
-    src="<?= htmlspecialchars($src, ENT_QUOTES, 'UTF-8') ?>"
-    alt="<?= htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') ?>"
-    loading="lazy"
-    onerror="this.onerror=null;this.src='<?= base_url('assets/logo/default.png') ?>';">
-
+   
     <div class="row">
       <!-- KIRI -->
       <div class="col-md-7">
