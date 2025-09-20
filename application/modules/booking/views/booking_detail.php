@@ -424,7 +424,7 @@ if (!function_exists('hari_id')) {
                 </h5>
                 <!-- ====== KV-ROW: SURAT TUGAS ====== -->
                 <div class="row align-items-center kv-row">
-                  <div class="col-12 col-md-4 kv-label">📄 Surat Tugas</div>
+                  <div class="col-12 col-md-4 mb-1 kv-label">📄 Surat Tugas</div>
                   <div class="col-12 col-md-8 kv-value">
                     <div class="mb-1" id="surat_actions" style="font-weight: bold;">
                       <?php if ($surat_url): ?>
@@ -478,7 +478,7 @@ if (!function_exists('hari_id')) {
 
                 <!-- ====== KV-ROW: FOTO DOKUMENTASI ====== -->
                 <div class="row align-items-center kv-row">
-                  <div class="col-12 col-md-4 kv-label">🖼️ Foto Dokumentasi</div>
+                  <div class="col-12 mb-1 col-md-4 kv-label">🖼️ Foto Dokumentasi</div>
                   <div class="col-12 col-md-8 kv-value">
                     <div id="col_foto" style="font-weight: bold;">
                       <div id="foto_actions" class="mb-1">
