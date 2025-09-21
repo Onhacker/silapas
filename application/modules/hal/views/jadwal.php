@@ -77,7 +77,7 @@ if (!$isClosedDay) {
   .op-tablecard__head{
     display:flex;align-items:center;gap:.5rem;
     padding:12px 16px;
-    background:linear-gradient(135deg,#4f46e5 0%, #06b6d4 100%);
+    background:linear-gradient(135deg,#133b79 0%, #06b6d4 100%);
     color:#fff;
   }
   .op-tablecard__head .hint{
