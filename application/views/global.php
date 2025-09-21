@@ -4,11 +4,11 @@
         width: 45px;  
         height: auto;  
     }
-.toast-chat {
+/*.toast-chat {
   position: fixed;
   top: 5%;
-  /*left: 50%;*/
-  /*transform: translateX(-50%);*/
+  left: 50%;
+  transform: translateX(-50%);
   background-color: #f1556c;
   color: white;
   padding: 12px 20px;
@@ -28,7 +28,7 @@
     top: 10%;
   }
 }
-
+*/
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -69,39 +69,39 @@ function toggleTopbarDark() {
 window.addEventListener('DOMContentLoaded', toggleTopbarDark);
 window.addEventListener('resize', toggleTopbarDark);
 
- function updateNetworkStatus() {
-    const toast = document.getElementById("offline-toast");
+ // function updateNetworkStatus() {
+ //    const toast = document.getElementById("offline-toast");
 
-    if (!navigator.onLine) {
-      toast.textContent = '⚠️ Tidak ada koneksi internet atau jaringan kurang stabil.';
-      toast.style.display = "flex";
-      return;
-    }
+ //    if (!navigator.onLine) {
+ //      toast.textContent = '⚠️ Tidak ada koneksi internet atau jaringan kurang stabil.';
+ //      toast.style.display = "flex";
+ //      return;
+ //    }
 
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (connection) {
-      const slowTypes = ['2g', '3g', 'slow-2g'];
-      if (slowTypes.includes(connection.effectiveType) || connection.rtt > 300) {
-        toast.textContent = '⚠️ Jaringanmu tergolong lambat atau tidak stabil.';
-        toast.style.display = "flex";
-        return;
-      }
-    }
+ //    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+ //    if (connection) {
+ //      const slowTypes = ['2g', '3g', 'slow-2g'];
+ //      if (slowTypes.includes(connection.effectiveType) || connection.rtt > 300) {
+ //        toast.textContent = '⚠️ Jaringanmu tergolong lambat atau tidak stabil.';
+ //        toast.style.display = "flex";
+ //        return;
+ //      }
+ //    }
 
-    toast.style.display = "none";
-  }
+ //    toast.style.display = "none";
+ //  }
 
-  window.addEventListener('load', updateNetworkStatus);
-  window.addEventListener('online', updateNetworkStatus);
-  window.addEventListener('offline', updateNetworkStatus);
+ //  window.addEventListener('load', updateNetworkStatus);
+ //  window.addEventListener('online', updateNetworkStatus);
+ //  window.addEventListener('offline', updateNetworkStatus);
 
-  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  if (connection) {
-    connection.addEventListener('change', updateNetworkStatus);
-  }
+ //  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+ //  if (connection) {
+ //    connection.addEventListener('change', updateNetworkStatus);
+ //  }
   
 
 </script>
-<div id="offline-toast" class="toast-chat">
+<!-- <div id="offline-toast" class="toast-chat">
   ⚠️ Tidak ada koneksi internet atau jaringan kurang stabil.
-</div>
+</div> -->
