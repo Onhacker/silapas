@@ -929,6 +929,8 @@ document.addEventListener('DOMContentLoaded', function(){
 </script> -->
 <script>
   const base_url = "<?= base_url() ?>";
+  const APP_PATH = "<?= rtrim(parse_url(base_url(), PHP_URL_PATH) ?? '/', '/') ?>/";
+  const SW_FILE  = "service-worker.js";
   function scrollToTop(){ window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
   (function(){
@@ -946,9 +948,9 @@ document.addEventListener('DOMContentLoaded', function(){
       return false;
     };
   })();
-
+  
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
+    navigator.serviceWorker.register(APP_PATH + SW_FILE, { scope: APP_PATH })
       .then(registration => {
         console.log("✅ Service Worker registered.");
         registration.onupdatefound = () => {

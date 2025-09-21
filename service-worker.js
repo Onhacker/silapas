@@ -1,6 +1,6 @@
 /* ===== Service Worker ===== */
 
-const CACHE_NAME  = 'sila-55';                 // ⬅️ bump saat deploy
+const CACHE_NAME  = 'sila-56';                 // ⬅️ bump saat deploy
 const OFFLINE_URL = '/assets/offline.html';
 
 /* HTML publik yang boleh dicache (path tanpa query) */
