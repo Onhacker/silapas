@@ -1,6 +1,6 @@
 /* ===== Service Worker ===== */
 
-const CACHE_NAME  = 'sila-54';                 // ⬅️ bump saat deploy
+const CACHE_NAME  = 'sila-55';                 // ⬅️ bump saat deploy
 const OFFLINE_URL = '/assets/offline.html';
 
 /* HTML publik yang boleh dicache (path tanpa query) */
@@ -19,7 +19,7 @@ const urlsToCache = [
   '/assets/admin/js/jquery-3.1.1.min.js',
   '/assets/admin/js/vendor.min.js',
   '/assets/admin/js/app.min.js',
-  '/assets/admin/css/bootstrapmin.css',
+  '/assets/admin/css/bootstrap.min.css',
   '/assets/admin/css/aos.min.css',
   '/assets/admin/css/icons.min.css',
   '/assets/admin/css/app.min.css',
