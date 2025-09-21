@@ -31,7 +31,8 @@ $slides = [
 
   <!-- ===== Pretty Title ===== -->
   <div class="hero-title" role="banner" aria-label="Judul situs">
-    <h1 class="text"><?= htmlspecialchars($rec->type ?? '', ENT_QUOTES) ?></h1>
+    <h1 class="text">Layanan Tamu Resmi</h1>
+      <!-- <div class="text-muted"><?= htmlspecialchars($rec->meta_deskripsi, ENT_QUOTES, 'UTF-8') ?></div> -->
     <span class="accent" aria-hidden="true"></span>
   </div>
   <!-- ===== /Pretty Title ===== -->

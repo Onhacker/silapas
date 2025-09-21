@@ -542,7 +542,7 @@
 
     <div class="nav-item">
       <a href="#kontakModalfront" class="<?= ($uri == 'hal/kontak' || $uri == 'hal/semua_menu' || $uri == 'hal/pengumuman' || $uri == 'hal/alur' || $uri == 'hal/panduan' || $uri == 'hal/privacy_policy' || $uri == 'hal') ? 'text-active' : 'text-dark' ?>" id="btnOpenMenu">
-        <i class="fas fa-bars d-block mb-1"></i>
+        <i class="fe-grid d-block mb-1"></i>
         <span class="small">Menu</span>
       </a>
     </div>

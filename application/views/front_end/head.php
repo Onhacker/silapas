@@ -51,6 +51,115 @@
   <link href="<?= base_url('assets/admin/libs/sweetalert2/sweetalert2.min.css'); ?>" rel="stylesheet" />
    <!-- ========== CSS KUSTOM (DIKELOMPOKKAN) ========== -->
   <link href="<?= base_url('assets/min/head.min.css'); ?>" rel="stylesheet" />
+  <style>
+/* ============ Variabel tema ============ */
+:root{
+  --hdr-bg1:#0d2d58;     /* biru tua */
+  --hdr-bg2:#184c8a;     /* biru muda */
+  --hdr-accent:#f59e0b;  /* oranye aksen */
+  --hdr-text:#fff;
+  --hdr-muted:#dbe7ff;
+  --hdr-shadow:0 12px 30px rgba(0,0,0,.22);
+  --safe-top: env(safe-area-inset-top);
+}
+
+/* ============ Wrapper header ============ */
+/*#topnav{*/
+  /*position:sticky; top:0; z-index:1030;*/
+  /*color:var(--hdr-text);*/
+  /*background:linear-gradient(155deg,var(--hdr-bg1),var(--hdr-bg2));*/
+  /*box-shadow:var(--hdr-shadow);*/
+  /*padding-top: max(6px, var(--safe-top));*/
+/*}*/
+
+/* Bar atas: glassy */
+#topnav .navbar-custom{
+  background:rgba(8,25,55,.45) !important;
+  backdrop-filter:saturate(150%) blur(8px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+/* Logo & judul */
+.logo-desktop img{
+  height:50px; width:auto;
+  border-radius:12px; padding:4px;
+  background:rgba(255,255,255,.08);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+}
+.logo-desktop .kepala{ line-height:1.1 }
+.header-title2{
+  display:inline-block; margin:0; color:#fff;
+  font-weight:800; letter-spacing:.3px;
+  text-transform:uppercase;
+  text-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+/* garis aksen di bawah judul */
+.header-title2::after{
+  content:""; display:block; height:3px; width:132px;
+  margin-top:.1rem; background:var(--hdr-accent);
+  border-radius:999px; box-shadow:0 2px 10px rgba(245,158,11,.5);
+}
+
+/* Tagline (kamu pakai <code>) → ubah jadi pill */
+.logo-desktop code{
+  display:inline-block; color:var(--hdr-muted);
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.14);
+  padding:.25rem .5rem; border-radius:999px;
+  font-size:.82rem; font-weight:600;
+}
+
+/* Versi mobile (blok logo-boxx) */
+/*.logo-boxx .logo-smx img{ height:42px; width:42px; border-radius:10px }*/
+/*.logo-boxx .header-title-top{ font-weight:800; letter-spacing:.3px }*/
+/*.logo-boxx .header-title-bottom{ opacity:.9 }*/
+
+/* ============ Menu utama ============ */
+/*.topbar-menu{ background:transparent }*/
+/*#navigation{ margin-top:.35rem }*/
+.navigation-menu{
+  display:flex; gap:.4rem; flex-wrap:wrap; align-items:center;
+  padding: .35rem 0; margin:0;
+  list-style:none;
+}
+/* pill */
+.navigation-menu > li > a{
+  display:flex; align-items:center; gap:.45rem;
+  padding:.52rem .8rem; border-radius:12px;
+  color:#eef3ff; text-decoration:none; font-weight:600;
+  background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.14);
+  transition:transform .15s ease, background .15s ease, border-color .15s ease;
+}
+.navigation-menu > li > a i{ font-size:1rem; opacity:.95 }
+/* hover/focus */
+.navigation-menu > li > a:hover,
+.navigation-menu > li > a:focus{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.16);
+  border-color:rgba(255,255,255,.28);
+}
+/* aktif */
+.navigation-menu > li.active-menu > a{
+  background:linear-gradient(135deg, var(--hdr-accent), #ffcc66);
+  color:#1b2540; border-color:transparent;
+  text-shadow:none;
+}
+
+/* Dropdown (Panduan) */
+.navigation-menu .submenu{
+  background:rgba(2,14,32,.6);
+  border:1px solid rgba(255,255,255,.14);
+  backdrop-filter:saturate(140%) blur(6px);
+  border-radius:14px; padding:.35rem; margin-top:.35rem;
+}
+.navigation-menu .submenu li a{
+  border-radius:10px; padding:.5rem .6rem;
+}
+
+
+</style>
+
   <script>
    
     (function(){
@@ -124,7 +233,7 @@
             </div>
             <div class="logo-text">
                 <span class="header-title-top white-shadow-text"><?php echo $rec->nama_website ?></span>
-                <span class="header-title-bottom white-shadow-text"><?php echo $rec->kabupaten ?></span>
+                <span class="header-title-bottom white-shadow-text"><?php echo $rec->type ?></span>
             </div>
         </div>
     </div>
@@ -138,7 +247,7 @@
   <div id="navigation">
     <ul class="navigation-menu">
       <li class="has-submenu <?= ($uri === '' || $uri === 'home') ? 'active-menu' : '' ?>">
-        <a href="<?= site_url('home'); ?>"><i class="fe-home"></i> Home</a>
+        <a href="<?= site_url('home'); ?>">&nbsp;&nbsp;&nbsp;<i class="fe-home"></i> Home</a>
       </li>
 
       <li class="has-submenu <?= ($uri === 'booking') ? 'active-menu' : '' ?>">
