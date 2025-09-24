@@ -115,9 +115,6 @@
             <button id="btnRefresh" class="btn btn-lg btn-rounded ml-2" style="background-color: black">
               <span class="badge-live" id="stateBadge"><strong>Live</strong></span>
             </button>
-          </div>
-
-          <div class="card-body pt-3">
             <style>
               .badge-live{position:relative;display:inline-flex;align-items:center;gap:.80rem;transform-origin:center;animation:livePulse 1.25s ease-in-out infinite}
               .badge-live::before{content:"";width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:livePing 1.25s cubic-bezier(0,0,.2,1) infinite}
@@ -416,7 +413,7 @@
     }).join('');
   }
 
-  // ====== DURASI TICK ======
+  // ====== DURASI TICK (hemat DOM) ======
   let DUR_NODES = [];
   function cacheDurNodes(){
     DUR_NODES = Array.from(document.querySelectorAll('#tblVisit .durasi')).map(el=>{
@@ -461,19 +458,28 @@
     page: 1,
     per_page: parseInt(perSel?.value,10) || 15,
   };
+  let hasRenderedOnce = false;
+  let lastPageRendered = 1;
 
-  // ====== LOADER UTAMA (tanpa skeleton) ======
+  // ====== LOADER (stale-while-revalidate) ======
   let loadAbort = null;
 
   async function loadData(){
-    // tampilkan status memuat (tanpa shimmer)
-    elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Memuat...</td></tr>`;
-    elVisit.innerHTML  = `<tr><td colspan="5" class="empty text-center py-3">Memuat...</td></tr>`;
+    // Saat memuat: JANGAN ubah tabel kalau sudah pernah render.
+    // Tampilkan status hanya di badge.
     elBadge.textContent = 'Memuat...';
     elBadge.classList.add('blink');
 
+    // Untuk load pertama (belum ada data lama), tampilkan placeholder sederhana.
+    if (!hasRenderedOnce){
+      elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Memuat...</td></tr>`;
+      elVisit .innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Memuat...</td></tr>`;
+    }
+
     if (loadAbort) { loadAbort.abort(); }
     loadAbort = new AbortController();
+
+    const requestedPage = state.page;
 
     const params = new URLSearchParams();
     if (state.q) params.set('q', state.q);
@@ -512,31 +518,35 @@
         return loadData();
       }
 
-      // render
+      // render baru (replace DOM)
       renderBooked(j.booked || []);
       renderVisit(j.in_visit || []);
       elCB.textContent = j.count_booked ?? 0;
       elCV.textContent = j.count_visit  ?? 0;
 
       const lastTotalPages = j.booked_pages ?? 0;
-      const nowPage  = j.page ?? 1;
+      const nowPage  = j.page ?? requestedPage;
       pageInfo.textContent = `Hal. ${nowPage}/${lastTotalPages || 1}`;
       btnPrev.disabled = !(nowPage > 1);
       btnNext.disabled = !(lastTotalPages && nowPage < lastTotalPages);
 
+      hasRenderedOnce   = true;
+      lastPageRendered  = nowPage;
+
       elBadge.textContent = 'Live';
       elBadge.classList.remove('blink');
 
-    } catch (e) {
-      if (e.name === 'AbortError') return; // di-cancel → diam
-      elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Gagal memuat data.</td></tr>`;
-      elVisit.innerHTML  = `<tr><td colspan="5" class="empty text-center py-3">Gagal memuat data.</td></tr>`;
-      elBadge.textContent = 'Gagal memuat';
-      elBadge.classList.remove('blink');
-      console.error(e);
-    } finally {
       cacheDurNodes();
       tickDurationsFast();
+
+    } catch (e) {
+      if (e.name === 'AbortError') return; // di-cancel → diam (konten lama tetap)
+      // Gagal: tampilkan status tapi JANGAN ubah konten lama
+      elBadge.textContent = 'Gagal memuat';
+      elBadge.classList.remove('blink');
+      // Revert page jika perlu (agar UI konsisten dengan konten lama)
+      state.page = lastPageRendered;
+      console.error(e);
     }
   }
 
