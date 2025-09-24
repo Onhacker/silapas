@@ -323,16 +323,14 @@
 
   // --- RENDERERS ---
   function renderBooked(list){
-    if (!list || !list.length){
-      elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Tidak ada data.</td></tr>`;
-      return;
-    }
-    elBooked.innerHTML = list.map(r=>{
-      const petugas  = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
-      const clickable = !!(r.can_open && r.detail_url);
-      const trClass = 'row-pill' + (clickable ? ' row-link' : ' row-disabled');
-      const trAttr  = clickable ? ` data-url="${esc(r.detail_url)}" title="Buka detail"` : ` title="Akses tidak diizinkan"`;
-      return `
+  const html = (!list || !list.length)
+    ? `<tr><td colspan="5" class="empty text-center py-3">Tidak ada data.</td></tr>`
+    : list.map(r=>{
+        const petugas  = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
+        const clickable = !!(r.can_open && r.detail_url);
+        const trClass = 'row-pill' + (clickable ? ' row-link' : ' row-disabled');
+        const trAttr  = clickable ? ` data-url="${esc(r.detail_url)}" title="Buka detail"` : ` title="Akses tidak diizinkan"`;
+        return `
 <tr class="${trClass}" ${trAttr} role="button" tabindex="0" style="cursor:pointer">
   <td colspan="5" class="p-0">
     <div class="card-box mb-2">
@@ -378,40 +376,48 @@
     </div>
   </td>
 </tr>`;
-    }).join('');
-  }
+      }).join('');
 
-  function renderVisit(list){
-    if (!list || !list.length){
-      elVisit.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Belum ada pengunjung aktif.</td></tr>`;
-      return;
-    }
-    elVisit.innerHTML = list.map(r=>{
-      const startIso  = r.checkin_at || '';
-      const startMs   = parseDateLoose(startIso);
-      const durInit   = startIso ? fmtDurFromMs(startMs) : '-';
-      const petugas   = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
-      const clickable = !!(r.can_open && r.detail_url);
-      const trClass   = 'row-pill' + (clickable ? ' row-link' : ' row-disabled');
-      const trAttr    = clickable ? ` data-url="${esc(r.detail_url)}" title="Buka detail"` : ` title="Akses tidak diizinkan"`;
-      return `
-      <tr class="${trClass}"${trAttr}>
-        <td class="jam">${r.checkin_at ? fmtTime(startIso) : '-'}</td>
-        <td class="nama">
-          ${esc(r.nama)}
-          <div class="small text-black">${esc(r.instansi || '-')}</div>
-        </td>
-        <td class="unit" style="color:black">
-          ${esc(r.unit || '-')}
-          ${petugas ? `<div class="subline"><i class="mdi mdi-account-badge-outline"></i> ${esc(petugas)}</div>` : ''}
-        </td>
-        <td class="durasi text-primary" data-checkin="${esc(startIso)}" data-startms="${!isNaN(startMs)? startMs : ''}">${durInit}</td>
-        <td class="pendamping">
-          <span class="pill"><i class="mdi mdi-account-multiple-outline ico"></i>${(r.jumlah_pendamping||0)}</span>
-        </td>
-      </tr>`;
-    }).join('');
+  return replaceIfChanged(elBooked, html);
+}
+
+function renderVisit(list){
+  const html = (!list || !list.length)
+    ? `<tr><td colspan="5" class="empty text-center py-3">Belum ada pengunjung aktif.</td></tr>`
+    : list.map(r=>{
+        const startIso  = r.checkin_at || '';
+        const startMs   = parseDateLoose(startIso);
+        const durInit   = startIso ? fmtDurFromMs(startMs) : '-';
+        const petugas   = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
+        const clickable = !!(r.can_open && r.detail_url);
+        const trClass   = 'row-pill' + (clickable ? ' row-link' : ' row-disabled');
+        const trAttr    = clickable ? ` data-url="${esc(r.detail_url)}" title="Buka detail"` : ` title="Akses tidak diizinkan"`;
+        return `
+<tr class="${trClass}"${trAttr}>
+  <td class="jam">${r.checkin_at ? fmtTime(startIso) : '-'}</td>
+  <td class="nama">
+    ${esc(r.nama)}
+    <div class="small text-black">${esc(r.instansi || '-')}</div>
+  </td>
+  <td class="unit" style="color:black">
+    ${esc(r.unit || '-')}
+    ${petugas ? `<div class="subline"><i class="mdi mdi-account-badge-outline"></i> ${esc(petugas)}</div>` : ''}
+  </td>
+  <td class="durasi text-primary" data-checkin="${esc(startIso)}" data-startms="${!isNaN(startMs)? startMs : ''}">${durInit}</td>
+  <td class="pendamping">
+    <span class="pill"><i class="mdi mdi-account-multiple-outline ico"></i>${(r.jumlah_pendamping||0)}</span>
+  </td>
+</tr>`;
+      }).join('');
+
+  const changed = replaceIfChanged(elVisit, html);
+  if (changed) {            // DOM berubah → refresh cache node durasi
+    cacheDurNodes();
+    tickDurationsFast();
   }
+  return changed;
+}
+
 
   // ====== DURASI TICK (hemat DOM) ======
   let DUR_NODES = [];
@@ -618,4 +624,12 @@
   startClock();
   startTimers();
 })();
+
+function replaceIfChanged(el, html){
+  if (el.__lastHTML !== html){
+    el.innerHTML = html;
+    el.__lastHTML = html;
+  }
+}
+
 </script>
