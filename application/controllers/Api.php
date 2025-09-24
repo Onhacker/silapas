@@ -170,35 +170,35 @@ public function get_menu_mobile()
             'label'   => 'Pengaturan Sistem',
             'url'     => site_url('Admin_setting_web'),
             'icon'    => 'mdi mdi-qrcode-scan',
-            'require' => ['Admin_setting_web'] // cukup link modul
+            'require' => ['admin_setting_web'] // cukup link modul
         ],
          [
             'id'      => 'Admin_unit_tujuan',
             'label'   => 'Unit Tujuan',
             'url'     => site_url('Admin_unit_tujuan'),
             'icon'    => 'mdi mdi-qrcode-scan',
-            'require' => ['Admin_unit_tujuan'] // cukup link modul
+            'require' => ['admin_unit_tujuan'] // cukup link modul
         ],
         [
             'id'      => 'Admin_unit_lain',
             'label'   => 'Unit Lain',
             'url'     => site_url('Admin_unit_lain'),
             'icon'    => 'mdi mdi-qrcode-scan',
-            'require' => ['Admin_unit_lain'] // cukup link modul
+            'require' => ['admin_unit_lain'] // cukup link modul
         ],
         [
             'id'      => 'Admin_instansi_ref',
             'label'   => 'Instansi Asal',
             'url'     => site_url('Admin_instansi_ref'),
             'icon'    => 'mdi mdi-qrcode-scan',
-            'require' => ['Admin_instansi_ref'] // cukup link modul
+            'require' => ['admin_instansi_ref'] // cukup link modul
         ],
         [
             'id'      => 'Admin_pengumuman',
             'label'   => 'Pengumuman',
             'url'     => site_url('Admin_pengumuman'),
             'icon'    => 'mdi mdi-qrcode-scan',
-            'require' => ['Admin_pengumuman'] // cukup link modul
+            'require' => ['admin_pengumuman'] // cukup link modul
         ],
     ];
 

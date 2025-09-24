@@ -154,7 +154,7 @@ if (!function_exists('nav_class')) {
       $menu_patterns = [
         'admin_permohonan','admin_profil/detail_profil','booking',
         'admin_dashboard/monitor','admin_scan','admin_user','hal/kontak',
-        'Admin_setting_web*','Admin_unit_tujuan*','Admin_unit_lain*','Admin_pengumuman*'
+        'admin_setting_web*','admin_unit_tujuan*','admin_unit_lain*','Admin_pengumuman*'
       ];
     ?>
     <div class="nav-item">
@@ -267,34 +267,34 @@ if (!function_exists('nav_class')) {
           <?php endif; ?>
 
           <!-- Pengaturan Sistem -->
-          <?php if (user_can_mod(['Admin_setting_web'])): ?>
-            <a id="quick-setting-link" href="<?= site_url('Admin_setting_web') ?>" class="menu-item">
+          <?php if (user_can_mod(['admin_setting_web'])): ?>
+            <a id="quick-setting-link" href="<?= site_url('admin_setting_web') ?>" class="menu-item">
               <i class="fas fa-cogs"></i><span>Pengaturan Sistem</span>
             </a>
           <?php endif; ?>
 
           <!-- Unit Tujuan -->
-          <?php if (user_can_mod(['Admin_unit_tujuan'])): ?>
-            <a id="quick-unit-link" href="<?= site_url('Admin_unit_tujuan') ?>" class="menu-item">
+          <?php if (user_can_mod(['admin_unit_tujuan'])): ?>
+            <a id="quick-unit-link" href="<?= site_url('admin_unit_tujuan') ?>" class="menu-item">
               <i class="fas fa-building"></i><span>Unit Tujuan</span>
             </a>
           <?php endif; ?>
 
           <!-- Unit Lain -->
           <?php if (user_can_mod(['Admin_unit_lain'])): ?>
-            <a id="quick-unit-lain-link" href="<?= site_url('Admin_unit_lain') ?>" class="menu-item">
+            <a id="quick-unit-lain-link" href="<?= site_url('admin_unit_lain') ?>" class="menu-item">
               <i class="fas fa-briefcase"></i><span>Unit Lain</span>
             </a>
           <?php endif; ?>
 
           <?php if (user_can_mod(['Admin_instansi_ref'])): ?>
-            <a id="quick-instansi-ref-link" href="<?= site_url('Admin_instansi_ref') ?>" class="menu-item" title="Instansi Asal">
+            <a id="quick-instansi-ref-link" href="<?= site_url('admin_instansi_ref') ?>" class="menu-item" title="Instansi Asal">
               <i class="fe-briefcase"></i><span>Instansi Asal</span>
             </a>
           <?php endif; ?>
 
            <?php if (user_can_mod(['Admin_pengumuman'])): ?>
-            <a id="quick-pengumuman-ref-link" href="<?= site_url('Admin_pengumuman') ?>" class="menu-item" title="Instansi Asal">
+            <a id="quick-pengumuman-ref-link" href="<?= site_url('admin_pengumuman') ?>" class="menu-item" title="Instansi Asal">
               <i class="fe-briefcase"></i><span>Pengumuman</span>
             </a>
           <?php endif; ?>
@@ -306,8 +306,8 @@ if (!function_exists('nav_class')) {
             <i class="fas fa-address-book"></i><span>Kontak</span>
           </a>
 
-        </div><!-- /.menu-list -->
-      </div><!-- /.modal-body -->
+        </div>
+      </div>
     </div>
   </div>
 </div>
