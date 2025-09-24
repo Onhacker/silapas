@@ -87,6 +87,35 @@
 @keyframes ping{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}80%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
 .brand h1{font-size:1rem;margin:0}
 /*.row-disabled{opacity:.6; cursor:not-allowed;}*/
+/* Shimmer skeleton */
+.skel{
+  border-radius:12px;
+  background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 37%,#f3f4f6 63%);
+  background-size:400% 100%;
+  animation:shimmer 1.4s ease infinite;
+  height:84px;           /* default tinggi untuk baris booked (card) */
+  margin-bottom:10px;
+}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+
+/* Skeleton di dalam tabel → bersih dari border default td */
+#tblBooked .skel-row td,
+#tblVisit  .skel-row td{
+  padding:8px 0 !important;
+  background:transparent !important;
+  border:0 !important;
+}
+
+/* Card lebih cantik + hover */
+.card-box{
+  border:1px solid #eef0f3;border-radius:14px;
+  box-shadow:0 4px 14px rgba(0,0,0,.03);
+  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.row-link .card-box:hover{
+  background:#f8fafc; transform:translateY(-1px);
+}
+
 </style>
 
 <?php $web = $this->om->web_me(); ?>
@@ -173,23 +202,12 @@
             </div>
           </div>
 
-          <div class="table-responsive">
-            <!-- table table-centered table-hover mb-0 -->
-            <table class="list-table table">
-              <thead>
-                <tr>
-                  <th style="width:26%">Tanggal / Jam</th>
-                  <th>Nama</th>
-                  <th style="width:24%">Asal</th>
-                  <th style="width:26%">Unit & Petugas</th>
-                  <th style="width:9%;text-align:center">Pendamping</th>
-                </tr>
-              </thead>
+            <table class="" width="100%">
               <tbody id="tblBooked">
                 <tr><td colspan="5" class="empty text-center py-3">Memuat...</td></tr>
               </tbody>
             </table>
-          </div>
+          <!-- </div> -->
 
           <!-- Pager -->
           <div class="d-flex justify-content-between align-items-center mt-2">
@@ -251,38 +269,32 @@
   const btnNext  = document.getElementById('btnNext');
   const pageInfo = document.getElementById('pageInfo');
 
-  // Fullscreen
+  // Fullscreen (opsional, guard kalau tidak ada)
   const btnFS    = document.getElementById('btnFullscreen');
   const fsEl     = document.getElementById('fsContainer');
 
   let refreshTimer = null;
   let tickerTimer  = null;
-  let clockTimer   = null;
-  let lastTotalPages = 1;
   let serverOffsetMs = 0; // server_now - client_now
 
   const state = {
     q: '',
     page: 1,
-    per_page: parseInt(perSel.value,10) || 15,
+    per_page: parseInt(perSel?.value,10) || 15,
   };
 
+  // --- utils waktu/format ---
   function pad(n){ return (n<10?'0':'')+n; }
   function fmtTime(dt){
     const d=new Date(dt);
     if(isNaN(d))return '-';
     return pad(d.getHours())+':'+pad(d.getMinutes());
   }
-  function fmtTimeFull(d){
-    return pad(d.getDate())+'-'+pad(d.getMonth()+1)+'-'+d.getFullYear()
-           +' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
-  }
   function fmtDateID(s){
     if(!s||s.length<10) return '-';
     const y=s.slice(0,4), m=s.slice(5,7), d=s.slice(8,10);
     return `${d}-${m}-${y}`;
   }
-
   function hariID(s){
     if(!s||s.length<10) return '';
     const y=+s.slice(0,4), m=+s.slice(5,7)-1, d=+s.slice(8,10);
@@ -290,7 +302,6 @@
     const map = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
     return map[idx] || '';
   }
-
   function parseDateLoose(s){
     if(!s) return NaN;
     const fast = Date.parse(s);
@@ -300,7 +311,6 @@
     const Y=+m[1], M=+m[2]-1, D=+m[3], h=+m[4], i=+m[5], sec=+(m[6]||0);
     return new Date(Y, M, D, h, i, sec).getTime();
   }
-
   function fmtDurFromMs(startMs){
     if(!startMs) return '-';
     const now = Date.now() + serverOffsetMs;
@@ -309,73 +319,140 @@
     const h = Math.floor(sec/3600); sec%=3600;
     const m = Math.floor(sec/60);
     const s = sec%60;
-    const hh = pad(h), mm = pad(m), ss = pad(s);
-    return (days>0 ? (days+' hari ') : '') + `${hh}:${mm}:${ss}`;
-  }
-  function fmtDurFromIso(iso){
-    const ms = parseDateLoose(iso);
-    if (isNaN(ms)) return '-';
-    return fmtDurFromMs(ms);
+    return (days>0 ? (days+' hari ') : '') + `${pad(h)}:${pad(m)}:${pad(s)}`;
   }
 
-  // ==== RENDER ====
-  function escapeHtml(str){
-    return (str||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
-  }
-
+  // --- escape util ---
   function safe(v){ return (v==null ? '' : String(v)); }
-  function esc(s){ return safe(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&gt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
+  function esc(s){ return safe(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
 
-  function renderBooked(list){
-  if (!list || !list.length){
-    elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Tidak ada data.</td></tr>`;
-    return;
+  // --- CLOCK: di luar loadData supaya tak duplikasi ---
+  function fmtMsInServerTz(ms, { withDay = false, shortDay = false } = {}) {
+    const tz = window.serverTz || 'Asia/Makassar';
+    const opts = {
+      timeZone: tz,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false,
+      ...(withDay ? { weekday: shortDay ? 'short' : 'long' } : {})
+    };
+    const parts = new Intl.DateTimeFormat('id-ID', opts).formatToParts(new Date(ms));
+    const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
+    const dayLabel = map.weekday ? (map.weekday.replace('.', '') + ', ') : '';
+    return `${withDay ? dayLabel : ''}${map.day}-${map.month}-${map.year} ${map.hour}:${map.minute}:${map.second}`;
   }
-  elBooked.innerHTML = list.map(r=>{
-    const petugas  = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
-    const clickable = !!(r.can_open && r.detail_url);
-    const trClass = 'row-pill' + (clickable ? ' row-link' : ' row-disabled');
-    const trAttr  = clickable ? ` data-url="${esc(r.detail_url)}" title="Buka detail"` : ` title="Akses tidak diizinkan"`;
-    return `
-      <tr class="${trClass}"${trAttr}>
-        <td class="tgljam">
-          <div class="jam">${r.jam ? esc(r.jam) : '-'}</div>
-          <div class="small text-black tgl"><span class="day">${hariID(r.tanggal)}</span>${fmtDateID(r.tanggal)}</div>
-        </td>
-        <td class="nama">${esc(r.nama)}</td>
+  function startClock(){
+    if (!elTime) return;
+    if (window.clockTimer) clearInterval(window.clockTimer);
+    window.clockTimer = setInterval(()=>{
+      const ms = Date.now() + (window.serverOffsetMs || 0);
+      elTime.textContent = fmtMsInServerTz(ms, { withDay: true });
+    }, 1000);
+  }
 
-        <td class="table-user text-truncate">
-        <img src="${esc(r.logo_ins || '-')}" alt="table-user" class="mr-2 rounded-circle">
-        <a href="javascript:void(0);" class="text-body font-weight-semibold">${esc(r.instansi || '-')}</a>
-        </td>
-
-
-        <td class="unit" style="color:black">
-          ${esc(r.unit || '-')}
-          ${petugas ? `<div class="subline"><i class="mdi mdi-account-badge-outline"></i> ${esc(petugas)}</div>` : ''}
-        </td>
-        <td class="pendamping">
-          <span class="pill"><i class="mdi mdi-account-multiple-outline ico"></i>${(r.jumlah_pendamping||0)}</span>
+  // --- SKELETON: sekarang di dalam IIFE agar akses elBooked/elVisit sah ---
+  function showSkeletonBooked(n = 5){
+    elBooked.innerHTML = Array.from({length:n}).map(() => `
+      <tr class="skel-row">
+        <td colspan="5" class="p-0">
+          <div class="skel"></div>
         </td>
       </tr>
-    `;
-  }).join('');
-}
-
-function renderVisit(list){
-  if (!list || !list.length){
-    elVisit.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Belum ada pengunjung aktif.</td></tr>`;
-    return;
+    `).join('');
   }
-  elVisit.innerHTML = list.map(r=>{
-    const startIso  = r.checkin_at || '';
-    const startMs   = parseDateLoose(startIso);
-    const durInit   = startIso ? fmtDurFromMs(startMs) : '-';
-    const petugas   = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
-    const clickable = !!(r.can_open && r.detail_url);
-    const trClass   = 'row-pill' + (clickable ? ' row-link' : ' row-disabled');
-    const trAttr    = clickable ? ` data-url="${esc(r.detail_url)}" title="Buka detail"` : ` title="Akses tidak diizinkan"`;
-    return `
+  function showSkeletonVisit(n = 4){
+    elVisit.innerHTML = Array.from({length:n}).map(() => `
+      <tr class="skel-row">
+        <td style="width:18%"><div class="skel" style="height:18px"></div></td>
+        <td>
+          <div class="skel" style="height:16px;margin-bottom:6px"></div>
+          <div class="skel" style="height:12px;width:60%"></div>
+        </td>
+        <td style="width:28%">
+          <div class="skel" style="height:16px;margin-bottom:6px"></div>
+          <div class="skel" style="height:12px;width:70%"></div>
+        </td>
+        <td style="width:14%"><div class="skel" style="height:18px;width:70%"></div></td>
+        <td style="width:12%;text-align:center">
+          <div class="skel" style="height:24px;width:60px;border-radius:999px;margin:0 auto"></div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // --- RENDER TABLES ---
+  function renderBooked(list){
+    if (!list || !list.length){
+      elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Tidak ada data.</td></tr>`;
+      return;
+    }
+    elBooked.innerHTML = list.map(r=>{
+      const petugas  = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
+      const clickable = !!(r.can_open && r.detail_url);
+      const trClass = 'row-pill' + (clickable ? ' row-link' : ' row-disabled');
+      const trAttr  = clickable ? ` data-url="${esc(r.detail_url)}" title="Buka detail"` : ` title="Akses tidak diizinkan"`;
+      return `
+<tr class="${trClass}" ${trAttr} role="button" tabindex="0" style="cursor:pointer">
+  <td colspan="5" class="p-0">
+    <div class="card-box mb-2">
+      <div class="row align-items-center">
+        <div class="col-sm-6">
+          <div class="media">
+            <img class="d-flex align-self-center mr-1"
+                 src="${esc(r.logo_ins || '')}"
+                 alt="${esc(r.instansi || r.nama || 'Instansi')}"
+                 height="64" width="64"
+                 onerror="this.style.display='none'">
+            <div class="media-body">
+              <h4 class="mt-0 mb-1 font-16">${esc(r.instansi || '-')}</h4>
+              <p class="mb-0"><i class="mdi mdi-account-outline mr-1"></i>${esc(r.nama || '-')}</p>
+              <p class="mb-0"><i class="mdi mdi-briefcase-outline mr-1"></i>${esc(r.jabatan || '-')}</p>
+              <p class="mb-0">
+                <span class="badge badge-light">
+                  <i class="mdi mdi-account-multiple-outline mr-1"></i>${(r.jumlah_pendamping || 0)} pendamping
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-2">
+          <p class="mb-1 mt-3 mt-sm-0">
+            <i class="mdi mdi-clock-outline mr-1"></i> ${r.jam ? esc(r.jam) : '-'}
+          </p>
+          <p class="mb-0 small text-black">
+            <span class="day">${hariID(r.tanggal)}</span> ${fmtDateID(r.tanggal)}
+          </p>
+        </div>
+        <div class="col-sm-4">
+          <p class="mb-1 mt-3 mt-sm-0">
+            <i class="mdi mdi-domain mr-1"></i> ${esc(r.unit || '-')}
+          </p>
+          ${petugas ? `
+          <p class="mb-1 small text-muted">
+            <i class="mdi mdi-account-badge-outline mr-1"></i> ${esc(petugas)}
+          </p>` : ``}
+        </div>
+      </div>
+    </div>
+  </td>
+</tr>`;
+    }).join('');
+  }
+
+  function renderVisit(list){
+    if (!list || !list.length){
+      elVisit.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Belum ada pengunjung aktif.</td></tr>`;
+      return;
+    }
+    elVisit.innerHTML = list.map(r=>{
+      const startIso  = r.checkin_at || '';
+      const startMs   = parseDateLoose(startIso);
+      const durInit   = startIso ? fmtDurFromMs(startMs) : '-';
+      const petugas   = safe(r.nama_petugas_instansi || r.petugas_unit || r.petugas).trim();
+      const clickable = !!(r.can_open && r.detail_url);
+      const trClass   = 'row-pill' + (clickable ? ' row-link' : ' row-disabled');
+      const trAttr    = clickable ? ` data-url="${esc(r.detail_url)}" title="Buka detail"` : ` title="Akses tidak diizinkan"`;
+      return `
       <tr class="${trClass}"${trAttr}>
         <td class="jam">${r.checkin_at ? fmtTime(startIso) : '-'}</td>
         <td class="nama">
@@ -390,12 +467,11 @@ function renderVisit(list){
         <td class="pendamping">
           <span class="pill"><i class="mdi mdi-account-multiple-outline ico"></i>${(r.jumlah_pendamping||0)}</span>
         </td>
-      </tr>
-    `;
-  }).join('');
-}
+      </tr>`;
+    }).join('');
+  }
 
-
+  // --- durasi ticker ---
   function tickDurations(){
     document.querySelectorAll('#tblVisit .durasi').forEach(el=>{
       let startMs = parseInt(el.getAttribute('data-startms'), 10);
@@ -411,97 +487,70 @@ function renderVisit(list){
     });
   }
 
- 
-
+  // --- loader utama ---
   async function loadData(){
-  const params = new URLSearchParams();
-  if (state.q) params.set('q', state.q);
-  params.set('page', state.page);
-  params.set('per_page', state.per_page);
-  const url = `<?= site_url('admin_dashboard/monitor_data') ?>?` + params.toString();
+    const params = new URLSearchParams();
+    if (state.q) params.set('q', state.q);
+    params.set('page', state.page);
+    params.set('per_page', state.per_page);
+    const url = `<?= site_url('admin_dashboard/monitor_data') ?>?` + params.toString();
 
-  elBadge.textContent = 'Memuat...';
-  elBadge.classList.add('blink');
+    showSkeletonBooked(Math.min(state.per_page, 5));
+    showSkeletonVisit(4);
 
-  try {
-    // --- catat waktu sebelum request (monotonic) ---
-    window.__req_t0 = performance.now();
+    elBadge.textContent = 'Memuat...';
+    elBadge.classList.add('blink');
 
-    const res = await fetch(url, { credentials: 'same-origin' });
-    const j   = await res.json();
+    try {
+      window.__req_t0 = performance.now();
+      const res = await fetch(url, { credentials: 'same-origin' });
+      const j   = await res.json();
+      if (!j || !j.ok) throw new Error('Gagal ambil data');
 
-    if (!j || !j.ok) throw new Error('Gagal ambil data');
+      // sinkron waktu server
+      if (j.server_ms != null || j.server_time) {
+        const rttHalf = Math.round((performance.now() - (window.__req_t0 ?? performance.now())) / 2);
+        const baseServerMs = Number.isFinite(Number(j.server_ms))
+          ? Number(j.server_ms)
+          : Date.parse(j.server_time || '');
+        if (Number.isFinite(baseServerMs)) {
+          window.serverOffsetMs = (baseServerMs + rttHalf) - Date.now();
+          window.serverTz       = j.server_tz || 'Asia/Makassar';
+          startClock();
+        }
+      }
 
-    // --- sinkron jam UI dengan waktu server (zona dari DB) ---
-   if (j.server_ms != null || j.server_time) {
-  const rttHalf = Math.round((performance.now() - (window.__req_t0 ?? performance.now())) / 2);
-  const baseServerMs = Number.isFinite(Number(j.server_ms))
-    ? Number(j.server_ms)
-    : Date.parse(j.server_time || '');
+      // pagination guard
+      if (j.booked_pages > 0 && state.page > j.booked_pages){
+        state.page = j.booked_pages;
+        return loadData();
+      }
 
-  if (Number.isFinite(baseServerMs)) {
-    window.serverOffsetMs = (baseServerMs + rttHalf) - Date.now();
-    window.serverTz       = j.server_tz || 'Asia/Makassar';
-    startClock();
-  }
-}
+      // render
+      renderBooked(j.booked || []);
+      renderVisit(j.in_visit || []);
+      elCB.textContent = j.count_booked ?? 0;
+      elCV.textContent = j.count_visit  ?? 0;
 
-function fmtMsInServerTz(ms, { withDay = false, shortDay = false } = {}) {
-  const tz = window.serverTz || 'Asia/Makassar';
-  const opts = {
-    timeZone: tz,
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hour12: false,
-    ...(withDay ? { weekday: shortDay ? 'short' : 'long' } : {})
-  };
+      const lastTotalPages = j.booked_pages ?? 0;
+      const nowPage  = j.page ?? 1;
+      pageInfo.textContent = `Hal. ${nowPage}/${lastTotalPages || 1}`;
+      btnPrev.disabled = !(nowPage > 1);
+      btnNext.disabled = !(lastTotalPages && nowPage < lastTotalPages);
 
-  const parts = new Intl.DateTimeFormat('id-ID', opts).formatToParts(new Date(ms));
-  const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
-
-  const dayLabel = map.weekday ? (map.weekday.replace('.', '') + ', ') : '';
-  return `${withDay ? dayLabel : ''}${map.day}-${map.month}-${map.year} ${map.hour}:${map.minute}:${map.second}`;
-}
-
-
-function startClock(){
-  if (window.clockTimer) clearInterval(window.clockTimer);
-  window.clockTimer = setInterval(()=>{
-    const ms = Date.now() + (window.serverOffsetMs || 0);
-    elTime.textContent = fmtMsInServerTz(ms, { withDay: true }); // contoh: "Jumat, 12/09/2025 14:05:33"
-  }, 1000);
-}
-
-    // --- pagination guard ---
-    if (j.booked_pages > 0 && state.page > j.booked_pages){
-      state.page = j.booked_pages;
-      return loadData();
+      elBadge.textContent = 'Live';
+      elBadge.classList.remove('blink');
+      tickDurations();
+    } catch (e) {
+      elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Gagal memuat data.</td></tr>`;
+      elVisit.innerHTML  = `<tr><td colspan="5" class="empty text-center py-3">Gagal memuat data.</td></tr>`;
+      elBadge.textContent = 'Gagal memuat';
+      elBadge.classList.remove('blink');
+      console.error(e);
     }
-
-    // --- render data ---
-    renderBooked(j.booked || []);
-    renderVisit(j.in_visit || []);
-    elCB.textContent = j.count_booked ?? 0;
-    elCV.textContent = j.count_visit  ?? 0;
-
-    lastTotalPages = j.booked_pages ?? 0;
-    const nowPage  = j.page ?? 1;
-    pageInfo.textContent = `Hal. ${nowPage}/${lastTotalPages || 1}`;
-    btnPrev.disabled = !(nowPage > 1);
-    btnNext.disabled = !(lastTotalPages && nowPage < lastTotalPages);
-
-    elBadge.textContent = 'Live';
-    elBadge.classList.remove('blink');
-
-    tickDurations();
-  } catch (e) {
-    elBadge.textContent = 'Gagal memuat';
-    elBadge.classList.remove('blink');
-    console.error(e);
   }
-}
 
-
+  // --- timers ---
   function startTimers(){
     if (refreshTimer) clearInterval(refreshTimer);
     refreshTimer = setInterval(loadData, 20000);
@@ -510,56 +559,56 @@ function startClock(){
     tickerTimer = setInterval(tickDurations, 1000);
   }
 
-  document.getElementById('tblBooked').addEventListener('click', (e)=>{
-    const tr = e.target.closest('tr[data-url]');
-    if (!tr) return;
-    location.href = tr.getAttribute('data-url');
+  // --- delegasi klik (satu kali saja) ---
+  ['tblBooked','tblVisit'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.addEventListener('click', (e)=>{
+      const tr = e.target.closest('tr[data-url]');
+      if (!tr) return;
+      const url = tr.getAttribute('data-url');
+      if (url) location.href = url;
+    });
   });
-  document.getElementById('tblVisit').addEventListener('click', (e)=>{
-    const tr = e.target.closest('tr[data-url]');
-    if (!tr) return;
-    location.href = tr.getAttribute('data-url');
+  document.addEventListener('keydown', (e)=>{
+    if (e.key !== 'Enter') return;
+    const row = document.activeElement?.closest?.('tr.row-link[data-url]');
+    if (!row) return;
+    const url = row.getAttribute('data-url');
+    if (url) location.href = url;
   });
 
-  btnRef.addEventListener('click', loadData);
-  btnSearch.addEventListener('click', ()=>{ state.q = qInput.value.trim(); state.page = 1; loadData(); });
-  qInput.addEventListener('keydown', (e)=>{ if (e.key==='Enter'){ state.q = qInput.value.trim(); state.page = 1; loadData(); }});
-  btnClear.addEventListener('click', ()=>{ qInput.value=''; state.q=''; state.page=1; loadData(); });
-  perSel.addEventListener('change', ()=>{ state.per_page = parseInt(perSel.value,10)||15; state.page=1; loadData(); });
-  btnPrev.addEventListener('click', ()=>{ if (state.page>1){ state.page--; loadData(); }});
-  btnNext.addEventListener('click', ()=>{ if (lastTotalPages && state.page<lastTotalPages){ state.page++; loadData(); }});
+  // --- bind UI ---
+  btnRef?.addEventListener('click', loadData);
+  btnSearch?.addEventListener('click', ()=>{ state.q = qInput.value.trim(); state.page = 1; loadData(); });
+  qInput?.addEventListener('keydown', (e)=>{ if (e.key==='Enter'){ state.q = qInput.value.trim(); state.page = 1; loadData(); }});
+  btnClear?.addEventListener('click', ()=>{ qInput.value=''; state.q=''; state.page=1; loadData(); });
+  perSel?.addEventListener('change', ()=>{ state.per_page = parseInt(perSel.value,10)||15; state.page=1; loadData(); });
+  btnPrev?.addEventListener('click', ()=>{ if (state.page>1){ state.page--; loadData(); }});
+  btnNext?.addEventListener('click', ()=>{ if ((pageInfo.textContent||'').includes('/')){ state.page++; loadData(); }});
 
-  btnFS.addEventListener('click', async ()=>{
-    try{
+  // fullscreen guard
+  if (btnFS && fsEl){
+    btnFS.addEventListener('click', async ()=>{
+      try{
+        if (!document.fullscreenElement){
+          await (fsEl.requestFullscreen ? fsEl.requestFullscreen({navigationUI:'hide'}) : document.documentElement.requestFullscreen());
+          btnFS.innerHTML = '<i class="mdi mdi-fullscreen-exit"></i> Exit Fullscreen';
+        }else{
+          await document.exitFullscreen();
+          btnFS.innerHTML = '<i class="mdi mdi-fullscreen"></i> Fullscreen';
+        }
+      }catch(e){ console.warn(e); }
+    });
+    document.addEventListener('fullscreenchange', ()=>{
       if (!document.fullscreenElement){
-        await (fsEl.requestFullscreen ? fsEl.requestFullscreen({navigationUI:'hide'}) : document.documentElement.requestFullscreen());
-        btnFS.innerHTML = '<i class="mdi mdi-fullscreen-exit"></i> Exit Fullscreen';
-      }else{
-        await document.exitFullscreen();
         btnFS.innerHTML = '<i class="mdi mdi-fullscreen"></i> Fullscreen';
       }
-    }catch(e){ console.warn(e); }
-  });
-  document.addEventListener('fullscreenchange', ()=>{
-    if (!document.fullscreenElement){
-      btnFS.innerHTML = '<i class="mdi mdi-fullscreen"></i> Fullscreen';
-    }
-  });
+    });
+  }
 
+  // go!
   loadData();
   startTimers();
 })();
-document.getElementById('tblBooked').addEventListener('click', (e)=>{
-  const tr  = e.target.closest('tr');
-  const url = tr && tr.getAttribute('data-url');
-  if (!url) return; // tidak punya akses => no-op
-  location.href = url;
-});
-document.getElementById('tblVisit').addEventListener('click', (e)=>{
-  const tr  = e.target.closest('tr');
-  const url = tr && tr.getAttribute('data-url');
-  if (!url) return; // tidak punya akses => no-op
-  location.href = url;
-});
 
 </script>

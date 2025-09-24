@@ -204,6 +204,7 @@ public function monitor_data()
         return [
             'kode'                  => (string)$r['kode_booking'],
             'nama'                  => (string)$r['nama_tamu'],
+            'jabatan'                  => (string)$r['jabatan'],
             'unit'                  => (string)($r['nama_unit'] ?: '-'),
             'instansi'              => (string)($r['target_instansi_nama'] ?: ($r['instansi'] ?: '-')),
             'jam'                   => (string)($r['jam'] ?: ''),

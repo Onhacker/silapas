@@ -39,7 +39,7 @@
               'kodim'  => 'assets/images/logo/tni_ad.svg',
               'kejati' => 'assets/images/logo/kejaksaan_ri.svg',
             ];
-            $path = $map[$kat] ?? 'assets/logo/default.png';
+            $path = $map[$kat] ?? 'assets/images/maskable_icon_new_192.png';
             return base_url($path);
           }
         }
