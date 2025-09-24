@@ -1,3 +1,4 @@
+<!-- ==== Embed Mode Trim ==== -->
 <script>
 (function(){
   var isEmbed = /[?&]embed=1/.test(location.search) || (window.top !== window.self);
@@ -55,196 +56,193 @@
     .count{font-size:1.4rem}
   }
   #infoScope{
-  font-size:1.6rem;
-  font-weight:800;
-  color:#0f172a;
-  letter-spacing:.4px;
-  text-shadow:0 1px 1px rgba(0,0,0,.08);
-}
-/* === Enhancements: Ruang Lingkup === */
-.scope-text{
-  font-size:1.6rem;
-  font-weight:800;
-  color:#0f172a;
-  letter-spacing:.4px;
-  font-variant-numeric:tabular-nums;
-  text-shadow:0 1px 1px rgba(0,0,0,.08);
-}
-.scope-wrap{
-  display:inline-flex;align-items:center;gap:.6rem;
-  background:linear-gradient(180deg,#ffffff,#f8fafc);
-  border:1px solid #e5e7eb;border-radius:12px;padding:.35rem .7rem;
-  box-shadow:0 2px 6px rgba(15,23,42,.06)
-}
-.scope-icon{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:28px;height:28px;border-radius:50%;
-  background:#F54927;border:1px solid #e5e7eb;font-size:1rem;color:#0ea5e9
-}
-@media (max-width:768px){ .scope-text{font-size:1.35rem} }
-.brand{display:flex;align-items:center;gap:.6rem}
-.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:ping 1.6s infinite}
-@keyframes ping{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}80%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
-.brand h1{font-size:1rem;margin:0}
-/*.row-disabled{opacity:.6; cursor:not-allowed;}*/
-/* Shimmer skeleton */
-.skel{
-  border-radius:12px;
-  background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 37%,#f3f4f6 63%);
-  background-size:400% 100%;
-  animation:shimmer 1.4s ease infinite;
-  height:84px;           /* default tinggi untuk baris booked (card) */
-  margin-bottom:10px;
-}
-@keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+    font-size:1.6rem;
+    font-weight:800;
+    color:#0f172a;
+    letter-spacing:.4px;
+    text-shadow:0 1px 1px rgba(0,0,0,.08);
+  }
 
-/* Skeleton di dalam tabel → bersih dari border default td */
-#tblBooked .skel-row td,
-#tblVisit  .skel-row td{
-  padding:8px 0 !important;
-  background:transparent !important;
-  border:0 !important;
-}
+  /* === Enhancements: Ruang Lingkup === */
+  .scope-text{
+    font-size:1.6rem;
+    font-weight:800;
+    color:#0f172a;
+    letter-spacing:.4px;
+    font-variant-numeric:tabular-nums;
+    text-shadow:0 1px 1px rgba(0,0,0,.08);
+  }
+  .scope-wrap{
+    display:inline-flex;align-items:center;gap:.6rem;
+    background:linear-gradient(180deg,#ffffff,#f8fafc);
+    border:1px solid #e5e7eb;border-radius:12px;padding:.35rem .7rem;
+    box-shadow:0 2px 6px rgba(15,23,42,.06)
+  }
+  .scope-icon{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:28px;height:28px;border-radius:50%;
+    background:#F54927;border:1px solid #e5e7eb;font-size:1rem;color:#0ea5e9
+  }
+  @media (max-width:768px){ .scope-text{font-size:1.35rem} }
+  .brand{display:flex;align-items:center;gap:.6rem}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:ping 1.6s infinite}
+  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}80%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+  .brand h1{font-size:1rem;margin:0}
+  /*.row-disabled{opacity:.6; cursor:not-allowed;}*/
 
-/* Card lebih cantik + hover */
-.card-box{
-  border:1px solid #eef0f3;border-radius:14px;
-  box-shadow:0 4px 14px rgba(0,0,0,.03);
-  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
-}
-.row-link .card-box:hover{
-  background:#f8fafc; transform:translateY(-1px);
-}
+  /* Shimmer skeleton */
+  :root { --skel-speed: 1.4s; } /* bisa dipercepat via JS: .45s */
+  .skel{
+    border-radius:12px;
+    background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 37%,#f3f4f6 63%);
+    background-size:400% 100%;
+    animation:shimmer var(--skel-speed) ease infinite;
+    height:84px;           /* default tinggi untuk baris booked (card) */
+    margin-bottom:10px;
+  }
+  @keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
 
+  /* Skeleton di dalam tabel → bersih dari border default td */
+  #tblBooked .skel-row td,
+  #tblVisit  .skel-row td{
+    padding:8px 0 !important;
+    background:transparent !important;
+    border:0 !important;
+  }
+
+  /* Card lebih cantik + hover */
+  .card-box{
+    border:1px solid #eef0f3;border-radius:14px;
+    box-shadow:0 4px 14px rgba(0,0,0,.03);
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .row-link .card-box:hover{
+    background:#f8fafc; transform:translateY(-1px);
+  }
 </style>
 
 <?php $web = $this->om->web_me(); ?>
-  <!-- Info Bar -->
-  <div class="row">
-    <div class="col-12">
-      <div class="card board-card shadow-sm mb-3">
-        <div class="card-body d-flex flex-wrap justify-content-between align-items-center board-head pb-2">
-          <div class="d-flex align-items-center" style="gap:1rem;">
-            <div>
-              <div class="text-dark small mb-1">Ruang Lingkup</div>
-              <div class="scope-wrap">
-                <span class="scope-icon"><i class="mdi mdi-office-building-marker-outline"></i></span>
-                <span id="infoScope" class="scope-text"><?php echo $web->type ?></span>
-              </div>
-            </div>
-
-            <div>
-              <div class="text-dark small mb-1">Waktu Lokasi <?php echo $web->waktu ?></div>
-              <div class="server-time-wrap">
-                <span class="server-time-icon"><i class="mdi mdi-clock-outline"></i></span>
-                <span id="infoTime" class="server-time">--:--:--</span>   
-              </div>
-               <button id="btnRefresh" class="btn btn-lg btn-rounded ml-2" style="background-color: black">
-              <span class="badge-live" id="stateBadge"><strong>Live</strong></span>
-
-            </button>
-            </div>
-
-            <div class="card-body pt-3">
-              <style>
-             
-                .badge-live{position:relative;display:inline-flex;align-items:center;gap:.80rem;transform-origin:center;animation:livePulse 1.25s ease-in-out infinite}
-                .badge-live::before{content:"";width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:livePing 1.25s cubic-bezier(0,0,.2,1) infinite}
-                @keyframes livePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
-                @keyframes livePing{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}80%{box-shadow:0 0 0 10px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
-                @media (prefers-reduced-motion:reduce){.badge-live,.badge-live::before{animation:none!important}}
-              </style>
+<!-- Info Bar -->
+<div class="row">
+  <div class="col-12">
+    <div class="card board-card shadow-sm mb-3">
+      <div class="card-body d-flex flex-wrap justify-content-between align-items-center board-head pb-2">
+        <div class="d-flex align-items-center" style="gap:1rem;">
+          <div>
+            <div class="text-dark small mb-1">Ruang Lingkup</div>
+            <div class="scope-wrap">
+              <span class="scope-icon"><i class="mdi mdi-office-building-marker-outline"></i></span>
+              <span id="infoScope" class="scope-text"><?php echo $web->type ?></span>
             </div>
           </div>
 
-          <div class="d-flex align-items-center" style="gap:1rem;">
-            <div class="text-center">
-              <div class="text-dark small">Jumlah Sudah Booking</div>
-              <div id="countBooked" class="count">0</div>
+          <div>
+            <div class="text-dark small mb-1">Waktu Lokasi <?php echo $web->waktu ?></div>
+            <div class="server-time-wrap">
+              <span class="server-time-icon"><i class="mdi mdi-clock-outline"></i></span>
+              <span id="infoTime" class="server-time">--:--:--</span>
             </div>
-            <div class="text-center">
-              <div class="text-dark small">Sedang Berkunjung</div>
-              <div id="countVisit" class="count">0</div>
-            </div>
-           
+            <button id="btnRefresh" class="btn btn-lg btn-rounded ml-2" style="background-color: black">
+              <span class="badge-live" id="stateBadge"><strong>Live</strong></span>
+            </button>
+          </div>
+
+          <div class="card-body pt-3">
+            <style>
+              .badge-live{position:relative;display:inline-flex;align-items:center;gap:.80rem;transform-origin:center;animation:livePulse 1.25s ease-in-out infinite}
+              .badge-live::before{content:"";width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:livePing 1.25s cubic-bezier(0,0,.2,1) infinite}
+              @keyframes livePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+              @keyframes livePing{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}80%{box-shadow:0 0 0 10px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+              @media (prefers-reduced-motion:reduce){.badge-live,.badge-live::before{animation:none!important}}
+            </style>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center" style="gap:1rem;">
+          <div class="text-center">
+            <div class="text-dark small">Jumlah Sudah Booking</div>
+            <div id="countBooked" class="count">0</div>
+          </div>
+          <div class="text-center">
+            <div class="text-dark small">Sedang Berkunjung</div>
+            <div id="countVisit" class="count">0</div>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Dua kolom -->
-  <div class="row">
-    <!-- Kiri: Akan Datang -->
-    <div class="col-xl-6">
-      <div class="card board-card shadow-sm">
-        <div class="card-body">
-          <h5 class="header-title">Akan Datang (Belum Check-in)</h5>
+<!-- Dua kolom -->
+<div class="row">
+  <!-- Kiri: Akan Datang -->
+  <div class="col-xl-6">
+    <div class="card board-card shadow-sm">
+      <div class="card-body">
+        <h5 class="header-title">Akan Datang (Belum Check-in)</h5>
 
-          <!-- Toolbar cari + per page -->
-          <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap" style="gap:.75rem;">
-            <div class="input-group" style="max-width:460px;">
-              <input type="text" id="q" class="form-control" placeholder="Cari nama / kode / unit / instansi / keperluan...">
-              <div class="input-group-append">
-                <button class="btn btn-outline-primary" id="btnSearch" title="Cari"><i class="mdi mdi-magnify"></i></button>
-                <button class="btn btn-outline-secondary" id="btnClear" title="Bersihkan"><i class="mdi mdi-close"></i></button>
-              </div>
-            </div>
-            <div class="form-inline">
-              <label class="mr-2 small text-muted">Baris</label>
-              <select id="perPage" class="form-control form-control-sm">
-                <option value="5" selected>5</option>
-                <option value="10">10</option>
-                <option value="15" >15</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-              </select>
+        <!-- Toolbar cari + per page -->
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap" style="gap:.75rem;">
+          <div class="input-group" style="max-width:460px;">
+            <input type="text" id="q" class="form-control" placeholder="Cari nama / kode / unit / instansi / keperluan...">
+            <div class="input-group-append">
+              <button class="btn btn-outline-primary" id="btnSearch" title="Cari"><i class="mdi mdi-magnify"></i></button>
+              <button class="btn btn-outline-secondary" id="btnClear" title="Bersihkan"><i class="mdi mdi-close"></i></button>
             </div>
           </div>
-
-            <table class="" width="100%">
-              <tbody id="tblBooked">
-                <tr><td colspan="5" class="empty text-center py-3">Memuat...</td></tr>
-              </tbody>
-            </table>
-          <!-- </div> -->
-
-          <!-- Pager -->
-          <div class="d-flex justify-content-between align-items-center mt-2">
-            <div class="small text-muted" id="pageInfo">Hal. 1/1</div>
-            <div>
-              <button class="btn btn-sm btn-outline-secondary mr-2" id="btnPrev" disabled>« Sebelumnya</button>
-              <button class="btn btn-sm btn-outline-secondary" id="btnNext" disabled>Berikutnya »</button>
-            </div>
+          <div class="form-inline">
+            <label class="mr-2 small text-muted">Baris</label>
+            <select id="perPage" class="form-control form-control-sm">
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
           </div>
-
         </div>
+
+        <table class="" width="100%">
+          <tbody id="tblBooked">
+            <tr><td colspan="5" class="empty text-center py-3">Memuat...</td></tr>
+          </tbody>
+        </table>
+
+        <!-- Pager -->
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <div class="small text-muted" id="pageInfo">Hal. 1/1</div>
+          <div>
+            <button class="btn btn-sm btn-outline-secondary mr-2" id="btnPrev" disabled>« Sebelumnya</button>
+            <button class="btn btn-sm btn-outline-secondary" id="btnNext" disabled>Berikutnya »</button>
+          </div>
+        </div>
+
       </div>
     </div>
+  </div>
 
-    <!-- Kanan: Sedang Berkunjung -->
-    <div class="col-xl-6">
-      <div class="card board-card shadow-sm">
-        <div class="card-body">
-          <h5 class="header-title">Sedang Berkunjung (Check-in)</h5>
-          <div class="table-responsive">
-            <table class="list-table">
-              <thead>
-                <tr>
-                  <th style="width:18%">Check-in</th>
-                  <th>Nama / Instansi</th>
-                  <th style="width:28%">Unit & Petugas</th>
-                  <th style="width:14%">Durasi</th>
-                  <th style="width:12%;text-align:center">Pendamping</th>
-                </tr>
-              </thead>
-              <tbody id="tblVisit">
-                <tr><td colspan="5" class="empty text-center py-3">Belum ada pengunjung aktif.</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="small text-muted mt-2">Durasi diperbarui otomatis.</div>
+  <!-- Kanan: Sedang Berkunjung -->
+  <div class="col-xl-6">
+    <div class="card board-card shadow-sm">
+      <div class="card-body">
+        <h5 class="header-title">Sedang Berkunjung (Check-in)</h5>
+        <div class="table-responsive">
+          <table class="list-table">
+            <thead>
+              <tr>
+                <th style="width:18%">Check-in</th>
+                <th>Nama / Instansi</th>
+                <th style="width:28%">Unit & Petugas</th>
+                <th style="width:14%">Durasi</th>
+                <th style="width:12%;text-align:center">Pendamping</th>
+              </tr>
+            </thead>
+            <tbody id="tblVisit">
+              <tr><td colspan="5" class="empty text-center py-3">Belum ada pengunjung aktif.</td></tr>
+            </tbody>
+          </table>
         </div>
+        <div class="small text-muted mt-2">Durasi diperbarui otomatis.</div>
       </div>
     </div>
   </div>
@@ -275,13 +273,25 @@
 
   let refreshTimer = null;
   let tickerTimer  = null;
-  let serverOffsetMs = 0; // server_now - client_now
 
-  const state = {
-    q: '',
-    page: 1,
-    per_page: parseInt(perSel?.value,10) || 15,
-  };
+  // ======== FORMATTER WAKTU (di-cache) ========
+  window.serverTz = window.serverTz || 'Asia/Makassar';
+  let _fmtServer = null, _fmtWeekday = null, _fmtTz = null;
+  function initServerFormatter(){
+    const tz = window.serverTz || 'Asia/Makassar';
+    if (_fmtServer && _fmtWeekday && _fmtTz === tz) return;
+    _fmtServer = new Intl.DateTimeFormat('id-ID', {
+      timeZone: tz,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false
+    });
+    _fmtWeekday = new Intl.DateTimeFormat('id-ID', {
+      timeZone: tz, weekday: 'long'
+    });
+    _fmtTz = tz;
+  }
+  initServerFormatter();
 
   // --- utils waktu/format ---
   function pad(n){ return (n<10?'0':'')+n; }
@@ -311,9 +321,11 @@
     const Y=+m[1], M=+m[2]-1, D=+m[3], h=+m[4], i=+m[5], sec=+(m[6]||0);
     return new Date(Y, M, D, h, i, sec).getTime();
   }
+
+  // versi umum (untuk inisialisasi satu kali)
   function fmtDurFromMs(startMs){
     if(!startMs) return '-';
-    const now = Date.now() + serverOffsetMs;
+    const now = Date.now() + (window.serverOffsetMs || 0);
     let sec = Math.max(0, Math.floor((now - startMs)/1000));
     const days = Math.floor(sec / 86400); sec %= 86400;
     const h = Math.floor(sec/3600); sec%=3600;
@@ -322,24 +334,14 @@
     return (days>0 ? (days+' hari ') : '') + `${pad(h)}:${pad(m)}:${pad(s)}`;
   }
 
-  // --- escape util ---
-  function safe(v){ return (v==null ? '' : String(v)); }
-  function esc(s){ return safe(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
-
-  // --- CLOCK: di luar loadData supaya tak duplikasi ---
-  function fmtMsInServerTz(ms, { withDay = false, shortDay = false } = {}) {
-    const tz = window.serverTz || 'Asia/Makassar';
-    const opts = {
-      timeZone: tz,
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
-      hour12: false,
-      ...(withDay ? { weekday: shortDay ? 'short' : 'long' } : {})
-    };
-    const parts = new Intl.DateTimeFormat('id-ID', opts).formatToParts(new Date(ms));
+  // --- CLOCK ---
+  function fmtMsInServerTz(ms, { withDay = false } = {}) {
+    initServerFormatter();
+    const d = new Date(ms);
+    const parts = _fmtServer.formatToParts(d);
     const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
-    const dayLabel = map.weekday ? (map.weekday.replace('.', '') + ', ') : '';
-    return `${withDay ? dayLabel : ''}${map.day}-${map.month}-${map.year} ${map.hour}:${map.minute}:${map.second}`;
+    const wd = withDay ? (_fmtWeekday.format(d).replace('.', '') + ', ') : '';
+    return `${wd}${map.day}-${map.month}-${map.year} ${map.hour}:${map.minute}:${map.second}`;
   }
   function startClock(){
     if (!elTime) return;
@@ -350,7 +352,11 @@
     }, 1000);
   }
 
-  // --- SKELETON: sekarang di dalam IIFE agar akses elBooked/elVisit sah ---
+  // --- escape util ---
+  function safe(v){ return (v==null ? '' : String(v)); }
+  function esc(s){ return safe(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
+
+  // --- SKELETON RENDERERS ---
   function showSkeletonBooked(n = 5){
     elBooked.innerHTML = Array.from({length:n}).map(() => `
       <tr class="skel-row">
@@ -380,7 +386,7 @@
     `).join('');
   }
 
-  // --- RENDER TABLES ---
+  // --- RENDERERS ---
   function renderBooked(list){
     if (!list || !list.length){
       elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Tidak ada data.</td></tr>`;
@@ -402,6 +408,7 @@
                  src="${esc(r.logo_ins || '')}"
                  alt="${esc(r.instansi || r.nama || 'Instansi')}"
                  height="64" width="64"
+                 loading="lazy" decoding="async"
                  onerror="this.style.display='none'">
             <div class="media-body">
               <h4 class="mt-0 mb-1 font-16">${esc(r.instansi || '-')}</h4>
@@ -471,51 +478,91 @@
     }).join('');
   }
 
-  // --- durasi ticker ---
-  function tickDurations(){
-    document.querySelectorAll('#tblVisit .durasi').forEach(el=>{
-      let startMs = parseInt(el.getAttribute('data-startms'), 10);
-      if (isNaN(startMs) || !startMs){
+  // ====== DURASI TICK CEPAT ======
+  let DUR_NODES = [];
+  function cacheDurNodes(){
+    DUR_NODES = Array.from(document.querySelectorAll('#tblVisit .durasi')).map(el=>{
+      let ms = +el.getAttribute('data-startms');
+      if (!Number.isFinite(ms)) {
         const iso = el.getAttribute('data-checkin') || '';
         const parsed = parseDateLoose(iso);
-        if (!isNaN(parsed)) {
-          startMs = parsed;
+        if (Number.isFinite(parsed)) {
+          ms = parsed;
           el.setAttribute('data-startms', String(parsed));
         }
       }
-      el.textContent = startMs ? fmtDurFromMs(startMs) : '-';
+      el._startMs = ms || null;     // cache property
+      el._lastTxt = el.textContent; // untuk banding
+      return el;
     });
   }
+  function fmtDurFromMsFast(nowMs, startMs){
+    let sec = Math.max(0, (nowMs - startMs) / 1000 | 0);
+    const days = (sec / 86400) | 0; sec %= 86400;
+    const h = (sec / 3600) | 0; sec %= 3600;
+    const m = (sec / 60) | 0;
+    const s = (sec % 60) | 0;
+    const p = n => (n<10?'0':'')+n;
+    return (days>0 ? (days+' hari ') : '') + `${p(h)}:${p(m)}:${p(s)}`;
+  }
+  function tickDurationsFast(){
+    const now = Date.now() + (window.serverOffsetMs || 0);
+    for (const el of DUR_NODES){
+      const startMs = el._startMs;
+      const txt = startMs ? fmtDurFromMsFast(now, startMs) : '-';
+      if (txt !== el._lastTxt){
+        el.textContent = txt;
+        el._lastTxt = txt;
+      }
+    }
+  }
 
-  // --- loader utama ---
+  // ====== LOADER UTAMA (anti overlap + skeleton cerdas) ======
+  let loadAbort = null;             // untuk cancel fetch berjalan
+  const SKELETON_DELAY = 80;        // ms: tampilkan skeleton hanya jika >80ms
+  const MIN_SKELETON_MS = 0;        // ms: 0 = paling cepat (tanpa tahan)
+
   async function loadData(){
+    // batalkan request sebelumnya bila masih jalan
+    if (loadAbort) { loadAbort.abort(); }
+    loadAbort = new AbortController();
+
     const params = new URLSearchParams();
     if (state.q) params.set('q', state.q);
     params.set('page', state.page);
     params.set('per_page', state.per_page);
     const url = `<?= site_url('admin_dashboard/monitor_data') ?>?` + params.toString();
 
-    showSkeletonBooked(Math.min(state.per_page, 5));
-    showSkeletonVisit(4);
-
-    elBadge.textContent = 'Memuat...';
-    elBadge.classList.add('blink');
+    let showSkel = true;
+    const skelTimer = setTimeout(()=>{
+      if (!showSkel) return;
+      showSkeletonBooked(Math.min(state.per_page, 5));
+      showSkeletonVisit(4);
+      elBadge.textContent = 'Memuat...';
+      elBadge.classList.add('blink');
+    }, SKELETON_DELAY);
 
     try {
-      window.__req_t0 = performance.now();
-      const res = await fetch(url, { credentials: 'same-origin' });
-      const j   = await res.json();
+      const t0 = performance.now();
+      const res = await fetch(url, {
+        credentials: 'same-origin',
+        signal: loadAbort.signal,
+        cache: 'no-store',
+        keepalive: false
+      });
+      const j = await res.json();
       if (!j || !j.ok) throw new Error('Gagal ambil data');
 
       // sinkron waktu server
       if (j.server_ms != null || j.server_time) {
-        const rttHalf = Math.round((performance.now() - (window.__req_t0 ?? performance.now())) / 2);
-        const baseServerMs = Number.isFinite(Number(j.server_ms))
-          ? Number(j.server_ms)
-          : Date.parse(j.server_time || '');
+        const rttHalf = Math.round((performance.now() - t0) / 2);
+        const baseServerMs = Number.isFinite(+j.server_ms) ? +j.server_ms : Date.parse(j.server_time || '');
         if (Number.isFinite(baseServerMs)) {
           window.serverOffsetMs = (baseServerMs + rttHalf) - Date.now();
-          window.serverTz       = j.server_tz || 'Asia/Makassar';
+          if (j.server_tz && j.server_tz !== window.serverTz) {
+            window.serverTz = j.server_tz;
+            initServerFormatter();
+          }
           startClock();
         }
       }
@@ -523,6 +570,7 @@
       // pagination guard
       if (j.booked_pages > 0 && state.page > j.booked_pages){
         state.page = j.booked_pages;
+        clearTimeout(skelTimer); showSkel = false;
         return loadData();
       }
 
@@ -538,26 +586,46 @@
       btnPrev.disabled = !(nowPage > 1);
       btnNext.disabled = !(lastTotalPages && nowPage < lastTotalPages);
 
-      elBadge.textContent = 'Live';
-      elBadge.classList.remove('blink');
-      tickDurations();
+      // selesai: sembunyikan skeleton secepat mungkin
+      const elapsed = performance.now() - t0;
+      const hold = Math.max(0, MIN_SKELETON_MS - elapsed);
+      setTimeout(()=>{
+        elBadge.textContent = 'Live';
+        elBadge.classList.remove('blink');
+      }, hold);
+
     } catch (e) {
+      if (e.name === 'AbortError') return; // di-cancel → diam
       elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Gagal memuat data.</td></tr>`;
       elVisit.innerHTML  = `<tr><td colspan="5" class="empty text-center py-3">Gagal memuat data.</td></tr>`;
       elBadge.textContent = 'Gagal memuat';
       elBadge.classList.remove('blink');
       console.error(e);
+    } finally {
+      clearTimeout(skelTimer);
+      showSkel = false;
+      cacheDurNodes();       // cache node durasi utk ticker
+      tickDurationsFast();   // render awal durasi
     }
   }
 
-  // --- timers ---
+  // ====== TIMERS (adaptif & hemat) ======
   function startTimers(){
-    if (refreshTimer) clearInterval(refreshTimer);
-    refreshTimer = setInterval(loadData, 20000);
+    // refresh data pakai loop setTimeout agar tak overlap
+    if (refreshTimer) clearTimeout(refreshTimer);
+    const refreshLoop = ()=> {
+      if (document.hidden) { refreshTimer = setTimeout(refreshLoop, 10000); return; }
+      loadData().finally(()=> { refreshTimer = setTimeout(refreshLoop, 20000); });
+    };
+    refreshLoop();
 
+    // ticker detik: pause jika tab hidden
     if (tickerTimer) clearInterval(tickerTimer);
-    tickerTimer = setInterval(tickDurations, 1000);
+    tickerTimer = setInterval(()=>{ if (!document.hidden) tickDurationsFast(); }, 1000);
   }
+  document.addEventListener('visibilitychange', ()=>{
+    if (!document.hidden){ tickDurationsFast(); }
+  });
 
   // --- delegasi klik (satu kali saja) ---
   ['tblBooked','tblVisit'].forEach(id=>{
@@ -577,14 +645,19 @@
     if (url) location.href = url;
   });
 
-  // --- bind UI ---
+  // --- state & bind UI ---
+  const state = {
+    q: '',
+    page: 1,
+    per_page: parseInt(perSel?.value,10) || 15,
+  };
   btnRef?.addEventListener('click', loadData);
   btnSearch?.addEventListener('click', ()=>{ state.q = qInput.value.trim(); state.page = 1; loadData(); });
   qInput?.addEventListener('keydown', (e)=>{ if (e.key==='Enter'){ state.q = qInput.value.trim(); state.page = 1; loadData(); }});
   btnClear?.addEventListener('click', ()=>{ qInput.value=''; state.q=''; state.page=1; loadData(); });
   perSel?.addEventListener('change', ()=>{ state.per_page = parseInt(perSel.value,10)||15; state.page=1; loadData(); });
   btnPrev?.addEventListener('click', ()=>{ if (state.page>1){ state.page--; loadData(); }});
-  btnNext?.addEventListener('click', ()=>{ if ((pageInfo.textContent||'').includes('/')){ state.page++; loadData(); }});
+  btnNext?.addEventListener('click', ()=>{ state.page++; loadData(); });
 
   // fullscreen guard
   if (btnFS && fsEl){
@@ -606,9 +679,12 @@
     });
   }
 
-  // go!
+  // ==== GO ====
   loadData();
+  startClock();
   startTimers();
-})();
 
+  // (opsional) percepat shimmer global:
+  // document.documentElement.style.setProperty('--skel-speed', '.45s');
+})();
 </script>
