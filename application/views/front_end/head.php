@@ -27,6 +27,9 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
 
+  <?php $canon = preg_replace('#^http:#','https:', current_url()); ?>
+  <link rel="canonical" href="<?= htmlspecialchars($canon, ENT_QUOTES, 'UTF-8') ?>">
+
   <!-- ========== PWA / ICONS ========== -->
   <link rel="manifest" href="<?= site_url('developer/manifest') ?>?v=7">
   <link rel="icon" href="<?= base_url('assets/images/favicon.ico') ?>" type="image/x-icon" />

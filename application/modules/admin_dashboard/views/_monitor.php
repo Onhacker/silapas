@@ -213,7 +213,7 @@
           <div class="d-flex justify-content-between align-items-center mt-2">
             <div class="small text-muted" id="pageInfo">Hal. 1/1</div>
             <div>
-              <button class="btn btn-sm btn-outline-secondary" id="btnPrev" disabled>« Sebelumnya</button>
+              <button class="btn btn-sm btn-outline-secondary mr-2" id="btnPrev" disabled>« Sebelumnya</button>
               <button class="btn btn-sm btn-outline-secondary" id="btnNext" disabled>Berikutnya »</button>
             </div>
           </div>
