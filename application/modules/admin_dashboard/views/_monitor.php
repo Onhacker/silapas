@@ -174,7 +174,8 @@
           </div>
 
           <div class="table-responsive">
-            <table class="list-table">
+            <!-- table table-centered table-hover mb-0 -->
+            <table class="list-table table">
               <thead>
                 <tr>
                   <th style="width:26%">Tanggal / Jam</th>
@@ -342,7 +343,13 @@
           <div class="small text-black tgl"><span class="day">${hariID(r.tanggal)}</span>${fmtDateID(r.tanggal)}</div>
         </td>
         <td class="nama">${esc(r.nama)}</td>
-        <td class="asal" style="color:black">${esc(r.instansi || '-')}</td>
+
+        <td class="table-user text-truncate">
+        <img src="${esc(r.logo_ins || '-')}" alt="table-user" class="mr-2 rounded-circle">
+        <a href="javascript:void(0);" class="text-body font-weight-semibold">${esc(r.instansi || '-')}</a>
+        </td>
+
+
         <td class="unit" style="color:black">
           ${esc(r.unit || '-')}
           ${petugas ? `<div class="subline"><i class="mdi mdi-account-badge-outline"></i> ${esc(petugas)}</div>` : ''}

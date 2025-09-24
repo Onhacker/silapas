@@ -212,6 +212,7 @@ public function monitor_data()
             'checkin_at'            => (string)($r['checkin_at'] ?: ''),
             'checkout_at'           => (string)($r['checkout_at'] ?: ''),
             'jumlah_pendamping'     => $pend,
+            'logo_ins'              => kategori_logo_url($r['target_kategori'] ?: ''),
             'nama_petugas_instansi' => $petugas,
             // === diarahkan ke admin_permohonan/detail & boleh klik jika punya akses
             'detail_url'            => $can_permohonan ? site_url('admin_permohonan/detail/'.rawurlencode($r['kode_booking'])) : '',
