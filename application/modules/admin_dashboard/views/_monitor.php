@@ -88,37 +88,7 @@
   .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:ping 1.6s infinite}
   @keyframes ping{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}80%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
   .brand h1{font-size:1rem;margin:0}
-  /*.row-disabled{opacity:.6; cursor:not-allowed;}*/
-
-  /* Shimmer skeleton */
-  :root { --skel-speed: 1.4s; } /* bisa dipercepat via JS: .45s */
-  .skel{
-    border-radius:12px;
-    background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 37%,#f3f4f6 63%);
-    background-size:400% 100%;
-    animation:shimmer var(--skel-speed) ease infinite;
-    height:84px;           /* default tinggi untuk baris booked (card) */
-    margin-bottom:10px;
-  }
-  @keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
-
-  /* Skeleton di dalam tabel → bersih dari border default td */
-  #tblBooked .skel-row td,
-  #tblVisit  .skel-row td{
-    padding:8px 0 !important;
-    background:transparent !important;
-    border:0 !important;
-  }
-
-  /* Card lebih cantik + hover */
-  .card-box{
-    border:1px solid #eef0f3;border-radius:14px;
-    box-shadow:0 4px 14px rgba(0,0,0,.03);
-    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
-  }
-  .row-link .card-box:hover{
-    background:#f8fafc; transform:translateY(-1px);
-  }
+  /* .row-disabled{opacity:.6; cursor:not-allowed;} */
 </style>
 
 <?php $web = $this->om->web_me(); ?>
@@ -274,7 +244,7 @@
   let refreshTimer = null;
   let tickerTimer  = null;
 
-  // ======== FORMATTER WAKTU (di-cache) ========
+  // ======== FORMATTER WAKTU (cache) ========
   window.serverTz = window.serverTz || 'Asia/Makassar';
   let _fmtServer = null, _fmtWeekday = null, _fmtTz = null;
   function initServerFormatter(){
@@ -321,8 +291,6 @@
     const Y=+m[1], M=+m[2]-1, D=+m[3], h=+m[4], i=+m[5], sec=+(m[6]||0);
     return new Date(Y, M, D, h, i, sec).getTime();
   }
-
-  // versi umum (untuk inisialisasi satu kali)
   function fmtDurFromMs(startMs){
     if(!startMs) return '-';
     const now = Date.now() + (window.serverOffsetMs || 0);
@@ -355,36 +323,6 @@
   // --- escape util ---
   function safe(v){ return (v==null ? '' : String(v)); }
   function esc(s){ return safe(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
-
-  // --- SKELETON RENDERERS ---
-  function showSkeletonBooked(n = 5){
-    elBooked.innerHTML = Array.from({length:n}).map(() => `
-      <tr class="skel-row">
-        <td colspan="5" class="p-0">
-          <div class="skel"></div>
-        </td>
-      </tr>
-    `).join('');
-  }
-  function showSkeletonVisit(n = 4){
-    elVisit.innerHTML = Array.from({length:n}).map(() => `
-      <tr class="skel-row">
-        <td style="width:18%"><div class="skel" style="height:18px"></div></td>
-        <td>
-          <div class="skel" style="height:16px;margin-bottom:6px"></div>
-          <div class="skel" style="height:12px;width:60%"></div>
-        </td>
-        <td style="width:28%">
-          <div class="skel" style="height:16px;margin-bottom:6px"></div>
-          <div class="skel" style="height:12px;width:70%"></div>
-        </td>
-        <td style="width:14%"><div class="skel" style="height:18px;width:70%"></div></td>
-        <td style="width:12%;text-align:center">
-          <div class="skel" style="height:24px;width:60px;border-radius:999px;margin:0 auto"></div>
-        </td>
-      </tr>
-    `).join('');
-  }
 
   // --- RENDERERS ---
   function renderBooked(list){
@@ -478,7 +416,7 @@
     }).join('');
   }
 
-  // ====== DURASI TICK CEPAT ======
+  // ====== DURASI TICK ======
   let DUR_NODES = [];
   function cacheDurNodes(){
     DUR_NODES = Array.from(document.querySelectorAll('#tblVisit .durasi')).map(el=>{
@@ -491,8 +429,8 @@
           el.setAttribute('data-startms', String(parsed));
         }
       }
-      el._startMs = ms || null;     // cache property
-      el._lastTxt = el.textContent; // untuk banding
+      el._startMs = ms || null;
+      el._lastTxt = el.textContent;
       return el;
     });
   }
@@ -517,13 +455,23 @@
     }
   }
 
-  // ====== LOADER UTAMA (anti overlap + skeleton cerdas) ======
-  let loadAbort = null;             // untuk cancel fetch berjalan
-  const SKELETON_DELAY = 80;        // ms: tampilkan skeleton hanya jika >80ms
-  const MIN_SKELETON_MS = 0;        // ms: 0 = paling cepat (tanpa tahan)
+  // ====== STATE ======
+  const state = {
+    q: '',
+    page: 1,
+    per_page: parseInt(perSel?.value,10) || 15,
+  };
+
+  // ====== LOADER UTAMA (tanpa skeleton) ======
+  let loadAbort = null;
 
   async function loadData(){
-    // batalkan request sebelumnya bila masih jalan
+    // tampilkan status memuat (tanpa shimmer)
+    elBooked.innerHTML = `<tr><td colspan="5" class="empty text-center py-3">Memuat...</td></tr>`;
+    elVisit.innerHTML  = `<tr><td colspan="5" class="empty text-center py-3">Memuat...</td></tr>`;
+    elBadge.textContent = 'Memuat...';
+    elBadge.classList.add('blink');
+
     if (loadAbort) { loadAbort.abort(); }
     loadAbort = new AbortController();
 
@@ -532,15 +480,6 @@
     params.set('page', state.page);
     params.set('per_page', state.per_page);
     const url = `<?= site_url('admin_dashboard/monitor_data') ?>?` + params.toString();
-
-    let showSkel = true;
-    const skelTimer = setTimeout(()=>{
-      if (!showSkel) return;
-      showSkeletonBooked(Math.min(state.per_page, 5));
-      showSkeletonVisit(4);
-      elBadge.textContent = 'Memuat...';
-      elBadge.classList.add('blink');
-    }, SKELETON_DELAY);
 
     try {
       const t0 = performance.now();
@@ -570,7 +509,6 @@
       // pagination guard
       if (j.booked_pages > 0 && state.page > j.booked_pages){
         state.page = j.booked_pages;
-        clearTimeout(skelTimer); showSkel = false;
         return loadData();
       }
 
@@ -586,13 +524,8 @@
       btnPrev.disabled = !(nowPage > 1);
       btnNext.disabled = !(lastTotalPages && nowPage < lastTotalPages);
 
-      // selesai: sembunyikan skeleton secepat mungkin
-      const elapsed = performance.now() - t0;
-      const hold = Math.max(0, MIN_SKELETON_MS - elapsed);
-      setTimeout(()=>{
-        elBadge.textContent = 'Live';
-        elBadge.classList.remove('blink');
-      }, hold);
+      elBadge.textContent = 'Live';
+      elBadge.classList.remove('blink');
 
     } catch (e) {
       if (e.name === 'AbortError') return; // di-cancel → diam
@@ -602,16 +535,13 @@
       elBadge.classList.remove('blink');
       console.error(e);
     } finally {
-      clearTimeout(skelTimer);
-      showSkel = false;
-      cacheDurNodes();       // cache node durasi utk ticker
-      tickDurationsFast();   // render awal durasi
+      cacheDurNodes();
+      tickDurationsFast();
     }
   }
 
   // ====== TIMERS (adaptif & hemat) ======
   function startTimers(){
-    // refresh data pakai loop setTimeout agar tak overlap
     if (refreshTimer) clearTimeout(refreshTimer);
     const refreshLoop = ()=> {
       if (document.hidden) { refreshTimer = setTimeout(refreshLoop, 10000); return; }
@@ -619,7 +549,6 @@
     };
     refreshLoop();
 
-    // ticker detik: pause jika tab hidden
     if (tickerTimer) clearInterval(tickerTimer);
     tickerTimer = setInterval(()=>{ if (!document.hidden) tickDurationsFast(); }, 1000);
   }
@@ -645,12 +574,7 @@
     if (url) location.href = url;
   });
 
-  // --- state & bind UI ---
-  const state = {
-    q: '',
-    page: 1,
-    per_page: parseInt(perSel?.value,10) || 15,
-  };
+  // --- bind UI ---
   btnRef?.addEventListener('click', loadData);
   btnSearch?.addEventListener('click', ()=>{ state.q = qInput.value.trim(); state.page = 1; loadData(); });
   qInput?.addEventListener('keydown', (e)=>{ if (e.key==='Enter'){ state.q = qInput.value.trim(); state.page = 1; loadData(); }});
@@ -683,8 +607,5 @@
   loadData();
   startClock();
   startTimers();
-
-  // (opsional) percepat shimmer global:
-  // document.documentElement.style.setProperty('--skel-speed', '.45s');
 })();
 </script>
