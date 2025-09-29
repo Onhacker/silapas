@@ -960,7 +960,7 @@ class Booking extends MX_Controller {
         // Kategori asal + instansi
         $this->form_validation->set_rules(
             'kategori','Kategori Asal',
-            'required|in_list[opd,pn,pa,ptun,kejati,kejari,cabjari,bnn,kodim,lainnya]'
+            'required|in_list[opd,pn,pa,ptun,kejati,kejari,cabjari,bnn,kodim,kepolisian,lainnya]'
         );
 
         if ($kat === 'lainnya') {
