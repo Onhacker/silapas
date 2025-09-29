@@ -83,7 +83,7 @@
         <div class="modal-body">
           <form id="form_app" method="post">
             <!-- field hidden PK & jenis -->
-            <input type="hidden" name="jenis" id="form_jenis">
+            <input type="hidden" name="jenis_ref" id="form_jenis">
             <div id="form_fields"><!-- Dinamis lewat JS --></div>
           </form>
         </div>

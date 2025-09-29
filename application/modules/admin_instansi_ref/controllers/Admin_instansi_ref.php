@@ -82,7 +82,8 @@ class Admin_instansi_ref extends Admin_Controller {
     /** Create */
     public function add()
     {
-        $jenis = $this->input->post('jenis', true);
+        // $jenis = $this->input->post('jenis', true);
+        $jenis = strtolower(trim((string)$this->input->post('jenis_ref', true)));
         if (!$this->_is_supported($jenis)) {
             echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Jenis tidak dikenal"]); return;
         }
@@ -106,7 +107,8 @@ class Admin_instansi_ref extends Admin_Controller {
     /** Update */
     public function update()
     {
-        $jenis = $this->input->post('jenis', true);
+        // $jenis = $this->input->post('jenis', true);
+        $jenis = strtolower(trim((string)$this->input->post('jenis_ref', true)));
         if (!$this->_is_supported($jenis)) {
             echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Jenis tidak dikenal"]); return;
         }
