@@ -52,7 +52,7 @@ if (!function_exists('kategori_logo_url')) {
             $label = [
               'opd'=>'OPD Sulawesi Selatan', 'pn'=>'Pengadilan Negeri', 'pa'=>'Pengadilan Agama',
               'ptun'=>'PTUN', 'kejari'=>'Kejaksaan Negeri', 'cabjari'=>'Cabang Kejaksaan Negeri',
-              'bnn'=>'BNN', 'kodim'=>'Kodim', 'kejati'=>'Kejaksaan Tinggi',, 'kepolisian'=>'Kepolisian'
+              'bnn'=>'BNN', 'kodim'=>'Kodim', 'kejati'=>'Kejaksaan Tinggi', 'kepolisian'=>'Kepolisian'
             ];
             return $label[$kat] ?? strtoupper($kat ?: 'LOGO');
           }
