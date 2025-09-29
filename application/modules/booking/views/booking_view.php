@@ -255,7 +255,7 @@
                 <div class="form-group mb-2">
                   <label for="email" class="form-label">Email</label>
                   <input type="email" id="email" name="email" class="form-control"
-                  placeholder="nama@instansi.go.id" required>
+                  placeholder="nama@instansi.go.id">
                   <small class="help-hint">Gunakan email aktif untuk menerima Email konfirmasi.</small>
                 </div>
               </div>
