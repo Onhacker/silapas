@@ -39,6 +39,7 @@ if (!function_exists('kategori_logo_url')) {
               'bnn'    => 'assets/images/logo/bnn.svg',
               'kodim'  => 'assets/images/logo/tni_ad.svg',
               'kejati' => 'assets/images/logo/kejaksaan_ri.svg',
+              'kepolisian' => 'assets/images/logo/kepolisian.png',
             ];
             $path = $map[$kat] ?? 'assets/logo/default.png';
             return base_url($path);
@@ -51,7 +52,7 @@ if (!function_exists('kategori_logo_url')) {
             $label = [
               'opd'=>'OPD Sulawesi Selatan', 'pn'=>'Pengadilan Negeri', 'pa'=>'Pengadilan Agama',
               'ptun'=>'PTUN', 'kejari'=>'Kejaksaan Negeri', 'cabjari'=>'Cabang Kejaksaan Negeri',
-              'bnn'=>'BNN', 'kodim'=>'Kodim', 'kejati'=>'Kejaksaan Tinggi'
+              'bnn'=>'BNN', 'kodim'=>'Kodim', 'kejati'=>'Kejaksaan Tinggi',, 'kepolisian'=>'Kepolisian'
             ];
             return $label[$kat] ?? strtoupper($kat ?: 'LOGO');
           }
