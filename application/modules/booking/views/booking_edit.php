@@ -141,6 +141,7 @@ $this->load->view("front_end/head.php");
                     <option value="cabjari"<?= $kat==='cabjari'?'selected':''; ?>>Cabang Kejaksaan Negeri</option>
                     <option value="bnn"    <?= $kat==='bnn'?'selected':''; ?>>BNN</option>
                     <option value="kodim"  <?= $kat==='kodim'?'selected':''; ?>>Kodim Wil. Kodam XIV/Hasanuddin</option>
+                    <option value="kepolisian"  <?= $kat==='kepolisian'?'selected':''; ?>>Kepolisian</option>
                     <option value="lainnya"<?= $kat==='lainnya'?'selected':''; ?>>Lainnya</option>
                   </select>
                   <small class="help-hint">Jika tidak ada di daftar, pilih <b>Lainnya</b>.</small>
