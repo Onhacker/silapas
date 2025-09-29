@@ -936,7 +936,7 @@ class Booking extends MX_Controller {
         $this->form_validation->set_rules('tempat_lahir','Tempat Lahir','required|trim');
         $this->form_validation->set_rules('alamat','Alamat','required|trim');
         $this->form_validation->set_rules('tanggal_lahir','Tanggal Lahir','required|trim');
-        $this->form_validation->set_rules('email','Email','required|trim|valid_email');
+        // $this->form_validation->set_rules('email','Email','required|trim|valid_email');
 
 
         // NIK 16 | NIP 18/9 | NRP 8–9 digit

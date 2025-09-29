@@ -923,9 +923,9 @@ window.killMasks = function () {
   const idMessage = (el) => {
     const v = el.validity;
     if (v.valueMissing)   return 'Wajib diisi';
-    if (v.typeMismatch)   return (el.type==='email') ? 'Format email tidak valid'
-                           : (el.type==='url') ? 'URL tidak valid'
-                           : 'Format tidak valid';
+    // if (v.typeMismatch)   return (el.type==='email') ? 'Format email tidak valid'
+    //                        : (el.type==='url') ? 'URL tidak valid'
+    //                        : 'Format tidak valid';
     if (v.patternMismatch)return el.title || 'Format tidak sesuai';
     if (v.tooShort)       return `Minimal ${el.minLength} karakter`;
     if (v.tooLong)        return `Maksimal ${el.maxLength} karakter`;
