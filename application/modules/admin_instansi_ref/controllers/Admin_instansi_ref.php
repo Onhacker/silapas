@@ -238,6 +238,7 @@ class Admin_instansi_ref extends Admin_Controller {
             case 'pa':
             case 'ptun':
             case 'kejari':
+            case 'kepolisian':
             case 'kejati':
                 if (!isset($data['provinsi']) || $data['provinsi']==='') $data['provinsi']  = 'Sulawesi Selatan';
                 break;

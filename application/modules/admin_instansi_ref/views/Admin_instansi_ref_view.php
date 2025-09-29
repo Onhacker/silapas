@@ -35,6 +35,7 @@
             <option value="bnn">BNN Kab/Kota</option>
             <option value="kodim">Kodim Sulawesi</option>
             <option value="kejati">Kejaksaan Tinggi</option>
+            <option value="kepolisian">Kepolisian</option>
           </select>
         </div>
 

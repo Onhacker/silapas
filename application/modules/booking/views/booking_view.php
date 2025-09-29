@@ -115,6 +115,7 @@
                     <option value="cabjari">Cabang Kejaksaan Negeri</option>
                     <option value="bnn">BNN</option>
                     <option value="kodim">Kodim Wil. Kodam XIV/Hasanuddin</option>
+                    <option value="kepolisian">Kepolisian</option>
                     <option value="lainnya">Lainnya</option>
                   </select>
                   <small class="help-hint">Jika tidak ada di daftar, pilih <b>Lainnya</b>.</small>

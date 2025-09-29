@@ -1252,6 +1252,7 @@ class Booking extends MX_Controller {
             'bnn'    => ['table'=>'bnn_sulsel',               'id'=>'id_bnn',    'text'=>'nama_unit'],
             'kodim'  => ['table'=>'kodim_sulawesi',           'id'=>'id_kodim',  'text'=>'label'],
             'kejati' => ['table'=>'kejaksaan_tinggi_sulsel',  'id'=>'id_kejati', 'text'=>'nama_kejati'],
+            'kepolisian' => ['table'=>'kepolisian',  'id'=>'id_kepolisian', 'text'=>'nama_kepolisian'],
         ];
     }
 
@@ -1613,6 +1614,7 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
             'bnn'    => ['table'=>'bnn_sulsel',               'id'=>'id_bnn',    'text'=>'nama_unit',                        'search'=>['nama_unit','kabkota']],
             'kodim'  => ['table'=>'kodim_sulawesi',           'id'=>'id_kodim',  'text'=>'label',                            'search'=>['label','wilayah','provinsi']],
             'kejati' => ['table'=>'kejaksaan_tinggi_sulsel',  'id'=>'id_kejati', 'text'=>'nama_kejati',                      'search'=>['nama_kejati']],
+            'kepolisian' => ['table'=>'kepolisian',  'id'=>'id_kepolisian', 'text'=>'nama_kepolisian',                      'search'=>['nama_kepolisian']],
         ];
 
         if (!$jenis || !isset($map[$jenis])) {

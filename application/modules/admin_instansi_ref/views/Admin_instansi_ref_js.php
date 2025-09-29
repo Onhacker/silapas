@@ -194,7 +194,26 @@ const CFG = {
         <label class="form-check-label" for="aktif">Aktif</label></div>
       <input type="hidden" name="id_kejati" id="pk">
     `
-  }
+  },
+   kepolisian: {
+    title: 'Kepolisian',
+    pk: 'id_kepolisian',
+    cols: [
+      {data:'nama_kepolisian', title:'Nama kepolisian'},
+      {data:'kabkota', title:'Kab/Kota'},
+      {data:'provinsi', title:'Provinsi'},
+      {data:'aktif', title:'Aktif', className:'text-center', width:'8%'},
+      {data:'aksi', title:'Aksi', orderable:false, width:'8%'}
+    ],
+    form: `
+      <div class="form-group"><label>Nama kepolisian</label><input name="nama_kepolisian" class="form-control" required></div>
+      <div class="form-group"><label>Kab/Kota</label><input name="kabkota" class="form-control" required></div>
+      <div class="form-group"><label>Provinsi</label><input name="provinsi" class="form-control" value="Sulawesi Selatan" required></div>
+      <div class="form-check mt-2"><input type="checkbox" class="form-check-input" id="aktif" name="aktif" checked>
+        <label class="form-check-label" for="aktif">Aktif</label></div>
+      <input type="hidden" name="id_kepolisian" id="pk">
+    `
+  },
 };
 
 function loader(on=true){

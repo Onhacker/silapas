@@ -85,6 +85,19 @@ class M_admin_instansi_ref extends CI_Model {
                 ],
                 'search'=>['nama_kejari','kabkota','provinsi']
             ],
+            'kepolisian' => [
+                'table'=>'kepolisian','pk'=>'id_kepolisian',
+                'view_cols'=>['nama_kepolisian','kabkota','provinsi','aktif'],
+                'fillable'=>['nama_kepolisian','kabkota','provinsi','aktif'],
+                'labels'=>['nama_kepolisian'=>'Nama kepolisian','kabkota'=>'Kab/Kota','provinsi'=>'Provinsi','aktif'=>'Aktif'],
+                'rules'=>[
+                    'nama_kepolisian'=>'trim|required|max_length[255]',
+                    'kabkota'=>'trim|required|max_length[120]',
+                    'provinsi'=>'trim|required|max_length[120]',
+                    'aktif'=>''
+                ],
+                'search'=>['nama_kepolisian','kabkota','provinsi']
+            ],
             'cabjari' => [
                 'table'=>'kejari_cabang_sulsel','pk'=>'id_cabjari',
                 'view_cols'=>['id_kejari','nama_cabang','lokasi','kabkota','provinsi','aktif'],
