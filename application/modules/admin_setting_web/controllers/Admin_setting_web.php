@@ -26,7 +26,7 @@ public function update()
     $this->form_validation->set_rules('nama_website','Nama Website','trim|required');
     $this->form_validation->set_rules('email','Email','trim|required|valid_email');
     $this->form_validation->set_rules('url','URL Aplikasi','trim|required|valid_url');
-    $this->form_validation->set_rules('no_telp','No. HP/WhatsApp','trim|required|regex_match[/^\+?\d{10,15}$/]');
+    $this->form_validation->set_rules('no_telp','No. HP/WhatsApp','trim|regex_match[/^\+?\d{10,15}$/]');
     $this->form_validation->set_rules('waktu','Zona Waktu','trim|required|in_list[Asia/Jakarta,Asia/Makassar,Asia/Jayapura]');
     $this->form_validation->set_rules('min_lead_minutes','Minimal Jeda Booking (menit)','trim|integer|greater_than_equal_to[0]|less_than_equal_to[1440]');
     $this->form_validation->set_rules('early_min','Batas Datang Lebih Awal','trim|integer|greater_than_equal_to[0]|less_than_equal_to[1440]');
