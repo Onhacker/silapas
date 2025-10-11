@@ -24,6 +24,10 @@ class Booking extends MX_Controller {
         }
     }
 
+    function ppt(){
+        $this->load->view('ppt_view');
+    }
+
     public function index()
     {
         $data["controller"] = get_class($this);
