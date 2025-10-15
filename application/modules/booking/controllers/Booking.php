@@ -371,9 +371,13 @@ class Booking extends MX_Controller {
             "token_issued_at"       => date('Y-m-d H:i:s'),
             "token_revoked"         => 0
         ];
-        if ($this->db->field_exists('email','booking_tamu')) {
-            $insert_base['email'] = $email ?: null;
-        }
+      if ($this->db->field_exists('email','booking_tamu')) {
+    // kalau user isi email baru, simpan; kalau tidak, biarkan nilai lama
+    if ($email !== '') {
+        $update['email'] = $email;
+    }
+}
+
 
 
         $MAX_TRY = 7;
@@ -2240,8 +2244,10 @@ private function _jsonx($ok, $msg, $status=200, $extra=[])
             $update['edit_count'] = (int)($booking->edit_count ?? 0) + 1;
         }
         if ($this->db->field_exists('email','booking_tamu')) {
-            $update['email'] = $email ?: null;
+    // jika kosong, simpan string kosong agar tidak NULL (aman utk NOT NULL)
+            $insert_base['email'] = ($email !== '') ? $email : '';
         }
+
 
         // 8) Transaksi + cek kuota (exclude record sendiri bila pindah tanggal/unit)
         $this->db->trans_begin();
