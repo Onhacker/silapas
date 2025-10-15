@@ -355,7 +355,8 @@
                 <div class="form-group mb-2">
                   <label for="jam" class="form-label label-required">Jam Kunjungan</label>
                   <!-- <input type="time" id="jam" name="jam" class="form-control" disabled required> -->
-                  <input type="time" id="jam" name="jam" class="form-control" step="300" disabled required>
+                  <!-- <input type="time" id="jam" name="jam" class="form-control" step="300" disabled required> -->
+                  <input type="time" id="jam" name="jam" step="any" required>
 
                   <small id="jam-info" class="form-text text-danger"></small>
                 </div>
@@ -931,7 +932,7 @@ window.killMasks = function () {
     if (v.tooLong)        return `Maksimal ${el.maxLength} karakter`;
     if (v.rangeUnderflow) return `Minimal ${el.min}`;
     if (v.rangeOverflow)  return `Maksimal ${el.max}`;
-    if (v.stepMismatch)   return 'Nilai tidak sesuai kelipatan. Gunakan kelipatan 5 (contoh 10:05)';
+    // if (v.stepMismatch)   return 'Nilai tidak sesuai kelipatan. Gunakan kelipatan 5 (contoh 10:05)';
     if (v.badInput)       return 'Nilai tidak valid';
     if (v.customError)    return el.validationMessage || 'Tidak valid';
     return 'Tidak valid';
