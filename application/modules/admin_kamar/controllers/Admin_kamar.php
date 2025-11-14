@@ -171,7 +171,13 @@ class Admin_kamar extends Admin_Controller {
             echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>validation_errors()]);
             return;
         }
+        $token = $this->_generate_unique_token();
 
+        // URL scan kamar pakai token → susah dihafal
+        $scan_url = site_url('tracking/index/'.$token);
+
+        // generate QR
+        $qr_url = $this->_make_qr($scan_url, true);
         $row = $this->dm->get_by_id($id);
         if (!$row) {
             echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data tidak ditemukan"]);
