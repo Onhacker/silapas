@@ -179,9 +179,9 @@ class Admin_kamar extends Admin_Controller {
     }
 
     // ========== TEST-QR: regen token + QR setiap UPDATE (hapus blok ini kalau sudah tidak perlu) ==========
-    $token    = $this->_generate_unique_token();
-    $scan_url = site_url('tracking/index/'.$token);
-    $qr_url   = $this->_make_qr($scan_url, true);
+    // $token    = $this->_generate_unique_token();
+    // $scan_url = site_url('tracking/index/'.$token);
+    // $qr_url   = $this->_make_qr($scan_url, true);
     // ========== END TEST-QR ==========================================================================
 
     $upd = [
@@ -192,13 +192,13 @@ class Admin_kamar extends Admin_Controller {
         'keterangan' => $data['keterangan'] ?? null,
 
         // ========== TEST-QR: simpan token & QR baru ==========
-        'qr_token'   => $token,
-        'qr_url'     => $qr_url,
+        // 'qr_token'   => $token,
+        // 'qr_url'     => $qr_url,
         // ========== END TEST-QR ==============================
 
         // kalau nanti blok TEST-QR dihapus, ini bisa balik ke:
-        // 'qr_token' => $row->qr_token,
-        // 'qr_url'   => $row->qr_url,
+        'qr_token' => $row->qr_token,
+        'qr_url'   => $row->qr_url,
 
         'status'     => $data['status'] ?? $row->status,
         'updated_at' => date('Y-m-d H:i:s'),
@@ -216,7 +216,7 @@ class Admin_kamar extends Admin_Controller {
     /** Delete (bulk) */
     public function hapus_data()
     {
-        $ids = $this->input->post('id');
+        $ids = $this->input->post('id_kamar');
         if (!is_array($ids) || count($ids) === 0) {
             echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Tidak ada data"]);
             return;
