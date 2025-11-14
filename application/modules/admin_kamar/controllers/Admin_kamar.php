@@ -227,7 +227,7 @@ class Admin_kamar extends Admin_Controller {
 
         $data['row']    = $row;
         $data['qr_url'] = $row->qr_url;
-        $this->load->view('admin_kamar_qr_print', $data);
+        $this->load->view('Admin_kamar_qr_print', $data);
     }
 
     /** Generate token unik */
