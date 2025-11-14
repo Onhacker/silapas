@@ -233,8 +233,7 @@ function hapus_data(){
       url: "<?= site_url(strtolower($controller).'/hapus_data'); ?>",
       type: "POST",
       dataType: "json",
-      data: {id: ids},
-      traditional: true,
+      data: { id: ids }, // jQuery (tanpa traditional) => id[]=1&id[]=2
       success: function(res){
         if(res.success){
           swalToast('success','Berhasil',res.pesan || 'Data terhapus');
@@ -249,4 +248,5 @@ function hapus_data(){
     });
   });
 }
+
 </script>

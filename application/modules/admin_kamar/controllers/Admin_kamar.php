@@ -215,24 +215,62 @@ class Admin_kamar extends Admin_Controller {
 
     /** Delete (bulk) */
     public function hapus_data()
-    {
-        $ids = $this->input->post('id_kamar');
-        if (!is_array($ids) || count($ids) === 0) {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Tidak ada data"]);
-            return;
-        }
+{
+    $ids = $this->input->post('id'); // bisa array atau single
 
-        $ok = true;
-        foreach ($ids as $id) {
-            $id = (int)$id;
-            if ($id <= 0) continue;
-            $this->db->where('id_kamar',$id);
-            $ok = $ok && $this->db->delete('kamar');
-        }
-
-        if ($ok) echo json_encode(["success"=>true,"title"=>"Berhasil","pesan"=>"Data berhasil dihapus"]);
-        else     echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Sebagian data gagal dihapus"]);
+    if (!$ids) {
+        echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Tidak ada data dikirim"]);
+        return;
     }
+
+    // kalau single value (string/int), jadikan array
+    if (!is_array($ids)) {
+        $ids = [$ids];
+    }
+
+    // casting ke integer + filter yang valid
+    $idInts = [];
+    foreach ($ids as $id) {
+        $id = (int)$id;
+        if ($id > 0) $idInts[] = $id;
+    }
+
+    if (!$idInts) {
+        echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Tidak ada data valid"]);
+        return;
+    }
+
+    // hapus sekaligus pakai where_in
+    $this->db->where_in('id_kamar', $idInts);
+    $ok  = $this->db->delete('kamar');
+    $err = $this->db->error();
+    $aff = $this->db->affected_rows();
+
+    if ($err['code'] != 0) {
+        echo json_encode([
+            "success"=>false,
+            "title"=>"Gagal",
+            "pesan"=>"Query delete gagal. Kode: {$err['code']} - {$err['message']}"
+        ]);
+        return;
+    }
+
+    if (!$ok || $aff === 0) {
+        echo json_encode([
+            "success"=>false,
+            "title"=>"Gagal",
+            "pesan"=>"Tidak ada data yang dihapus"
+        ]);
+        return;
+    }
+
+    echo json_encode([
+        "success"=>true,
+        "title"=>"Berhasil",
+        "pesan"=>"Data berhasil dihapus ($aff baris)"
+    ]);
+}
+
 
     /** Cetak QR poster */
     public function cetak_qr($id)
