@@ -190,6 +190,8 @@ class Admin_kamar extends Admin_Controller {
             'lantai'     => $data['lantai'] ?? null,
             'kapasitas'  => (int)$data['kapasitas'],
             'keterangan' => $data['keterangan'] ?? null,
+            'qr_token'   => $token,
+            
             'status'     => $data['status'] ?? $row->status,
             'updated_at' => date('Y-m-d H:i:s'),
         ];
