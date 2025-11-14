@@ -283,44 +283,85 @@ class Admin_kamar_detail extends Admin_Controller {
         }
     }
 
-    public function hapus_data()
-    {
-        $ids = $this->input->post('id');
-        if (!is_array($ids) || count($ids) === 0) {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Tidak ada data"]);
-            return;
-        }
+   public function hapus_data()
+{
+    // terima baik "id" maupun "id_detail" dari client (jaga-jaga)
+    $ids = $this->input->post('id');
+    if (!$ids) {
+        $ids = $this->input->post('id_detail');
+    }
 
-        // casting ke integer
-        $idInts = [];
-        foreach ($ids as $i) {
-            $i = (int)$i;
-            if ($i > 0) $idInts[] = $i;
-        }
-        if (!$idInts) {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Tidak ada data valid"]);
-            return;
-        }
+    // pastikan array
+    if (!$ids) {
+        echo json_encode([
+            "success" => false,
+            "title"   => "Gagal",
+            "pesan"   => "Tidak ada ID yang dikirim dari client"
+        ]);
+        return;
+    }
 
-        // ambil dulu foto-fotonya
-        $rows = $this->db->select('id_detail,foto')
-                         ->from('kamar_tahanan')
-                         ->where_in('id_detail',$idInts)
-                         ->get()->result();
+    if (!is_array($ids)) {
+        $ids = [$ids];
+    }
 
-        $this->db->where_in('id_detail',$idInts);
-        $ok = $this->db->delete('kamar_tahanan');
+    // casting ke integer & buang yang 0
+    $idInts = array_values(array_unique(array_filter(array_map('intval', $ids))));
+    if (!$idInts) {
+        echo json_encode([
+            "success" => false,
+            "title"   => "Gagal",
+            "pesan"   => "Tidak ada data valid"
+        ]);
+        return;
+    }
 
-        if ($ok) {
-            // hapus file foto
-            foreach ($rows as $r) {
-                if (!empty($r->foto) && is_file($this->upload_path.$r->foto)) {
-                    @unlink($this->upload_path.$r->foto);
-                }
-            }
-            echo json_encode(["success"=>true,"title"=>"Berhasil","pesan"=>"Data berhasil dihapus"]);
-        } else {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Sebagian data gagal dihapus"]);
+    // ambil dulu foto-fotonya
+    $rows = $this->db->select('id_detail,foto')
+                     ->from('kamar_tahanan')
+                     ->where_in('id_detail', $idInts)
+                     ->get()
+                     ->result();
+
+    // hapus data
+    $this->db->where_in('id_detail', $idInts);
+    $ok  = $this->db->delete('kamar_tahanan');
+    $err = $this->db->error();
+    $aff = $this->db->affected_rows();
+
+    if ($err['code'] != 0) {
+        // ada error query (misal karena constraint FK)
+        log_message('error', 'Gagal hapus kamar_tahanan: '.print_r($err, true));
+        echo json_encode([
+            "success" => false,
+            "title"   => "Gagal",
+            "pesan"   => "Query delete gagal. Kode: {$err['code']} - {$err['message']}"
+        ]);
+        return;
+    }
+
+    if (!$ok || $aff === 0) {
+        // query sukses tapi tidak ada baris terkena
+        echo json_encode([
+            "success" => false,
+            "title"   => "Gagal",
+            "pesan"   => "Tidak ada data yang dihapus. Cek lagi ID yang dikirim ke server."
+        ]);
+        return;
+    }
+
+    // hapus file foto
+    foreach ($rows as $r) {
+        if (!empty($r->foto) && is_file($this->upload_path.$r->foto)) {
+            @unlink($this->upload_path.$r->foto);
         }
     }
+
+    echo json_encode([
+        "success" => true,
+        "title"   => "Berhasil",
+        "pesan"   => "Data berhasil dihapus ($aff baris)"
+    ]);
+}
+
 }
