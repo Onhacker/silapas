@@ -42,7 +42,6 @@
   <link href="<?= base_url('assets/admin/css/icons.min.css'); ?>" rel="stylesheet" />
   <link href="<?= base_url('assets/admin/css/app.min.css'); ?>" rel="stylesheet" />
   <link href="<?= base_url('assets/admin/libs/animate/animate.min.css'); ?>" rel="stylesheet" />
-  <!-- <link href="<?= base_url('assets/min/kamar.min.css'); ?>" rel="stylesheet" /> -->
 
 </head>
 
