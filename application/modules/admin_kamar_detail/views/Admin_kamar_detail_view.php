@@ -384,38 +384,47 @@ function simpan() {
 }
 
 /* Hapus data terpilih */
-function hapus_data(){
-  var id = [];
-  $('.data-check:checked').each(function(){
-    id.push($(this).val());
+function hapus_data() {
+  const ids = [];
+  $('.data-check:checked').each(function () {
+    ids.push($(this).val());
   });
 
-  if (!id.length){
-    Swal.fire('Info', 'Tidak ada data yang dipilih', 'info');
+  if (ids.length === 0) {
+    swalWarn('Tidak ada data dipilih');
     return;
   }
 
-  $.ajax({
-    url  : "<?= site_url('admin_kamar_detail/hapus_data'); ?>",
-    type : "POST",
-    dataType: "json",
-    data : {
-      id: id // <-- WAJIB "id", sama dengan input->post('id')
-      // kalau pakai CSRF:
-      // '<?= $this->security->get_csrf_token_name(); ?>' : '<?= $this->security->get_csrf_hash(); ?>'
-    },
-    success: function(r){
-      Swal.fire(r.title, r.pesan, r.success ? 'success' : 'error');
-      if (r.success) {
-        table.ajax.reload(null, false); // reload DataTables
+  Swal.fire({
+    title: 'Hapus data tahanan terpilih?',
+    text: 'Tindakan ini tidak bisa dibatalkan.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, hapus',
+    cancelButtonText: 'Batal'
+  }).then(function (result) {
+    if (!result.isConfirmed) return;
+
+    $.ajax({
+      url: "<?= site_url('admin_kamar_detail/hapus_data'); ?>",
+      type: "POST",
+      dataType: "json",
+      data: { id: ids },
+      traditional: true,
+      success: function (res) {
+        if (res.success) {
+          swalToast('success', 'Berhasil', res.pesan || 'Data terhapus');
+          refresh();
+        } else {
+          swalErr(res.pesan || 'Gagal menghapus');
+        }
+      },
+      error: function () {
+        swalErr('Terjadi kesalahan koneksi');
       }
-    },
-    error: function(){
-      Swal.fire('Error', 'Gagal menghubungi server', 'error');
-    }
+    });
   });
 }
-
 function kembali(){
   window.location.href = "<?= site_url('admin_kamar'); ?>";
 }

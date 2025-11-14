@@ -150,60 +150,68 @@ class Admin_kamar extends Admin_Controller {
     }
 
     /** Update kamar (QR & token tidak diubah) */
-    public function update()
-    {
-        $data = $this->input->post(NULL, TRUE);
-        $id   = (int)($data['id_kamar'] ?? 0);
+   public function update()
+{
+    $data = $this->input->post(NULL, TRUE);
+    $id   = (int)($data['id_kamar'] ?? 0);
 
-        $this->load->library('form_validation');
-        $this->form_validation->set_rules('id_kamar','ID','required|integer');
-        $this->form_validation->set_rules('nama','Nama Kamar','trim|required|min_length[3]|max_length[100]');
-        $this->form_validation->set_rules('blok','Blok','trim|max_length[50]');
-        $this->form_validation->set_rules('lantai','Lantai','trim|max_length[20]');
-        $this->form_validation->set_rules('kapasitas','Kapasitas','trim|required|integer');
-        $this->form_validation->set_rules('keterangan','Keterangan','trim|max_length[500]');
-        $this->form_validation->set_rules('status','Status','trim|required');
+    $this->load->library('form_validation');
+    $this->form_validation->set_rules('id_kamar','ID','required|integer');
+    $this->form_validation->set_rules('nama','Nama Kamar','trim|required|min_length[3]|max_length[100]');
+    $this->form_validation->set_rules('blok','Blok','trim|max_length[50]');
+    $this->form_validation->set_rules('lantai','Lantai','trim|max_length[20]');
+    $this->form_validation->set_rules('kapasitas','Kapasitas','trim|required|integer');
+    $this->form_validation->set_rules('keterangan','Keterangan','trim|max_length[500]');
+    $this->form_validation->set_rules('status','Status','trim|required');
 
-        $this->form_validation->set_message('required','* %s harus diisi');
-        $this->form_validation->set_error_delimiters('<br> ',' ');
+    $this->form_validation->set_message('required','* %s harus diisi');
+    $this->form_validation->set_error_delimiters('<br> ',' ');
 
-        if ($this->form_validation->run() !== TRUE) {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>validation_errors()]);
-            return;
-        }
-        $token = $this->_generate_unique_token();
-
-        // URL scan kamar pakai token → susah dihafal
-        $scan_url = site_url('tracking/index/'.$token);
-
-        // generate QR
-        $qr_url = $this->_make_qr($scan_url, true);
-        $row = $this->dm->get_by_id($id);
-        if (!$row) {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data tidak ditemukan"]);
-            return;
-        }
-
-        $upd = [
-            'nama'       => $data['nama'],
-            'blok'       => $data['blok'] ?? null,
-            'lantai'     => $data['lantai'] ?? null,
-            'kapasitas'  => (int)$data['kapasitas'],
-            'keterangan' => $data['keterangan'] ?? null,
-            'qr_token'   => $token,
-            
-            'status'     => $data['status'] ?? $row->status,
-            'updated_at' => date('Y-m-d H:i:s'),
-        ];
-
-        $res = $this->db->where('id_kamar',$id)->update('kamar',$upd);
-
-        if ($res) {
-            echo json_encode(["success"=>true,"title"=>"Berhasil","pesan"=>"Data berhasil diupdate"]);
-        } else {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data gagal diupdate"]);
-        }
+    if ($this->form_validation->run() !== TRUE) {
+        echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>validation_errors()]);
+        return;
     }
+
+    $row = $this->dm->get_by_id($id);
+    if (!$row) {
+        echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data tidak ditemukan"]);
+        return;
+    }
+
+    // ========== TEST-QR: regen token + QR setiap UPDATE (hapus blok ini kalau sudah tidak perlu) ==========
+    $token    = $this->_generate_unique_token();
+    $scan_url = site_url('tracking/index/'.$token);
+    $qr_url   = $this->_make_qr($scan_url, true);
+    // ========== END TEST-QR ==========================================================================
+
+    $upd = [
+        'nama'       => $data['nama'],
+        'blok'       => $data['blok'] ?? null,
+        'lantai'     => $data['lantai'] ?? null,
+        'kapasitas'  => (int)$data['kapasitas'],
+        'keterangan' => $data['keterangan'] ?? null,
+
+        // ========== TEST-QR: simpan token & QR baru ==========
+        'qr_token'   => $token,
+        'qr_url'     => $qr_url,
+        // ========== END TEST-QR ==============================
+
+        // kalau nanti blok TEST-QR dihapus, ini bisa balik ke:
+        // 'qr_token' => $row->qr_token,
+        // 'qr_url'   => $row->qr_url,
+
+        'status'     => $data['status'] ?? $row->status,
+        'updated_at' => date('Y-m-d H:i:s'),
+    ];
+
+    $res = $this->db->where('id_kamar',$id)->update('kamar',$upd);
+
+    if ($res) {
+        echo json_encode(["success"=>true,"title"=>"Berhasil","pesan"=>"Data berhasil diupdate"]);
+    } else {
+        echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data gagal diupdate"]);
+    }
+}
 
     /** Delete (bulk) */
     public function hapus_data()
