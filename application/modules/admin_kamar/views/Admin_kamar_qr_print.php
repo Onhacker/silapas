@@ -10,7 +10,10 @@
     --poster:#0f4c81;   /* biru tua / navy */
     --pad:#a6d8ff;      /* biru muda */
     --ink:#06233f;      /* tinta biru gelap */
-    --size:500px;
+
+    /* lebar dasar poster: 10.5 cm (tinggi kita hitung proporsional) */
+    --size:10.5cm;
+
     --radius-outer:20px; --radius-inner:14px;
     --stroke:6px; --marker:56px; --qr-pad:10px;
   }
@@ -27,7 +30,8 @@
 
   .poster{
     width:var(--size);
-    aspect-ratio:1/1;
+    /* tinggi = 16.5 / 10.5 ≈ 1.5714 × lebar -> potrait 10.5 x 16.5 cm */
+    height:calc(var(--size) * 1.5714);
     margin:12px auto;
     background:var(--poster);
     border-radius:12px;
@@ -159,15 +163,29 @@
   @media print{
     .no-print{display:none}
     body{margin:0; background:#fff;} /* saat print pakai putih */
-    .poster{margin:0}
-    @page{margin:0}
+
+    /* paksa ukuran kertas & poster 10.5 x 16.5 cm potrait */
+    @page{
+      size:10.5cm 16.5cm;
+      margin:0;
+    }
+    .poster{
+      margin:0 auto;
+      width:10.5cm;
+      height:16.5cm;
+    }
   }
 
   @media (max-width:760px){
+    /* di HP pakai lebar layar, tapi tetap proporsi 10.5 : 16.5 */
     :root{
       --size:92vw;
       --marker:clamp(34px,10vw,56px);
       --qr-pad:clamp(8px,2.4vw,10px)
+    }
+    .poster{
+      width:var(--size);
+      height:calc(var(--size) * 1.5714);
     }
   }
 
@@ -196,15 +214,37 @@
   #btnDownload:active{
     transform:scale(.98);
   }
+ .title h1{
+  margin:0;
+  padding:.2rem 1.1rem .3rem;
+  display:inline-block;
+  text-transform:uppercase;
+  font-weight:900;
+  font-size:clamp(16px,3vw,24px); /* <<< diperkecil */
+  letter-spacing:.12em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:#ffffff;
+  text-shadow:0 2px 4px rgba(0,0,0,.55);
+  border-radius:999px;
+  background:linear-gradient(135deg,
+      rgba(255,255,255,.16),
+      rgba(255,255,255,.03)
+  );
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow:0 4px 16px rgba(0,0,0,.35);
+}
+
+
 </style>
 </head>
 <body>
-
 <div class="poster" id="poster" role="img" aria-label="QR Kamar Tahanan - Scan untuk lihat data">
   <div class="title">
     <h1><?= html_escape(strtoupper($row->nama)) ?></h1>
     <p>SCAN UNTUK DATA KAMAR</p>
-    <span class="subtitle">Menampilkan informasi kamar &amp; daftar WBP</span>
+    <span class="subtitle">Menampilkan informasi &amp; daftar Penghuni WBP</span>
   </div>
 
   <div class="stack">

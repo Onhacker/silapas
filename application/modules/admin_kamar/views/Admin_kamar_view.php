@@ -39,7 +39,7 @@
                 </div>
               </th>
               <th width="5%">No.</th>
-              <th>Kamar / Blok</th>
+              <th>Kamar</th>
               <th width="8%">Kapasitas</th>
               <th width="8%">Terisi</th>
               <th width="8%">Status</th>
@@ -68,11 +68,11 @@
               <label class="text-primary">Nama Kamar</label>
               <input type="text" class="form-control" name="nama" id="nama" autocomplete="off" required placeholder="mis: Kamar G 1 Blok 2">
             </div>
-
+<!-- 
             <div class="form-group mb-2">
               <label>Blok</label>
               <input type="text" class="form-control" name="blok" id="blok" autocomplete="off" placeholder="mis: Blok 2">
-            </div>
+            </div> -->
 
             <div class="form-group mb-2">
               <label>Lantai</label>

@@ -42,10 +42,7 @@
   <link href="<?= base_url('assets/admin/css/icons.min.css'); ?>" rel="stylesheet" />
   <link href="<?= base_url('assets/admin/css/app.min.css'); ?>" rel="stylesheet" />
   <link href="<?= base_url('assets/admin/libs/animate/animate.min.css'); ?>" rel="stylesheet" />
-  <link href="<?= base_url('assets/min/kamar.min.css'); ?>" rel="stylesheet" />
-
-  <!-- ========== CSS KUSTOM (DIKELOMPOKKAN) ========== -->
-
+  <!-- <link href="<?= base_url('assets/min/kamar.min.css'); ?>" rel="stylesheet" /> -->
 
 </head>
 
@@ -59,20 +56,17 @@
 
         <!-- KIRI: Judul -->
         <div class="topbar-title-group">
-         <!--  <span class="topbar-label">
-            Kamar Tahanan
-          </span> -->
           <h4 class="mb-0">
             <span class="topbar-title-text">
-              <?= 'Kamar '.html_escape($kamar->nama); ?>
+              <?= html_escape($kamar->nama); ?>
             </span>
           </h4>
           <span class="topbar-subtitle d-md-none">
-            Data WBP <?php echo $rec->type ?>
+            Data Penghuni WBP <?php echo $rec->type ?>
           </span>
         </div>
 
-        <!-- KANAN: Badge kecil / info QR (optional) -->
+        <!-- KANAN: Badge kecil / info QR -->
         <ul class="list-unstyled topnav-menu mb-0" id="topnav-right">
           <li class="d-none d-md-inline-block">
             <span class="topbar-badge">
@@ -93,12 +87,741 @@
 
 
 <style type="text/css">
-#app-scroll {
-  height: 100%;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  #app-scroll {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+.logo-desktop img,
+.logo-smx img {
+    width: auto;
+    background: rgba(255, 255, 255, 0.08);
 }
+.logo-desktop code,
+.logo-desktop img,
+.logo-smx img {
+    background: rgba(255, 255, 255, 0.08);
+}
+#topnav .navbar-custom {
+    background: rgba(8, 25, 55, 0.45) !important;
+    backdrop-filter: saturate(150%) blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.logo-desktop img {
+    height: 50px;
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.logo-desktop .kepala {
+    line-height: 1.1;
+}
+.header-title2 {
+    display: inline-block;
+    margin: 0;
+    color: #fff;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.kamar-chip,
+.kamar-stat-label {
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.header-title2::after {
+    content: "";
+    display: block;
+    height: 3px;
+    width: 132px;
+    margin-top: 0.1rem;
+    background: var(--hdr-accent);
+    border-radius: 999px;
+    box-shadow: 0 2px 10px rgba(245, 158, 11, 0.5);
+}
+.logo-desktop code {
+    display: inline-block;
+    color: var(--hdr-muted);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+.logo-boxx {
+    padding: 0.25rem 0 0.5rem;
+}
+.logox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.logo-smx img {
+    height: 40px;
+    border-radius: 10px;
+    padding: 3px;
+}
+.logo-text {
+    display: flex;
+    flex-direction: column;
+}
+.header-title-top {
+    font-weight: 700;
+    font-size: 1rem;
+}
+.header-title-bottom {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+.white-shadow-text {
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+.kamar-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.kamar-title {
+    margin-bottom: 0.25rem;
+}
+.kamar-summary {
+    margin-top: 0.35rem;
+    font-size: 0.84rem;
+    color: #6c757d;
+}
+.kamar-summary span {
+    margin-right: 1rem;
+}
+.kamar-badge,
+.kamar-stat {
+    font-size: 0.8rem;
+}
+.kamar-empty {
+    border-style: dashed !important;
+    font-size: 0.9rem;
+}
+.kamar-empty-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+    margin-right: 0.5rem;
+}
+.tahanan-list {
+    margin-top: 0.75rem;
+}
+.tahanan-card {
+    border-radius: 0;
+    border: 0;
+    margin-bottom: 0 !important;
+    box-shadow: none;
+    background: 0 0;
+}
+.tahanan-card .card-body {
+    padding: 0.85rem 0.75rem 0.8rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+    display: flex;
+    flex-direction: column;
+}
+.tahanan-card:nth-of-type(odd) .card-body {
+    background: linear-gradient(90deg, #f9fafb, #eff6ff);
+}
+.tahanan-card:nth-of-type(2n) .card-body {
+    background: linear-gradient(90deg, #fff, #f9fafb);
+}
+.tahanan-avatar {
+    margin: 0 0 0rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+}
+.tahanan-avatar img,
+.tahanan-avatar-placeholder {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    object-fit: cover;
+}
+.tahanan-avatar img {
+    border: 2px solid rgba(15, 23, 42, 0.18);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+    background: #fff;
+}
+.tahanan-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e5e7eb, #cbd5f5);
+    border: 2px solid rgba(148, 163, 184, 0.6);
+    color: #4b5563;
+    font-size: 1.2rem;
+}
+.tahanan-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.tahanan-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+.tahanan-field {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    padding: 0.25rem 0.55rem;
+    border-radius: 0.4rem;
+}
+.badge-status,
+.kamar-chip,
+.tahanan-toggle-btn {
+    border-radius: 999px;
+    font-weight: 600;
+}
+.tahanan-field small {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin-bottom: 0.1rem;
+}
+.tahanan-main .tahanan-field:nth-of-type(odd) {
+    background: rgba(148, 163, 184, 0.1);
+}
+.tahanan-main .tahanan-field:nth-of-type(2n) {
+    background: rgba(148, 163, 184, 0.05);
+}
+.badge-status-aktif {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: #ecfdf3;
+}
+.badge-status-bebas {
+    background: linear-gradient(135deg, #2563eb, #38bdf8);
+    color: #eff6ff;
+}
+.badge-status-pindah {
+    background: linear-gradient(135deg, #f97316, #facc15);
+    color: #fffbeb;
+}
+.badge-status-lainnya {
+    background: linear-gradient(135deg, #6b7280, #9ca3af);
+    color: #f9fafb;
+}
+.badge-status {
+    padding: 0.15rem 0.6rem;
+    font-size: 0.7rem;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+    white-space: nowrap;
+}
+.tahanan-toggle-wrap {
+    margin-top: 0.45rem;
+    display: flex;
+    justify-content: flex-end;
+}
+.tahanan-toggle-btn {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.7rem;
+    border: 0;
+    background: rgba(37, 99, 235, 0.08);
+    color: #596e9b;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.tahanan-toggle-btn:focus {
+    outline: 0;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+}
+.tahanan-toggle-icon {
+    font-size: 0.85rem;
+    line-height: 1;
+    margin-left: 0.25rem;
+}
+.tahanan-extra {
+    margin-top: 0.35rem;
+    padding-top: 0.4rem;
+    font-size: 0.82rem;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    border-top: 1px dashed transparent;
+    transition:
+        max-height 0.55s,
+        opacity 0.55s,
+        border-color 0.55s;
+}
+.tahanan-extra.is-open {
+    max-height: 900px;
+    opacity: 1;
+    border-top-color: rgba(148, 163, 184, 0.6);
+}
+@media (min-width: 768px) {
+    .tahanan-card .card-body {
+        padding: 0.9rem 1rem;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .tahanan-avatar {
+        margin: 0;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-width: 80px;
+    }
+    .tahanan-avatar img,
+    .tahanan-avatar-placeholder {
+        width: 72px;
+        height: 72px;
+    }
+    .tahanan-name {
+        font-size: 1.05rem;
+    }
+}
+.kamar-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    padding: 1rem 1rem 1.05rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #eef2ff, #eff6ff);
+    border: 1px solid rgba(148, 163, 184, 0.55);
+    position: relative;
+    overflow: hidden;
+}
+.kamar-chip,
+.kamar-chip-icon {
+    display: inline-flex;
+    align-items: center;
+}
+.kamar-header::before {
+    content: "";
+    position: absolute;
+    right: -40px;
+    bottom: -40px;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle at center, rgba(37, 99, 235, 0.2), transparent 70%);
+}
+.kamar-header-main {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+.kamar-chip {
+    padding: 0.18rem 0.6rem;
+    background: rgba(37, 99, 235, 0.07);
+    border: 1px solid rgba(129, 140, 248, 0.5);
+    font-size: 0.72rem;
+    color: #1d4ed8;
+}
+.kamar-chip-icon {
+    justify-content: center;
+    font-size: 0.8rem;
+    margin-right: 0.3rem;
+}
+.kamar-title {
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.kamar-title::after {
+    content: "";
+    flex: 0 0 46px;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6366f1, #f97316);
+    opacity: 0.9;
+}
+.kamar-meta {
+    margin-top: 0.45rem;
+    font-size: 0.85rem;
+    color: #4b5563;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+}
+.kamar-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.kamar-meta-icon {
+    font-size: 0.9rem;
+    color: #6366f1;
+}
+.kamar-meta-separator {
+    opacity: 0.6;
+}
+.kamar-header-stats {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 160px;
+}
+.kamar-stat-label {
+    font-weight: 600;
+    color: #6b7280;
+}
+.kamar-stat-value {
+    margin-top: 0.05rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #111827;
+}
+.kamar-stat-icon {
+    font-size: 0.95rem;
+    opacity: 0.8;
+}
+.kamar-stat-badge {
+    padding: 0.15rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(22, 163, 74, 0.06);
+    color: #166534;
+}
+@media (max-width: 575.98px) {
+    .kamar-header {
+        padding: 0.8rem 0.85rem 0.95rem;
+    }
+    .kamar-header-stats {
+        width: 100%;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 0.75rem;
+        margin-top: 0.35rem;
+    }
+}
+.kamar-navbar {
+    background: radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.45), transparent 55%),
+        radial-gradient(circle at 100% 0, rgba(236, 72, 153, 0.35), transparent 55%), rgba(8, 25, 55, 0.96) !important;
+    backdrop-filter: saturate(150%) blur(10px);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.45);
+}
+.topbar-inner {
+    min-height: 64px;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+}
+.topbar-title-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+}
+.topbar-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(226, 232, 240, 0.9);
+    font-weight: 600;
+}
+.topbar-title-text {
+    display: inline-block;
+    color: #f9fafb;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    position: relative;
+}
+.topbar-title-text::after {
+    content: "";
+    display: block;
+    height: 3px;
+    width: 120px;
+    margin-top: 0.16rem;
+    background: linear-gradient(90deg, #38bdf8, #f97316);
+    border-radius: 999px;
+    box-shadow: 0 2px 10px rgba(248, 250, 252, 0.45);
+}
+.topbar-subtitle {
+    font-size: 0.78rem;
+    color: rgba(226, 232, 240, 0.85);
+}
+.topbar-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #e5e7eb;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.75);
+    white-space: nowrap;
+}
+.topbar-badge i {
+    font-size: 0.9rem;
+}
+@media (max-width: 767.98px) {
+    .topbar-inner {
+        min-height: 56px;
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+    }
+    .topbar-badge {
+        display: none;
+    }
+}
+
+  /* ====== PADATKAN HEADER & LIST ====== */
+  .kamar-navbar .topbar-inner{
+    padding:.45rem .75rem;
+  }
+  .topbar-title-text{
+    font-size:1rem;
+    font-weight:600;
+  }
+  .topbar-subtitle{
+    font-size:.75rem;
+    color:rgba(255,255,255,.7);
+  }
+  .topbar-badge{
+    padding:.15rem .55rem;
+    font-size:.75rem;
+  }
+
+/* parent wajib relative supaya ::before-nya nempel ke wrapper, bukan ke body */
+/* parent relative saja, TANPA z-index */
+.wrapper{
+  position: relative;
+}
+
+
+/* default warna lengkungan + tinggi */
+.wrapper.curved{
+  --c1: #4c5a92;   /* warna bawah */
+  --c2: #0e326e;   /* warna atas  */
+  --curve-h: 260px;
+}
+/* Tablet ke atas: kecilkan sedikit */
+@media (min-width: 768px){
+  .wrapper.curved{
+    --curve-h: 220px !important;
+  }
+}
+
+/* Desktop (lebar >= 992px): lebih kecil lagi */
+@media (min-width: 992px){
+  .wrapper.curved{
+    --curve-h: 140px !important; /* dari 180 -> 140, boleh disetel lagi */
+  }
+
+  /* tarik isi sedikit naik supaya lebih nempel ke header */
+  .wrapper.curved .card-box{
+    margin-top: -10px;
+  }
+}
+
+
+/* bentuk lengkungan */
+/* bentuk lengkungan: di bawah konten, tapi tidak negatif */
+.wrapper.curved::before{
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--curve-h);
+  background: linear-gradient(360deg, var(--c1), var(--c2));
+  border-bottom-left-radius: 50% 16%;
+  border-bottom-right-radius: 50% 16%;
+  z-index: 0; /* dari -1 -> 0 */
+  pointer-events: none;
+  filter: drop-shadow(0 18px 36px rgba(16,24,40,.18));
+}
+
+
+/* konten di atas lengkungan, JANGAN override modal */
+.wrapper > *:not(.modal){
+  position: relative;
+  z-index: 1;
+}
+/* pastikan modal tetap seperti bawaan Bootstrap */
+.wrapper .modal{
+  position: fixed;
+}
+
+
+/* kalau mau variasi tinggi */
+.wrapper.curved.curve-sm { --curve-h: 140px; }
+.wrapper.curved.curve-md { --curve-h: 220px; }
+.wrapper.curved.curve-lg { --curve-h: 320px; }
+.wrapper.curved.curve-xl { --curve-h: 420px; }
+
+  .card-box{
+    padding:.75rem .75rem 1rem;
+  }
+
+  .kamar-header{
+    margin-bottom:.75rem;
+  }
+
+  /* baris: "Informasi Kamar" + tombol Atensi KPLP di kanan */
+  .kamar-header-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.2rem;
+    margin-bottom:-0.8rem;
+  }
+  .btn-atensi-kplp{
+    font-size:.75rem;
+    font-weight:600;
+    padding:.2rem .7rem;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
+  .kamar-title{
+    font-size:1.05rem;
+    margin-bottom:.25rem!important;
+  }
+  .kamar-meta{
+    font-size:.8rem;
+  }
+
+  /* FOTO ZOOMABLE */
+  .tahanan-photo{
+    cursor:zoom-in;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .tahanan-photo:hover{
+    transform:scale(1.03);
+    box-shadow:0 0 0 2px rgba(0,0,0,.08);
+  }
+
+  .kamar-header-stats .kamar-stat{
+    margin-bottom:.25rem;
+  }
+  .kamar-stat-label{
+    font-size:.7rem;
+  }
+  .kamar-stat-value{
+    font-size:.85rem;
+  }
+
+  .modal-photo-img{
+    width:100%;
+    max-height:80vh;
+    object-fit:contain;
+    display:block;
+    border-radius:8px;
+  }
+  .modal-photo-body{
+    padding:.5rem .5rem 1rem;
+  }
+  .modal-photo-header{
+    border-bottom:0;
+    padding:.35rem .75rem .15rem;
+  }
+  .modal-photo-close{
+    padding:.25rem .5rem;
+    margin:-.25rem -.25rem -0.25rem auto;
+  }
+
+  .tahanan-list{
+    margin-top:.5rem;
+  }
+
+  .tahanan-card{
+    margin-bottom:.5rem;
+  }
+  .tahanan-card .card-body{
+    padding:.75rem;
+  }
+
+  .tahanan-avatar{
+    margin-right:.75rem;
+  }
+  .tahanan-avatar img,
+  .tahanan-avatar-placeholder{
+    width:60px;
+    height:60px;
+  }
+
+  .tahanan-name{
+    font-size:.95rem;
+    font-weight:600;
+    margin-bottom:.1rem;
+  }
+@media (min-width: 992px){
+  .row.mt-3{
+    margin-top: .75rem !important; /* default Bootstrap mt-3 = 1rem */
+  }
+}
+
+  /* No.Reg tepat di bawah nama */
+  .tahanan-noreg{
+    font-size:.8rem;
+    color:#6c757d;
+    margin-bottom:.4rem;
+  }
+
+  .tahanan-field{
+    margin-bottom:.18rem!important;
+    font-size:.82rem;
+  }
+  .tahanan-field small{
+    display:block;
+    font-size:.7rem;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:#9aa0ac;
+    margin-bottom:1px;
+  }
+
+  /* BARIS KHUSUS: PUTUSAN & EXPIRASI KIRI–KANAN */
+  .tahanan-row-putusan-exp{
+    display:flex;
+    gap:.5rem;
+  }
+  .tahanan-row-putusan-exp > .tahanan-field{
+    flex:1 1 0;
+    margin-bottom:0!important;
+  }
+
+  .tahanan-toggle-wrap{
+    margin-top:.05rem;
+    margin-bottom:.05rem!important; /* override mb-2 bootstrap */
+    display:flex;
+    justify-content:flex-end;
+  }
+  .tahanan-toggle-btn{
+    padding:.15rem .5rem;
+    font-size:12px;
+  }
+
+  .tahanan-extra{
+    margin-top:.05rem;
+    margin-bottom:.05rem!important; /* override mb-2 bootstrap */
+  }
+
+  .kamar-empty{
+    padding:.6rem .75rem;
+    font-size:.85rem;
+  }
+
+  .text-center.mt-3 small{
+    font-size:.75rem;
+  }
 </style>
 
 <script>
@@ -111,7 +834,7 @@
 })();
 </script>
 
-<div class="wrapper curved" style="--curve-h: 320px" id="app-scroll">
+<div class="wrapper curved" id="app-scroll">
 
 <?php
 // helper tanggal singkat
@@ -125,6 +848,17 @@ if (!function_exists('tgl_indo_singkat')) {
       return date('d',$ts).' '.$bulan[$b].' '.date('Y',$ts);
   }
 }
+if (!function_exists('tgl_biasa')) {
+  function tgl_biasa($tgl){
+      if (!$tgl || $tgl === '0000-00-00') return '';
+      $ts = strtotime($tgl);
+      if (!$ts) return '';
+      return date('d-m-Y', $ts); // dd-mm-YYYY
+  }
+}
+
+// atensi KPLP kamar
+$atensi_kplp = trim((string)($kamar->atensi ?? ''));
 ?>
 
 <div class="container-fluid">
@@ -137,71 +871,76 @@ if (!function_exists('tgl_indo_singkat')) {
     </div>
   </div>
 
-  <div class="row mt-3">
+  <div class="row mt-1">
     <div class="col-lg-12">
       <div class="card-box">
 
+        <!-- HEADER KAMAR -->
         <div class="kamar-header">
-  <div class="kamar-header-main">
-    <div class="kamar-chip mb-2">
-      <span class="kamar-chip-icon">
-        <i class="fe-lock"></i>
-      </span>
-      <span class="kamar-chip-text">Informasi Kamar</span>
-    </div>
 
-    <h3 class="kamar-title mb-1">
-      Data Kamar WBP
-    </h3>
+          <!-- baris atas: Informasi Kamar + Atensi KPLP (kanan) -->
+          <div class="kamar-header-top">
+            <div class="kamar-chip mb-0">
+              <span class="kamar-chip-icon">
+                <i class="fe-lock"></i>
+              </span>
+              <span class="kamar-chip-text">Informasi Kamar</span>
+            </div>
 
-    <div class="kamar-meta">
-      <span class="kamar-meta-item">
-        <i class="fe-hash kamar-meta-icon"></i>
-        <?= html_escape($kamar->nama); ?>
-      </span>
+            <button type="button"
+                    class="btn btn-warning btn-atensi-kplp"
+                    data-toggle="modal"
+                    data-target="#modalAtensi">
+              <i class="fe-alert-triangle mr-1"></i> Atensi KPLP
+            </button>
+          </div>
 
-      <?php if (!empty($kamar->blok)): ?>
-        <span class="kamar-meta-separator">•</span>
-        <span class="kamar-meta-item">
-          <i class="fe-grid kamar-meta-icon"></i>
-          Blok: <?= html_escape($kamar->blok); ?>
-        </span>
-      <?php endif; ?>
+          <div class="d-flex justify-content-between align-items-start flex-wrap">
+            <div class="kamar-header-main">
+              <h3 class="kamar-title mb-1">
+                Data Kamar WBP
+              </h3>
 
-      <?php if (!empty($kamar->lantai)): ?>
-        <span class="kamar-meta-separator">•</span>
-        <span class="kamar-meta-item">
-          <i class="fe-layers kamar-meta-icon"></i>
-          Lantai: <?= html_escape($kamar->lantai); ?>
-        </span>
-      <?php endif; ?>
-    </div>
-  </div>
+              <div class="kamar-meta">
+                <span class="kamar-meta-item">
+                  <i class="fe-hash kamar-meta-icon"></i>
+                  <?= html_escape($kamar->nama); ?>
+                </span>
 
-  <div class="kamar-header-stats text-md-right">
-    <?php $kapasitas = (int)($kamar->kapasitas ?? 0); ?>
-    <?php if ($kapasitas > 0): ?>
-      <div class="kamar-stat">
-        <div class="kamar-stat-label">Kapasitas</div>
-        <div class="kamar-stat-value">
-          <i class="fe-users kamar-stat-icon"></i>
-          <?= $kapasitas; ?> Orang
+                <?php if (!empty($kamar->lantai)): ?>
+                  <span class="kamar-meta-separator">•</span>
+                  <span class="kamar-meta-item">
+                    <i class="fe-layers kamar-meta-icon"></i>
+                    Lantai: <?= html_escape($kamar->lantai); ?>
+                  </span>
+                <?php endif; ?>
+              </div>
+            </div>
+
+            <div class="kamar-header-stats text-md-right mt-2 mt-md-0">
+              <?php $kapasitas = (int)($kamar->kapasitas ?? 0); ?>
+              <?php if ($kapasitas > 0): ?>
+                <div class="kamar-stat">
+                  <div class="kamar-stat-label">Kapasitas</div>
+                  <div class="kamar-stat-value">
+                    <i class="fe-users kamar-stat-icon"></i>
+                    <?= $kapasitas; ?> Orang
+                  </div>
+                </div>
+              <?php endif; ?>
+
+              <div class="kamar-stat">
+                <div class="kamar-stat-label">TERISI</div>
+                <div class="kamar-stat-value kamar-stat-badge">
+                  <i class="fe-user-check kamar-stat-icon"></i>
+                  <?= count($tahanan); ?> Org
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    <?php endif; ?>
 
-    <div class="kamar-stat">
-      <div class="kamar-stat-label">Total WBP</div>
-      <div class="kamar-stat-value kamar-stat-badge">
-        <i class="fe-user-check kamar-stat-icon"></i>
-        <?= count($tahanan); ?>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-        <hr>
+        <hr class="mt-2 mb-2">
 
         <?php if (empty($tahanan)): ?>
           <div class="alert alert-light kamar-empty d-flex align-items-center" role="alert">
@@ -261,7 +1000,7 @@ if (!function_exists('tgl_indo_singkat')) {
                 // EXPIRASI
                 $exp_text = '';
                 if (!empty($t->expirasi) && $t->expirasi !== '0000-00-00') {
-                  $expShort = tgl_indo_singkat($t->expirasi);
+                  $expShort = tgl_biasa($t->expirasi);
                   if ($expShort) $exp_text = $expShort;
                 }
 
@@ -276,35 +1015,44 @@ if (!function_exists('tgl_indo_singkat')) {
 
               <div class="card tahanan-card">
                 <div class="card-body">
-                  <!-- FOTO + NAMA -->
+                  <!-- FOTO + NAMA + NO.REG (mobile) -->
                   <div class="tahanan-avatar">
                     <?php if ($foto): ?>
-                      <img src="<?= $foto; ?>" alt="Foto <?= html_escape($t->nama); ?>">
+                      <img src="<?= $foto; ?>"
+                           alt="Foto <?= html_escape($t->nama); ?>"
+                           class="tahanan-photo"
+                           data-full="<?= $foto; ?>">
                     <?php else: ?>
                       <div class="tahanan-avatar-placeholder">
                         <i class="fe-user"></i>
                       </div>
                     <?php endif; ?>
 
-                    <div class="tahanan-main d-block d-md-none">
+                    <!-- Nama + No.Reg di mobile (di bawah foto) -->
+                    <div class="tahanan-main d-block d-md-none mt-1">
                       <div class="tahanan-name">
                         <?= html_escape($t->nama); ?>
                       </div>
+                      <?php if ($noReg): ?>
+                        <div class="tahanan-noreg">
+                          No.Reg: <?= html_escape($noReg); ?>
+                        </div>
+                      <?php endif; ?>
                     </div>
                   </div>
 
+                  <!-- NAMA + NO.REG (desktop) + DETAIL -->
                   <div class="tahanan-main">
                     <!-- NAMA (desktop) -->
                     <div class="tahanan-name d-none d-md-block">
                       <?= html_escape($t->nama); ?>
                     </div>
 
-                    <!-- NO.REG (jika ada) -->
+                    <!-- NO.REG tepat di bawah nama (desktop) -->
                     <?php if ($noReg): ?>
-                    <div class="mb-2 tahanan-field">
-                      <small>No.Reg</small>
-                      <?= html_escape($noReg); ?>
-                    </div>
+                      <div class="tahanan-noreg d-none d-md-block">
+                        No.Reg: <?= html_escape($noReg); ?>
+                      </div>
                     <?php endif; ?>
 
                     <!-- PERKARA -->
@@ -315,27 +1063,30 @@ if (!function_exists('tgl_indo_singkat')) {
                     </div>
                     <?php endif; ?>
 
-                    <!-- PUTUSAN -->
-                    <?php if ($putusan_text): ?>
-                    <div class="mb-2 tahanan-field">
-                      <small>Putusan</small>
-                      <?= $putusan_text; ?>
-                    </div>
-                    <?php endif; ?>
+                    <!-- PUTUSAN & EXPIRASI SEDERET KIRI–KANAN -->
+                    <?php if ($putusan_text || $exp_text): ?>
+                      <div class="mb-2 tahanan-row-putusan-exp">
+                        <?php if ($putusan_text): ?>
+                          <div class="tahanan-field">
+                            <small>Putusan</small>
+                            <?= $putusan_text; ?>
+                          </div>
+                        <?php endif; ?>
 
-                    <!-- EXPIRASI -->
-                    <?php if ($exp_text): ?>
-                    <div class="mb-2 tahanan-field">
-                      <small>Expirasi</small>
-                      <?= $exp_text; ?>
-                    </div>
+                        <?php if ($exp_text): ?>
+                          <div class="tahanan-field">
+                            <small>Expirasi</small>
+                            <?= $exp_text; ?>
+                          </div>
+                        <?php endif; ?>
+                      </div>
                     <?php endif; ?>
 
                     <!-- TOMBOL SELENGKAPNYA (SELALU DI SINI, DI BAWAH EXPIRASI) -->
                     <?php if ($has_extra): ?>
                       <div class="mb-2 tahanan-toggle-wrap">
-                        <button type="button" class="tahanan-toggle-btn">
-                          <span class="tahanan-toggle-text">Selengkapnya</span>
+                        <button type="button" class="tahanan-toggle-btn btn btn-soft-primary btn-xs">
+                          <span class="tahanan-toggle-text">Detail</span>
                           <span class="tahanan-toggle-icon">▼</span>
                         </button>
                       </div>
@@ -401,7 +1152,6 @@ if (!function_exists('tgl_indo_singkat')) {
         <div class="text-center mt-3">
           <small class="text-muted">
             Halaman ini diakses melalui pemindaian QR Kamar.<br>
-            <!-- Token: <code><?= html_escape($kamar->qr_token); ?></code> -->
           </small>
         </div>
 
@@ -410,6 +1160,50 @@ if (!function_exists('tgl_indo_singkat')) {
   </div>
 </div>
 
+<!-- MODAL ATENSI KPLP -->
+<div class="modal fade" id="modalAtensi" tabindex="-1" role="dialog" aria-labelledby="modalAtensiLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title" id="modalAtensiLabel">
+          Atensi KPLP - Kamar <?= html_escape($kamar->nama); ?>
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" style="font-size:.9rem;">
+        <?php if ($atensi_kplp !== ''): ?>
+          <p class="mb-0"><?= nl2br(html_escape($atensi_kplp)); ?></p>
+        <?php else: ?>
+          <p class="text-muted mb-0"><em>Belum ada atensi KPLP yang tercatat untuk kamar ini.</em></p>
+        <?php endif; ?>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-light btn-sm" data-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FOTO ZOOM -->
+<div class="modal fade" id="photoModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header modal-photo-header">
+        <button type="button" class="close text-white modal-photo-close" data-dismiss="modal" aria-label="Tutup">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body modal-photo-body">
+        <img src="" alt="Foto WBP" id="photoModalImg" class="modal-photo-img">
+        <div class="text-center mt-2" style="font-size:.75rem;opacity:.7;">
+          Ketuk luar foto atau tombol × untuk menutup
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </div><!-- /#app-scroll -->
 
 <script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>
@@ -438,8 +1232,28 @@ document.addEventListener('click', function(e){
     if (icon) icon.textContent = '▲';
   } else {
     extra.classList.remove('is-open');
-    if (txt) txt.textContent = 'Selengkapnya';
+    if (txt) txt.textContent = 'Detail';
     if (icon) icon.textContent = '▼';
+  }
+});
+
+// Klik foto -> zoom di modal
+document.addEventListener('click', function(e){
+  var img = e.target.closest('.tahanan-photo');
+  if (!img) return;
+
+  var src = img.getAttribute('data-full') || img.getAttribute('src') || '';
+  if (!src) return;
+
+  var modalImg = document.getElementById('photoModalImg');
+  if (modalImg){
+    modalImg.src = src;
+    // pakai jQuery bootstrap modal
+    if (typeof $ !== 'undefined' && $('#photoModal').modal){
+      $('#photoModal').modal('show');
+    } else {
+      document.getElementById('photoModal').classList.add('show');
+    }
   }
 });
 </script>

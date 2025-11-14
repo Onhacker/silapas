@@ -34,7 +34,7 @@ class Admin_kamar extends Admin_Controller {
 
             $nama = htmlspecialchars($r->nama, ENT_QUOTES, 'UTF-8');
             $blok = htmlspecialchars($r->blok, ENT_QUOTES, 'UTF-8');
-            $info = $blok ? $nama.'<br><small class="text-muted">Blok: '.$blok.'</small>' : $nama;
+            $info =  $nama;
             $row['nama'] = $info;
 
             $row['kapasitas'] = (int)$r->kapasitas;
