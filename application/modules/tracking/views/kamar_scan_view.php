@@ -861,6 +861,70 @@
   }
 }*/
 
+/* wrapper stats di kanan */
+.kamar-header-stats{
+  position: relative;
+  z-index: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+
+/* baris label: KAPASITAS   TERISI */
+.kamar-stats-label-row{
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;        /* jarak KAPASITAS–TERISI */
+}
+
+/* label style */
+.kamar-stats-label-row .kamar-stat-label{
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  color: #6b7280;
+}
+
+/* baris nilai: 8   2   [Atensi] */
+.kamar-stats-main-row{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .75rem;         /* jarak antara 8, 2, tombol */
+  flex-wrap: nowrap;   /* paksa sebaris di mobile & desktop */
+}
+
+.kamar-stat-value{
+  font-size: .9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  color: #111827;
+}
+
+.kamar-stat-badge{
+  padding: .15rem .6rem;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.06);
+  color: #166534;
+}
+
+.kamar-atensi-btn{
+  white-space: nowrap;
+  padding: .3rem 1rem;
+  font-size: .78rem;
+  border-radius: 999px;
+}
+
+/* kalau layar SANGAT sempit, boleh dibiarin wrap cantik */
+@media (max-width: 360px){
+  .kamar-stats-main-row{
+    flex-wrap: wrap;
+  }
+}
+
 
 
 </style>
@@ -953,29 +1017,36 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
               </div>
             </div>
 
-            <div class="kamar-header-stats text-md-right mt-2 mt-md-0">
-              <?php $kapasitas = (int)($kamar->kapasitas ?? 0); ?>
-              <?php if ($kapasitas > 0): ?>
-                <div class="kamar-stat">
-                  <div class="kamar-stat-label">Kapasitas</div>
-                  <div class="kamar-stat-value">
-                    <i class="fe-users kamar-stat-icon"></i>
-                    <?= $kapasitas; ?> Orang
-                  </div>
-                </div>
-              <?php endif; ?>
+           <div class="kamar-header-stats mt-2 mt-md-0">
+  <?php
+    $kapasitas = (int)($kamar->kapasitas ?? 0);
+    $terisi    = count($tahanan);
+  ?>
 
- <div class="kamar-stat kamar-stat-terisi">
-  <div class="kamar-stat-label">TERISI</div>
+  <!-- Baris label: KAPASITAS   TERISI -->
+  <div class="kamar-stats-label-row">
+    <?php if ($kapasitas > 0): ?>
+      <span class="kamar-stat-label">KAPASITAS</span>
+    <?php endif; ?>
+    <span class="kamar-stat-label">TERISI</span>
+  </div>
 
-  <div class="kamar-stat-row">
+  <!-- Baris nilai: 8   2   [Atensi KPLP] -->
+  <div class="kamar-stats-main-row">
+    <?php if ($kapasitas > 0): ?>
+      <div class="kamar-stat-value">
+        <i class="fe-users kamar-stat-icon"></i>
+        <?= $kapasitas; ?> Org
+      </div>
+    <?php endif; ?>
+
     <div class="kamar-stat-value kamar-stat-badge">
       <i class="fe-user-check kamar-stat-icon"></i>
-      <?= count($tahanan); ?> Org
+      <?= $terisi; ?> Org
     </div>
 
     <button type="button"
-            class="btn btn-warning btn-atensi-kplp kamar-atensi-btn"
+            class="btn btn-warning kamar-atensi-btn"
             data-toggle="modal"
             data-target="#modalAtensi">
       <i class="fe-alert-triangle mr-1"></i> Atensi KPLP
@@ -984,7 +1055,6 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
 </div>
 
 
-            </div>
           </div>
         </div>
 
