@@ -384,47 +384,87 @@ function simpan() {
 }
 
 /* Hapus data terpilih */
-function hapus_data() {
-  const ids = [];
-  $('.data-check:checked').each(function () {
-    ids.push($(this).val());
-  });
+public function hapus_data()
+{
+    // terima baik "id" maupun "id_detail" dari client (jaga-jaga)
+    $ids = $this->input->post('id');
+    if (!$ids) {
+        $ids = $this->input->post('id_detail');
+    }
 
-  if (ids.length === 0) {
-    swalWarn('Tidak ada data dipilih');
-    return;
-  }
+    // pastikan array
+    if (!$ids) {
+        echo json_encode([
+            "success" => false,
+            "title"   => "Gagal",
+            "pesan"   => "Tidak ada ID yang dikirim dari client"
+        ]);
+        return;
+    }
 
-  Swal.fire({
-    title: 'Hapus data tahanan terpilih?',
-    text: 'Tindakan ini tidak bisa dibatalkan.',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Ya, hapus',
-    cancelButtonText: 'Batal'
-  }).then(function (result) {
-    if (!result.isConfirmed) return;
+    if (!is_array($ids)) {
+        $ids = [$ids];
+    }
 
-    $.ajax({
-      url: "<?= site_url('admin_kamar_detail/hapus_data'); ?>",
-      type: "POST",
-      dataType: "json",
-      data: { id: ids },
-      traditional: true,
-      success: function (res) {
-        if (res.success) {
-          swalToast('success', 'Berhasil', res.pesan || 'Data terhapus');
-          refresh();
-        } else {
-          swalErr(res.pesan || 'Gagal menghapus');
+    // casting ke integer & buang yang 0
+    $idInts = array_values(array_unique(array_filter(array_map('intval', $ids))));
+    if (!$idInts) {
+        echo json_encode([
+            "success" => false,
+            "title"   => "Gagal",
+            "pesan"   => "Tidak ada data valid"
+        ]);
+        return;
+    }
+
+    // ambil dulu foto-fotonya
+    $rows = $this->db->select('id_detail,foto')
+                     ->from('kamar_tahanan')
+                     ->where_in('id_detail', $idInts)
+                     ->get()
+                     ->result();
+
+    // hapus data
+    $this->db->where_in('id_detail', $idInts);
+    $ok  = $this->db->delete('kamar_tahanan');
+    $err = $this->db->error();
+    $aff = $this->db->affected_rows();
+
+    if ($err['code'] != 0) {
+        // ada error query (misal karena constraint FK)
+        log_message('error', 'Gagal hapus kamar_tahanan: '.print_r($err, true));
+        echo json_encode([
+            "success" => false,
+            "title"   => "Gagal",
+            "pesan"   => "Query delete gagal. Kode: {$err['code']} - {$err['message']}"
+        ]);
+        return;
+    }
+
+    if (!$ok || $aff === 0) {
+        // query sukses tapi tidak ada baris terkena
+        echo json_encode([
+            "success" => false,
+            "title"   => "Gagal",
+            "pesan"   => "Tidak ada data yang dihapus. Cek lagi ID yang dikirim ke server."
+        ]);
+        return;
+    }
+
+    // hapus file foto
+    foreach ($rows as $r) {
+        if (!empty($r->foto) && is_file($this->upload_path.$r->foto)) {
+            @unlink($this->upload_path.$r->foto);
         }
-      },
-      error: function () {
-        swalErr('Terjadi kesalahan koneksi');
-      }
-    });
-  });
+    }
+
+    echo json_encode([
+        "success" => true,
+        "title"   => "Berhasil",
+        "pesan"   => "Data berhasil dihapus ($aff baris)"
+    ]);
 }
+
 function kembali(){
   window.location.href = "<?= site_url('admin_kamar'); ?>";
 }
