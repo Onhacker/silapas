@@ -6,7 +6,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   :root{
-    --poster:#bd1000; --pad:#f2b233; --ink:#111;
+    /* Palet biru & biru muda */
+    --poster:#0f4c81;   /* biru tua / navy */
+    --pad:#a6d8ff;      /* biru muda */
+    --ink:#06233f;      /* tinta biru gelap */
     --size:500px;
     --radius-outer:20px; --radius-inner:14px;
     --stroke:6px; --marker:56px; --qr-pad:10px;
@@ -16,7 +19,7 @@
   body{
     margin:0;
     font-family:Arial,Helvetica,sans-serif;
-    background:#fff;
+    background:#f3f7fb; /* latar belakang lembut biru muda */
     color:#000;
     -webkit-print-color-adjust:exact;
     print-color-adjust:exact;
@@ -51,7 +54,8 @@
   .title p{
     margin:6px 0 2px;
     font-weight:800;
-    font-size:clamp(14px,3.6vw,20px)
+    font-size:clamp(14px,3.6vw,20px);
+    color:#eaf4ff; /* sedikit lebih lembut */
   }
   .title .subtitle{
     display:block;
@@ -60,7 +64,7 @@
     font-weight:500;
     font-size:clamp(11px,3vw,13px);
     line-height:1.3;
-    color:rgba(255,255,255,.8);
+    color:rgba(230,244,255,.9);
   }
 
   .stack{
@@ -154,7 +158,7 @@
 
   @media print{
     .no-print{display:none}
-    body{margin:0}
+    body{margin:0; background:#fff;} /* saat print pakai putih */
     .poster{margin:0}
     @page{margin:0}
   }
@@ -175,7 +179,7 @@
     appearance:none;
     border:0;
     border-radius:10px;
-    background:#111;
+    background:#0f4c81; /* senada dengan poster */
     color:#fff;
     font-size:15px;
     font-weight:600;
@@ -184,6 +188,10 @@
     cursor:pointer;
     min-width:180px;
     box-shadow:0 6px 16px rgba(0,0,0,.3);
+    transition:background .15s, transform .1s;
+  }
+  #btnDownload:hover{
+    background:#06233f;
   }
   #btnDownload:active{
     transform:scale(.98);
@@ -196,7 +204,7 @@
   <div class="title">
     <h1><?= html_escape(strtoupper($row->nama)) ?></h1>
     <p>SCAN UNTUK DATA KAMAR</p>
-    <span class="subtitle">Menampilkan informasi kamar & daftar tahanan</span>
+    <span class="subtitle">Menampilkan informasi kamar &amp; daftar WBP</span>
   </div>
 
   <div class="stack">

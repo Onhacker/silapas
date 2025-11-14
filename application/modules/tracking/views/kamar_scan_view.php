@@ -593,7 +593,7 @@
             </span>
           </h4>
           <span class="topbar-subtitle d-md-none">
-            Data Tahanan <?php echo $rec->type ?>
+            Data WBP <?php echo $rec->type ?>
           </span>
         </div>
 
@@ -676,7 +676,7 @@ if (!function_exists('tgl_indo_singkat')) {
     </div>
 
     <h3 class="kamar-title mb-1">
-      Data Kamar Tahanan
+      Data Kamar WBP
     </h3>
 
     <div class="kamar-meta">
@@ -716,7 +716,7 @@ if (!function_exists('tgl_indo_singkat')) {
     <?php endif; ?>
 
     <div class="kamar-stat">
-      <div class="kamar-stat-label">Total Tahanan</div>
+      <div class="kamar-stat-label">Total WBP</div>
       <div class="kamar-stat-value kamar-stat-badge">
         <i class="fe-user-check kamar-stat-icon"></i>
         <?= count($tahanan); ?>
