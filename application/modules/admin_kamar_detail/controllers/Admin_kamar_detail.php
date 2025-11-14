@@ -28,7 +28,7 @@ class Admin_kamar_detail extends Admin_Controller {
         $data["title"]      = "Detail Kamar Tahanan";
         $data["subtitle"]   = "Tahanan pada ".$kamar->nama;
         $data["kamar"]      = $kamar;
-        $data["content"]    = $this->load->view(strtolower($data["controller"])."_view",$data,true);
+        $data["content"]    = $this->load->view(($data["controller"])."_view",$data,true);
         $this->render($data);
     }
 
