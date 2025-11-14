@@ -822,6 +822,47 @@
   .text-center.mt-3 small{
     font-size:.75rem;
   }
+  /* TERISI + tombol Atensi sejajar kiri–kanan */
+/* TERISI + tombol Atensi sejajar kiri–kanan */
+/* Baris: "2 Org" kiri, tombol kanan */
+/* pastikan kolom stats nggak text-right di dalam */
+.kamar-header-stats{
+  text-align: left;
+}
+
+/* TERISI: label di atas, baris di bawah full width */
+.kamar-stat-terisi{
+  text-align: left;
+}
+
+/* Baris: "2 Org" kiri, tombol kanan, full lebar kolom */
+.kamar-stat-terisi .kamar-stat-row{
+  margin-top: .12rem;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  width: 100%;
+}
+
+/* tombol Atensi */
+.kamar-atensi-btn{
+  white-space: nowrap;
+  padding: .25rem .9rem;
+  font-size: .75rem;
+  border-radius: 999px;
+}
+
+/* di layar kecil, biar tombol turun di bawah angka */
+/*@media (max-width: 575.98px){
+  .kamar-stat-terisi .kamar-stat-row{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}*/
+
+
+
 </style>
 
 <script>
@@ -887,12 +928,7 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
               <span class="kamar-chip-text">Informasi Kamar</span>
             </div>
 
-            <button type="button"
-                    class="btn btn-warning btn-atensi-kplp"
-                    data-toggle="modal"
-                    data-target="#modalAtensi">
-              <i class="fe-alert-triangle mr-1"></i> Atensi KPLP
-            </button>
+           
           </div>
 
           <div class="d-flex justify-content-between align-items-start flex-wrap">
@@ -929,13 +965,25 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
                 </div>
               <?php endif; ?>
 
-              <div class="kamar-stat">
-                <div class="kamar-stat-label">TERISI</div>
-                <div class="kamar-stat-value kamar-stat-badge">
-                  <i class="fe-user-check kamar-stat-icon"></i>
-                  <?= count($tahanan); ?> Org
-                </div>
-              </div>
+ <div class="kamar-stat kamar-stat-terisi">
+  <div class="kamar-stat-label">TERISI</div>
+
+  <div class="kamar-stat-row">
+    <div class="kamar-stat-value kamar-stat-badge">
+      <i class="fe-user-check kamar-stat-icon"></i>
+      <?= count($tahanan); ?> Org
+    </div>
+
+    <button type="button"
+            class="btn btn-warning btn-atensi-kplp kamar-atensi-btn"
+            data-toggle="modal"
+            data-target="#modalAtensi">
+      <i class="fe-alert-triangle mr-1"></i> Atensi KPLP
+    </button>
+  </div>
+</div>
+
+
             </div>
           </div>
         </div>
