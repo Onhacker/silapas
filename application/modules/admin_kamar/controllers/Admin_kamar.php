@@ -14,7 +14,7 @@ class Admin_kamar extends Admin_Controller {
         $data["controller"] = get_class($this);
         $data["title"]      = "Master Kamar Tahanan";
         $data["subtitle"]   = $this->om->engine_nama_menu(get_class($this));
-        $data["content"]    = $this->load->view(strtolower($data["controller"])."_view", $data, true);
+        $data["content"]    = $this->load->view("Admin_kamar_view", $data, true);
         $this->render($data);
     }
 
