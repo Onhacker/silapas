@@ -6,16 +6,37 @@ class Tracking extends MX_Controller {
 		parent::__construct();
 		$this->load->helper("front");
 		$this->load->model("front_model",'fm');
+		$this->load->model('M_admin_kamar','mk');
+        $this->load->model('M_admin_kamar_detail','md');
 	}
 
-	function index(){
-		$data["title"] = "Tracking Permohonan";
-		$data["deskripsi"] = "Pemohon dapat memantau status permohonan secara real-time mulai dari pengajuan hingga selesai diproses. Fitur ini memudahkan pemantauan dan memastikan transparansi pelayanan";
+	public function index($token = null)
+    {
+        if (!$token) show_404();
+
+        $kamar = $this->db->from('kamar')->where('qr_token',$token)->get()->row();
+        if (!$kamar) show_404();
+
+        $tahanan = $this->db->from('kamar_tahanan')->where('id_kamar',$kamar->id_kamar)->order_by('nama','asc')->get()->result();
+        $data["title"] = "Data Tahanan";
+		$data["deskripsi"] = "Data Tahanan";
 		$data["prev"] = base_url("assets/images/track.png");
 		$data["rec"] = $this->fm->web_me();
-		$this->load->view('tracking_view',$data);
+        $data['kamar']   = $kamar;
+        $data['tahanan'] = $tahanan;
+        $data['title']   = 'Data Kamar - '.$kamar->nama;
 
-	}
+        $this->load->view('kamar_scan_view', $data);
+    }
+
+ //    function index(){
+	// 	$data["title"] = "Data Tahanan";
+	// 	$data["deskripsi"] = "Data Tahanan";
+	// 	$data["prev"] = base_url("assets/images/track.png");
+	// 	$data["rec"] = $this->fm->web_me();
+	// 	$this->load->view('tracking_view',$data);
+
+	// }
 
 	public function cek()
 	{

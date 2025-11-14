@@ -33,6 +33,8 @@ class Api extends MX_Controller {
 
         [ 'label'=>'Data',       'url'=>site_url('admin_permohonan'),        'icon'=>'fe-eye',
         'require'=>['Admin Permohonan','admin_permohonan'] ],
+        [ 'label'=>'Qr Kamar',       'url'=>site_url('admin_kamar'),        'icon'=>'fe-eye',
+        'require'=>['Qr Kamar','admin_kamar'] ],
     ];
 
     // Opsi group admin (hanya muncul jika user punya akses child-nya)
