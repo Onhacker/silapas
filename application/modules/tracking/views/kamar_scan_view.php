@@ -42,7 +42,7 @@
   <link href="<?= base_url('assets/admin/css/icons.min.css'); ?>" rel="stylesheet" />
   <link href="<?= base_url('assets/admin/css/app.min.css'); ?>" rel="stylesheet" />
   <link href="<?= base_url('assets/admin/libs/animate/animate.min.css'); ?>" rel="stylesheet" />
-  <link href="<?= base_url('assets/min/kamar.min.css'); ?>" rel="stylesheet" />
+  <!-- <link href="<?= base_url('assets/min/kamar.min.css'); ?>" rel="stylesheet" /> -->
 
 </head>
 
@@ -86,6 +86,848 @@
 </header>
 
 
+<style type="text/css">
+  #app-scroll {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+.logo-desktop img,
+.logo-smx img {
+    width: auto;
+    background: rgba(255, 255, 255, 0.08);
+}
+.logo-desktop code,
+.logo-desktop img,
+.logo-smx img {
+    background: rgba(255, 255, 255, 0.08);
+}
+#topnav .navbar-custom {
+    background: rgba(8, 25, 55, 0.45) !important;
+    backdrop-filter: saturate(150%) blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.logo-desktop img {
+    height: 50px;
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.logo-desktop .kepala {
+    line-height: 1.1;
+}
+.header-title2 {
+    display: inline-block;
+    margin: 0;
+    color: #fff;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.kamar-chip,
+.kamar-stat-label {
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.header-title2::after {
+    content: "";
+    display: block;
+    height: 3px;
+    width: 132px;
+    margin-top: 0.1rem;
+    background: var(--hdr-accent);
+    border-radius: 999px;
+    box-shadow: 0 2px 10px rgba(245, 158, 11, 0.5);
+}
+.logo-desktop code {
+    display: inline-block;
+    color: var(--hdr-muted);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+.logo-boxx {
+    padding: 0.25rem 0 0.5rem;
+}
+.logox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.logo-smx img {
+    height: 40px;
+    border-radius: 10px;
+    padding: 3px;
+}
+.logo-text {
+    display: flex;
+    flex-direction: column;
+}
+.header-title-top {
+    font-weight: 700;
+    font-size: 1rem;
+}
+.header-title-bottom {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+.white-shadow-text {
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+.kamar-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.kamar-title {
+    margin-bottom: 0.25rem;
+}
+.kamar-summary {
+    margin-top: 0.35rem;
+    font-size: 0.84rem;
+    color: #6c757d;
+}
+.kamar-summary span {
+    margin-right: 1rem;
+}
+.kamar-badge,
+.kamar-stat {
+    font-size: 0.8rem;
+}
+.kamar-empty {
+    border-style: dashed !important;
+    font-size: 0.9rem;
+}
+.kamar-empty-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+    margin-right: 0.5rem;
+}
+.tahanan-list {
+    margin-top: 0.75rem;
+}
+.tahanan-card {
+    border-radius: 0;
+    border: 0;
+    margin-bottom: 0 !important;
+    box-shadow: none;
+    background: 0 0;
+}
+.tahanan-card .card-body {
+    padding: 0.85rem 0.75rem 0.8rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+    display: flex;
+    flex-direction: column;
+}
+.tahanan-card:nth-of-type(odd) .card-body {
+    background: linear-gradient(90deg, #f9fafb, #eff6ff);
+}
+.tahanan-card:nth-of-type(2n) .card-body {
+    background: linear-gradient(90deg, #fff, #f9fafb);
+}
+.tahanan-avatar {
+    margin: 0 0 0rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+}
+.tahanan-avatar img,
+.tahanan-avatar-placeholder {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    object-fit: cover;
+}
+.tahanan-avatar img {
+    border: 2px solid rgba(15, 23, 42, 0.18);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+    background: #fff;
+}
+.tahanan-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e5e7eb, #cbd5f5);
+    border: 2px solid rgba(148, 163, 184, 0.6);
+    color: #4b5563;
+    font-size: 1.2rem;
+}
+.tahanan-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.tahanan-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+.tahanan-field {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    padding: 0.25rem 0.55rem;
+    border-radius: 0.4rem;
+}
+.badge-status,
+.kamar-chip,
+.tahanan-toggle-btn {
+    border-radius: 999px;
+    font-weight: 600;
+}
+.tahanan-field small {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin-bottom: 0.1rem;
+}
+.tahanan-main .tahanan-field:nth-of-type(odd) {
+    background: rgba(148, 163, 184, 0.1);
+}
+.tahanan-main .tahanan-field:nth-of-type(2n) {
+    background: rgba(148, 163, 184, 0.05);
+}
+.badge-status-aktif {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: #ecfdf3;
+}
+.badge-status-bebas {
+    background: linear-gradient(135deg, #2563eb, #38bdf8);
+    color: #eff6ff;
+}
+.badge-status-pindah {
+    background: linear-gradient(135deg, #f97316, #facc15);
+    color: #fffbeb;
+}
+.badge-status-lainnya {
+    background: linear-gradient(135deg, #6b7280, #9ca3af);
+    color: #f9fafb;
+}
+.badge-status {
+    padding: 0.15rem 0.6rem;
+    font-size: 0.7rem;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+    white-space: nowrap;
+}
+.tahanan-toggle-wrap {
+    margin-top: 0.45rem;
+    display: flex;
+    justify-content: flex-end;
+}
+.tahanan-toggle-btn {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.7rem;
+    border: 0;
+    background: rgba(37, 99, 235, 0.08);
+    color: #596e9b;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.tahanan-toggle-btn:focus {
+    outline: 0;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+}
+.tahanan-toggle-icon {
+    font-size: 0.85rem;
+    line-height: 1;
+    margin-left: 0.25rem;
+}
+.tahanan-extra {
+    margin-top: 0.35rem;
+    padding-top: 0.4rem;
+    font-size: 0.82rem;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    border-top: 1px dashed transparent;
+    transition:
+        max-height 0.55s,
+        opacity 0.55s,
+        border-color 0.55s;
+}
+.tahanan-extra.is-open {
+    max-height: 900px;
+    opacity: 1;
+    border-top-color: rgba(148, 163, 184, 0.6);
+}
+@media (min-width: 768px) {
+    .tahanan-card .card-body {
+        padding: 0.9rem 1rem;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .tahanan-avatar {
+        margin: 0;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-width: 80px;
+    }
+    .tahanan-avatar img,
+    .tahanan-avatar-placeholder {
+        width: 72px;
+        height: 72px;
+    }
+    .tahanan-name {
+        font-size: 1.05rem;
+    }
+}
+.kamar-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    padding: 1rem 1rem 1.05rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #eef2ff, #eff6ff);
+    border: 1px solid rgba(148, 163, 184, 0.55);
+    position: relative;
+    overflow: hidden;
+}
+.kamar-chip,
+.kamar-chip-icon {
+    display: inline-flex;
+    align-items: center;
+}
+.kamar-header::before {
+    content: "";
+    position: absolute;
+    right: -40px;
+    bottom: -40px;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle at center, rgba(37, 99, 235, 0.2), transparent 70%);
+}
+.kamar-header-main {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+.kamar-chip {
+    padding: 0.18rem 0.6rem;
+    background: rgba(37, 99, 235, 0.07);
+    border: 1px solid rgba(129, 140, 248, 0.5);
+    font-size: 0.72rem;
+    color: #1d4ed8;
+}
+.kamar-chip-icon {
+    justify-content: center;
+    font-size: 0.8rem;
+    margin-right: 0.3rem;
+}
+.kamar-title {
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.kamar-title::after {
+    content: "";
+    flex: 0 0 46px;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6366f1, #f97316);
+    opacity: 0.9;
+}
+.kamar-meta {
+    margin-top: 0.45rem;
+    font-size: 0.85rem;
+    color: #4b5563;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+}
+.kamar-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.kamar-meta-icon {
+    font-size: 0.9rem;
+    color: #6366f1;
+}
+.kamar-meta-separator {
+    opacity: 0.6;
+}
+.kamar-header-stats {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 160px;
+}
+.kamar-stat-label {
+    font-weight: 600;
+    color: #6b7280;
+}
+.kamar-stat-value {
+    margin-top: 0.05rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #111827;
+}
+.kamar-stat-icon {
+    font-size: 0.95rem;
+    opacity: 0.8;
+}
+.kamar-stat-badge {
+    padding: 0.15rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(22, 163, 74, 0.06);
+    color: #166534;
+}
+@media (max-width: 575.98px) {
+    .kamar-header {
+        padding: 0.8rem 0.85rem 0.95rem;
+    }
+    .kamar-header-stats {
+        width: 100%;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 0.75rem;
+        margin-top: 0.35rem;
+    }
+}
+.kamar-navbar {
+    background: radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.45), transparent 55%),
+        radial-gradient(circle at 100% 0, rgba(236, 72, 153, 0.35), transparent 55%), rgba(8, 25, 55, 0.96) !important;
+    backdrop-filter: saturate(150%) blur(10px);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.45);
+}
+.topbar-inner {
+    min-height: 64px;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+}
+.topbar-title-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+}
+.topbar-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(226, 232, 240, 0.9);
+    font-weight: 600;
+}
+.topbar-title-text {
+    display: inline-block;
+    color: #f9fafb;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    position: relative;
+}
+.topbar-title-text::after {
+    content: "";
+    display: block;
+    height: 3px;
+    width: 120px;
+    margin-top: 0.16rem;
+    background: linear-gradient(90deg, #38bdf8, #f97316);
+    border-radius: 999px;
+    box-shadow: 0 2px 10px rgba(248, 250, 252, 0.45);
+}
+.topbar-subtitle {
+    font-size: 0.78rem;
+    color: rgba(226, 232, 240, 0.85);
+}
+.topbar-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #e5e7eb;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.75);
+    white-space: nowrap;
+}
+.topbar-badge i {
+    font-size: 0.9rem;
+}
+@media (max-width: 767.98px) {
+    .topbar-inner {
+        min-height: 56px;
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+    }
+    .topbar-badge {
+        display: none;
+    }
+}
+
+  /* ====== PADATKAN HEADER & LIST ====== */
+  .kamar-navbar .topbar-inner{
+    padding:.45rem .75rem;
+  }
+  .topbar-title-text{
+    font-size:1rem;
+    font-weight:600;
+  }
+  .topbar-subtitle{
+    font-size:.75rem;
+    color:rgba(255,255,255,.7);
+  }
+  .topbar-badge{
+    padding:.15rem .55rem;
+    font-size:.75rem;
+  }
+
+/* parent wajib relative supaya ::before-nya nempel ke wrapper, bukan ke body */
+/* parent relative saja, TANPA z-index */
+.wrapper{
+  position: relative;
+}
+
+
+/* default warna lengkungan + tinggi */
+.wrapper.curved{
+  --c1: #4c5a92;   /* warna bawah */
+  --c2: #0e326e;   /* warna atas  */
+  --curve-h: 260px;
+}
+/* Tablet ke atas: kecilkan sedikit */
+@media (min-width: 768px){
+  .wrapper.curved{
+    --curve-h: 220px !important;
+  }
+}
+
+/* Desktop (lebar >= 992px): lebih kecil lagi */
+@media (min-width: 992px){
+  .wrapper.curved{
+    --curve-h: 140px !important; /* dari 180 -> 140, boleh disetel lagi */
+  }
+
+  /* tarik isi sedikit naik supaya lebih nempel ke header */
+  .wrapper.curved .card-box{
+    margin-top: -10px;
+  }
+}
+
+
+/* bentuk lengkungan */
+/* bentuk lengkungan: di bawah konten, tapi tidak negatif */
+.wrapper.curved::before{
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--curve-h);
+  background: linear-gradient(360deg, var(--c1), var(--c2));
+  border-bottom-left-radius: 50% 16%;
+  border-bottom-right-radius: 50% 16%;
+  z-index: 0; /* dari -1 -> 0 */
+  pointer-events: none;
+  filter: drop-shadow(0 18px 36px rgba(16,24,40,.18));
+}
+
+
+/* konten di atas lengkungan, JANGAN override modal */
+.wrapper > *:not(.modal){
+  position: relative;
+  z-index: 1;
+}
+/* pastikan modal tetap seperti bawaan Bootstrap */
+.wrapper .modal{
+  position: fixed;
+}
+
+
+/* kalau mau variasi tinggi */
+.wrapper.curved.curve-sm { --curve-h: 140px; }
+.wrapper.curved.curve-md { --curve-h: 220px; }
+.wrapper.curved.curve-lg { --curve-h: 320px; }
+.wrapper.curved.curve-xl { --curve-h: 420px; }
+
+  .card-box{
+    padding:.75rem .75rem 1rem;
+  }
+
+  .kamar-header{
+    margin-bottom:.75rem;
+  }
+
+  /* baris: "Informasi Kamar" + tombol Atensi KPLP di kanan */
+  .kamar-header-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.2rem;
+    margin-bottom:-0.8rem;
+  }
+  .btn-atensi-kplp{
+    font-size:.75rem;
+    font-weight:600;
+    padding:.2rem .7rem;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
+  .kamar-title{
+    font-size:1.05rem;
+    margin-bottom:.25rem!important;
+  }
+  .kamar-meta{
+    font-size:.8rem;
+  }
+
+  /* FOTO ZOOMABLE */
+  .tahanan-photo{
+    cursor:zoom-in;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .tahanan-photo:hover{
+    transform:scale(1.03);
+    box-shadow:0 0 0 2px rgba(0,0,0,.08);
+  }
+
+  .kamar-header-stats .kamar-stat{
+    margin-bottom:.25rem;
+  }
+  .kamar-stat-label{
+    font-size:.7rem;
+  }
+  .kamar-stat-value{
+    font-size:.85rem;
+  }
+
+  .modal-photo-img{
+    width:100%;
+    max-height:80vh;
+    object-fit:contain;
+    display:block;
+    border-radius:8px;
+  }
+  .modal-photo-body{
+    padding:.5rem .5rem 1rem;
+  }
+  .modal-photo-header{
+    border-bottom:0;
+    padding:.35rem .75rem .15rem;
+  }
+  .modal-photo-close{
+    padding:.25rem .5rem;
+    margin:-.25rem -.25rem -0.25rem auto;
+  }
+
+  .tahanan-list{
+    margin-top:.5rem;
+  }
+
+  .tahanan-card{
+    margin-bottom:.5rem;
+  }
+  .tahanan-card .card-body{
+    padding:.75rem;
+  }
+
+  .tahanan-avatar{
+    margin-right:.75rem;
+  }
+  .tahanan-avatar img,
+  .tahanan-avatar-placeholder{
+    width:60px;
+    height:60px;
+  }
+
+  .tahanan-name{
+    font-size:.95rem;
+    font-weight:600;
+    margin-bottom:.1rem;
+  }
+@media (min-width: 992px){
+  .row.mt-3{
+    margin-top: .75rem !important; /* default Bootstrap mt-3 = 1rem */
+  }
+}
+
+  /* No.Reg tepat di bawah nama */
+  .tahanan-noreg{
+    font-size:.8rem;
+    color:#6c757d;
+    margin-bottom:.4rem;
+  }
+
+  .tahanan-field{
+    margin-bottom:.18rem!important;
+    font-size:.82rem;
+  }
+  .tahanan-field small{
+    display:block;
+    font-size:.7rem;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:#9aa0ac;
+    margin-bottom:1px;
+  }
+
+  /* BARIS KHUSUS: PUTUSAN & EXPIRASI KIRI–KANAN */
+  .tahanan-row-putusan-exp{
+    display:flex;
+    gap:.5rem;
+  }
+  .tahanan-row-putusan-exp > .tahanan-field{
+    flex:1 1 0;
+    margin-bottom:0!important;
+  }
+
+  .tahanan-toggle-wrap{
+    margin-top:.05rem;
+    margin-bottom:.05rem!important; /* override mb-2 bootstrap */
+    display:flex;
+    justify-content:flex-end;
+  }
+  .tahanan-toggle-btn{
+    padding:.15rem .5rem;
+    font-size:12px;
+  }
+
+  .tahanan-extra{
+    margin-top:.05rem;
+    margin-bottom:.05rem!important; /* override mb-2 bootstrap */
+  }
+
+  .kamar-empty{
+    padding:.6rem .75rem;
+    font-size:.85rem;
+  }
+
+  .text-center.mt-3 small{
+    font-size:.75rem;
+  }
+  /* TERISI + tombol Atensi sejajar kiri–kanan */
+/* TERISI + tombol Atensi sejajar kiri–kanan */
+/* Baris: "2 Org" kiri, tombol kanan */
+/* pastikan kolom stats nggak text-right di dalam */
+.kamar-header-stats{
+  text-align: left;
+}
+
+/* TERISI: label di atas, baris di bawah full width */
+.kamar-stat-terisi{
+  text-align: left;
+}
+
+/* Baris: "2 Org" kiri, tombol kanan, full lebar kolom */
+.kamar-stat-terisi .kamar-stat-row{
+  margin-top: .12rem;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  width: 100%;
+}
+
+/* tombol Atensi */
+.kamar-atensi-btn{
+  white-space: nowrap;
+  padding: .25rem .9rem;
+  font-size: .75rem;
+  border-radius: 999px;
+}
+
+/* di layar kecil, biar tombol turun di bawah angka */
+/*@media (max-width: 575.98px){
+  .kamar-stat-terisi .kamar-stat-row{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}*/
+
+/* wrapper stats di kanan */
+.kamar-header-stats{
+  position: relative;
+  z-index: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+
+/* baris label: KAPASITAS   TERISI */
+.kamar-stats-label-row{
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;        /* jarak KAPASITAS–TERISI */
+}
+
+/* label style */
+.kamar-stats-label-row .kamar-stat-label{
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  color: #6b7280;
+}
+
+/* baris nilai: 8   2   [Atensi] */
+.kamar-stats-main-row{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .75rem;         /* jarak antara 8, 2, tombol */
+  flex-wrap: nowrap;   /* paksa sebaris di mobile & desktop */
+}
+
+.kamar-stat-value{
+  font-size: .9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  color: #111827;
+}
+
+.kamar-stat-badge{
+  padding: .15rem .6rem;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.06);
+  color: #166534;
+}
+
+.kamar-atensi-btn{
+  white-space: nowrap;
+  padding: .3rem 1rem;
+  font-size: .78rem;
+  border-radius: 999px;
+}
+
+/* kalau layar SANGAT sempit, boleh dibiarin wrap cantik */
+@media (max-width: 360px){
+  .kamar-stats-main-row{
+    flex-wrap: wrap;
+  }
+}
+
+
+
+</style>
 
 <script>
 (function () {
