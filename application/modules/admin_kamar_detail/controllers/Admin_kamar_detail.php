@@ -125,44 +125,81 @@ class Admin_kamar_detail extends Admin_Controller {
     }
 
     /** Helper upload foto */
-    private function _do_upload($field, $oldFile = '')
-    {
-        // kalau tidak ada file baru -> kembalikan nama lama (atau '' kalau tidak ada)
-        if (empty($_FILES[$field]['name'])) {
-            return $oldFile ?: '';
-        }
-
-        $config = [
-            'upload_path'   => $this->upload_path,
-            'allowed_types' => 'jpg|jpeg|png',
-            'max_size'      => 1024, // 1MB
-            'encrypt_name'  => true,
-        ];
-
-        $this->load->library('upload');
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload($field)) {
-            $err = strip_tags($this->upload->display_errors('', ' '));
-            echo json_encode([
-                "success" => false,
-                "title"   => "Gagal Upload Foto",
-                "pesan"   => $err ?: 'Upload foto gagal'
-            ]);
-            exit;
-        }
-
-        $up = $this->upload->data();
-        $newFile = $up['file_name'];
-
-        // hapus foto lama kalau ada
-        if (!empty($oldFile) && is_file($this->upload_path.$oldFile)) {
-            @unlink($this->upload_path.$oldFile);
-        }
-
-        // PASTIKAN string, bukan null
-        return $newFile ?: ($oldFile ?: '');
+   private function _do_upload($field, $oldFile = null)
+{
+    if (empty($_FILES[$field]['name'])) {
+        return $oldFile; // tidak ada file baru
     }
+
+    $config = [
+        'upload_path'   => $this->upload_path,            // mis: ./uploads/kamar_tahanan/
+        'allowed_types' => 'jpg|jpeg|png',
+        'max_size'      => 2048, // 2MB (boleh disesuaikan)
+        'encrypt_name'  => true,
+    ];
+
+    $this->load->library('upload');
+    $this->upload->initialize($config);
+
+    if (!$this->upload->do_upload($field)) {
+        $err = strip_tags($this->upload->display_errors('', ' '));
+        echo json_encode([
+            "success" => false,
+            "title"   => "Gagal Upload Foto",
+            "pesan"   => $err ?: 'Upload foto gagal'
+        ]);
+        exit;
+    }
+
+    $up      = $this->upload->data();
+    $newFile = $up['file_name'];
+
+    // === AUTO RESIZE + THUMBNAIL ===
+    $this->load->library('image_lib');
+
+    // Pastikan folder thumbnail ada
+    $thumb_path = rtrim($this->upload_path, '/').'/thumb/';
+    if (!is_dir($thumb_path)) {
+        @mkdir($thumb_path, 0755, true);
+    }
+
+    // 1) Resize "full" (batasi max 1200x1200, quality 80%)
+    $config_full = [
+        'image_library'  => 'gd2',
+        'source_image'   => $this->upload_path.$newFile,
+        'maintain_ratio' => true,
+        'width'          => 1200,
+        'height'         => 1200,
+        'quality'        => '80%',
+    ];
+    $this->image_lib->initialize($config_full);
+    $this->image_lib->resize();
+    $this->image_lib->clear();
+
+    // 2) Buat thumbnail (misal 260x260)
+    $config_thumb = [
+        'image_library'  => 'gd2',
+        'source_image'   => $this->upload_path.$newFile,
+        'new_image'      => $thumb_path.$newFile,
+        'maintain_ratio' => true,
+        'width'          => 260,
+        'height'         => 260,
+        'quality'        => '80%',
+    ];
+    $this->image_lib->initialize($config_thumb);
+    $this->image_lib->resize();
+    $this->image_lib->clear();
+
+    // Hapus foto lama kalau ada
+    if ($oldFile) {
+        $oldMain  = $this->upload_path.$oldFile;
+        $oldThumb = $thumb_path.$oldFile;
+        if (is_file($oldMain))  @unlink($oldMain);
+        if (is_file($oldThumb)) @unlink($oldThumb);
+    }
+
+    return $newFile;
+}
 
     public function add()
     {
@@ -302,6 +339,88 @@ class Admin_kamar_detail extends Admin_Controller {
             echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data gagal diupdate"]);
         }
     }
+
+public function generate_thumbnails_kamar_tahanan()
+{
+    // Amankan dulu: hanya boleh dipanggil oleh admin login
+    // (Silakan sesuaikan dengan sistem auth kamu)
+    // if (!$this->session->userdata('logged_in')) show_404();
+
+    $upload_path = FCPATH.'uploads/kamar_tahanan/';
+    $thumb_path  = $upload_path.'thumb/';
+
+    if (!is_dir($thumb_path)) {
+        @mkdir($thumb_path, 0755, true);
+    }
+
+    $this->load->library('image_lib');
+
+    // Ambil semua foto yang ada di tabel
+    $rows = $this->db->select('id_detail, foto')
+                     ->from('kamar_tahanan')
+                     ->where('foto !=', '')
+                     ->get()
+                     ->result();
+
+    echo "<pre>";
+    foreach ($rows as $r) {
+        $file = trim((string)$r->foto);
+        if ($file === '') continue;
+
+        $srcFull  = $upload_path.$file;
+        $dstThumb = $thumb_path.$file;
+
+        if (!is_file($srcFull)) {
+            echo "SKIP (file tidak ada): {$file}\n";
+            continue;
+        }
+
+        // Kalau thumbnail sudah ada, skip
+        if (is_file($dstThumb)) {
+            echo "OK (thumb sudah ada): {$file}\n";
+            continue;
+        }
+
+        // Resize full (optional, biar tidak kegedean)
+        $config_full = [
+            'image_library'  => 'gd2',
+            'source_image'   => $srcFull,
+            'maintain_ratio' => true,
+            'width'          => 1200,
+            'height'         => 1200,
+            'quality'        => '80%',
+        ];
+        $this->image_lib->initialize($config_full);
+        if (!$this->image_lib->resize()) {
+            echo "GAGAL resize full: {$file} -> ".$this->image_lib->display_errors()."\n";
+        } else {
+            echo "OK resize full: {$file}\n";
+        }
+        $this->image_lib->clear();
+
+        // Buat thumbnail 260x260
+        $config_thumb = [
+            'image_library'  => 'gd2',
+            'source_image'   => $srcFull,
+            'new_image'      => $dstThumb,
+            'maintain_ratio' => true,
+            'width'          => 260,
+            'height'         => 260,
+            'quality'        => '80%',
+        ];
+        $this->image_lib->initialize($config_thumb);
+        if (!$this->image_lib->resize()) {
+            echo "GAGAL buat thumb: {$file} -> ".$this->image_lib->display_errors()."\n";
+        } else {
+            echo "OK buat thumb: {$file}\n";
+        }
+        $this->image_lib->clear();
+    }
+
+    echo "SELESAI.\n";
+    echo "</pre>";
+}
+
 
     public function hapus_data()
     {
