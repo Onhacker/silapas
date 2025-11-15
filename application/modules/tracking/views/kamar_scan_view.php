@@ -542,6 +542,14 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
 
 
 
+
+  </div><!-- /.col-lg-12 -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div><!-- /#app-scroll -->
+
+
+
 <!-- MODAL ATENSI KPLP -->
 <div class="modal fade" id="modalAtensi" tabindex="-1" role="dialog" aria-labelledby="modalAtensiLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
@@ -591,11 +599,6 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
     </div>
   </div>
 </div>
-
-  </div><!-- /.col-lg-12 -->
-    </div><!-- /.row -->
-  </div><!-- /.container-fluid -->
-</div><!-- /#app-scroll -->
 <script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>
 <script src="<?= base_url('assets/admin/js/app.min.js') ?>"></script>
 
