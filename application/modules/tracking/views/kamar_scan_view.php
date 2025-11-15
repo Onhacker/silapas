@@ -361,12 +361,12 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
 
                     <!-- TOMBOL SELENGKAPNYA (SELALU DI SINI, DI BAWAH EXPIRASI) -->
                     <?php if ($has_extra): ?>
-                      <div class="mb-2 tahanan-toggle-wrap">
+                     <!--  <div class="mb-2 tahanan-toggle-wrap">
                         <button type="button" class="tahanan-toggle-btn btn btn-soft-primary btn-xs">
                           <span class="tahanan-toggle-text">Detail</span>
                           <span class="tahanan-toggle-icon">▼</span>
                         </button>
-                      </div>
+                      </div> -->
 
                       <!-- KONTEN EXTRA DENGAN ANIMASI -->
                       <div class="mb-2 tahanan-extra">
