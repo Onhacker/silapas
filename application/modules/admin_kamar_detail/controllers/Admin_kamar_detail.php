@@ -118,44 +118,47 @@ class Admin_kamar_detail extends Admin_Controller {
     }
 
     /** Helper upload foto */
-    private function _do_upload($field, $oldFile = null)
-    {
-        if (empty($_FILES[$field]['name'])) {
-            return $oldFile; // tidak ada file baru
-        }
-
-        $config = [
-            'upload_path'   => $this->upload_path,
-            'allowed_types' => 'jpg|jpeg|png',
-            'max_size'      => 1024, // 1MB
-            'encrypt_name'  => true,
-        ];
-
-        $this->load->library('upload');
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload($field)) {
-            $err = strip_tags($this->upload->display_errors('', ' '));
-            echo json_encode([
-                "success" => false,
-                "title"   => "Gagal Upload Foto",
-                "pesan"   => $err ?: 'Upload foto gagal'
-            ]);
-            exit;
-        }
-
-        $up = $this->upload->data();
-        $newFile = $up['file_name'];
-
-        // hapus foto lama kalau ada
-        if ($oldFile && is_file($this->upload_path.$oldFile)) {
-            @unlink($this->upload_path.$oldFile);
-        }
-
-        return $newFile;
+    private function _do_upload($field, $oldFile = '')
+{
+    // kalau tidak ada file baru -> kembalikan nama lama (atau '' kalau tidak ada)
+    if (empty($_FILES[$field]['name'])) {
+        return $oldFile ?: '';
     }
 
-    public function add()
+    $config = [
+        'upload_path'   => $this->upload_path,
+        'allowed_types' => 'jpg|jpeg|png',
+        'max_size'      => 1024, // 1MB
+        'encrypt_name'  => true,
+    ];
+
+    $this->load->library('upload');
+    $this->upload->initialize($config);
+
+    if (!$this->upload->do_upload($field)) {
+        $err = strip_tags($this->upload->display_errors('', ' '));
+        echo json_encode([
+            "success" => false,
+            "title"   => "Gagal Upload Foto",
+            "pesan"   => $err ?: 'Upload foto gagal'
+        ]);
+        exit;
+    }
+
+    $up = $this->upload->data();
+    $newFile = $up['file_name'];
+
+    // hapus foto lama kalau ada
+    if (!empty($oldFile) && is_file($this->upload_path.$oldFile)) {
+        @unlink($this->upload_path.$oldFile);
+    }
+
+    // PASTIKAN string, bukan null
+    return $newFile ?: ($oldFile ?: '');
+}
+
+
+   public function add()
 {
     $data = $this->input->post(NULL, TRUE);
     $this->load->library('form_validation');
@@ -190,10 +193,10 @@ class Admin_kamar_detail extends Admin_Controller {
     }
 
     // ========== FOTO OPSIONAL ==========
-    $foto = null;
+    // default: string kosong, agar tidak NULL
+    $foto = '';
     if (!empty($_FILES['foto']['name'])) {
-        // hanya upload kalau memang ada file
-        $foto = $this->_do_upload('foto', null);
+        $foto = $this->_do_upload('foto', '');
     }
     // ===================================
 
@@ -212,7 +215,7 @@ class Admin_kamar_detail extends Admin_Controller {
         'alamat'         => $data['alamat'] ?? null,
         'status'         => $status,
         'deskripsi'      => $data['deskripsi'] ?? null,
-        'foto'           => $foto, // boleh NULL, artinya tanpa foto
+        'foto'           => $foto, // SELALU string (bisa kosong), tidak null
     ];
 
     $res = $this->db->insert('kamar_tahanan',$ins);
@@ -223,70 +226,75 @@ class Admin_kamar_detail extends Admin_Controller {
     }
 }
 
-    public function update()
-    {
-        $data = $this->input->post(NULL, TRUE);
-        $id   = (int)($data['id_detail'] ?? 0);
 
-        $this->load->library('form_validation');
-        $this->form_validation->set_rules('id_detail','ID','required|integer');
-        $this->form_validation->set_rules('nama','Nama','trim|required|min_length[3]|max_length[150]');
-        $this->form_validation->set_rules('no_reg','No.Reg','trim|required|max_length[50]');
-        $this->form_validation->set_rules('perkara','Perkara','trim|required|max_length[255]');
-        $this->form_validation->set_rules(
-            'status',
-            'Status',
-            'trim|required|in_list[aktif,pindah,bebas,lainnya]'
-        );
+   public function update()
+{
+    $data = $this->input->post(NULL, TRUE);
+    $id   = (int)($data['id_detail'] ?? 0);
 
-        if ($this->form_validation->run() !== TRUE) {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>validation_errors()]);
-            return;
-        }
+    $this->load->library('form_validation');
+    $this->form_validation->set_rules('id_detail','ID','required|integer');
+    $this->form_validation->set_rules('nama','Nama','trim|required|min_length[3]|max_length[150]');
+    $this->form_validation->set_rules('no_reg','No.Reg','trim|required|max_length[50]');
+    $this->form_validation->set_rules('perkara','Perkara','trim|required|max_length[255]');
+    $this->form_validation->set_rules(
+        'status',
+        'Status',
+        'trim|required|in_list[aktif,pindah,bebas,lainnya]'
+    );
 
-        $row = $this->dm->get_by_id($id);
-        if (!$row) {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data tidak ditemukan"]);
-            return;
-        }
-
-        $exp = $data['expirasi'] ?? null;
-        if ($exp === '') $exp = null;
-
-        $status = strtolower($data['status'] ?? $row->status);
-        if (!in_array($status, ['aktif','pindah','bebas','lainnya'], true)) {
-            $status = $row->status;
-        }
-
-        // upload foto (jika ada file baru)
-        $foto = $this->_do_upload('foto', $row->foto);
-
-        $upd = [
-            'nama'           => $data['nama'],
-            'no_reg'         => $data['no_reg'],
-            'perkara'        => $data['perkara'],
-            'putusan_tahun'  => (int)($data['putusan_tahun'] ?? 0),
-            'putusan_bulan'  => (int)($data['putusan_bulan'] ?? 0),
-            'putusan_hari'   => (int)($data['putusan_hari'] ?? 0),
-            'expirasi'       => $exp,
-            'jenis_kelamin'  => $data['jenis_kelamin'] ?? null,
-            'tempat_lahir'   => $data['tempat_lahir'] ?? null,
-            'tanggal_lahir'  => ($data['tanggal_lahir'] ?? '') ?: null,
-            'alamat'         => $data['alamat'] ?? null,
-            'status'         => $status,
-            'deskripsi'      => $data['deskripsi'] ?? null,
-            'updated_at'     => date('Y-m-d H:i:s'),
-            'foto'           => $foto,
-        ];
-
-        $res = $this->db->where('id_detail',$id)->update('kamar_tahanan',$upd);
-
-        if ($res) {
-            echo json_encode(["success"=>true,"title"=>"Berhasil","pesan"=>"Data berhasil diupdate"]);
-        } else {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data gagal diupdate"]);
-        }
+    if ($this->form_validation->run() !== TRUE) {
+        echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>validation_errors()]);
+        return;
     }
+
+    $row = $this->dm->get_by_id($id);
+    if (!$row) {
+        echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data tidak ditemukan"]);
+        return;
+    }
+
+    $exp = $data['expirasi'] ?? null;
+    if ($exp === '') $exp = null;
+
+    $status = strtolower($data['status'] ?? $row->status);
+    if (!in_array($status, ['aktif','pindah','bebas','lainnya'], true)) {
+        $status = $row->status;
+    }
+
+    // pastikan foto lama tidak null
+    $currentFoto = $row->foto ?: '';
+
+    // upload foto (jika ada file baru) -> kalau tidak ada, tetap pakai foto lama (string kosong pun oke)
+    $foto = $this->_do_upload('foto', $currentFoto) ?: '';
+
+    $upd = [
+        'nama'           => $data['nama'],
+        'no_reg'         => $data['no_reg'],
+        'perkara'        => $data['perkara'],
+        'putusan_tahun'  => (int)($data['putusan_tahun'] ?? 0),
+        'putusan_bulan'  => (int)($data['putusan_bulan'] ?? 0),
+        'putusan_hari'   => (int)($data['putusan_hari'] ?? 0),
+        'expirasi'       => $exp,
+        'jenis_kelamin'  => $data['jenis_kelamin'] ?? null,
+        'tempat_lahir'   => $data['tempat_lahir'] ?? null,
+        'tanggal_lahir'  => ($data['tanggal_lahir'] ?? '') ?: null,
+        'alamat'         => $data['alamat'] ?? null,
+        'status'         => $status,
+        'deskripsi'      => $data['deskripsi'] ?? null,
+        'updated_at'     => date('Y-m-d H:i:s'),
+        'foto'           => $foto,
+    ];
+
+    $res = $this->db->where('id_detail',$id)->update('kamar_tahanan',$upd);
+
+    if ($res) {
+        echo json_encode(["success"=>true,"title"=>"Berhasil","pesan"=>"Data berhasil diupdate"]);
+    } else {
+        echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data gagal diupdate"]);
+    }
+}
+
 
    public function hapus_data()
 {
