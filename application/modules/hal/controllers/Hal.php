@@ -27,6 +27,23 @@ class Hal extends MX_Controller {
 
 	}
 
+
+	public function hasil_survey(){
+	    $data["rec"]       = $this->fm->web_me();
+	    $data["title"]     = "Hasil Survey";
+	    $data["deskripsi"] = "Hasil Survey";
+	    $data["prev"]      = base_url("assets/images/icon_app.png");
+
+	    // ambil daftar survey (bulan & link_survey)
+	    $data["survey_list"] = $this->db
+	        ->order_by('bulan','DESC')
+	        ->get('survey')
+	        ->result();
+
+	    $this->load->view('hasil_survey',$data);
+	}
+
+
 	function semua_menu(){
 		$data["rec"]       = $this->fm->web_me();
 		$data["title"]     = "Semua Menu";

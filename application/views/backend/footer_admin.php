@@ -220,6 +220,9 @@ if (!function_exists('nav_class')) {
           <a href="<?= base_url('admin_profil/detail_profil') ?>" class="menu-item">
             <i class="fas fa-user-circle"></i><span>Profil</span>
           </a>
+          <a href="<?= base_url('admin_survey') ?>" class="menu-item">
+            <i class="fas fa-user-circle"></i><span>Survey</span>
+          </a>
 
           <!-- Booking -->
           <a href="<?= base_url('booking') ?>" class="menu-item">

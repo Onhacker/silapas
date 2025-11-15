@@ -35,6 +35,8 @@ class Api extends MX_Controller {
         'require'=>['Admin Permohonan','admin_permohonan'] ],
         [ 'label'=>'Qr Kamar',       'url'=>site_url('admin_kamar'),        'icon'=>'fe-eye',
         'require'=>['Qr Kamar','admin_kamar'] ],
+        [ 'label'=>'Survey',       'url'=>site_url('admin_survey'),        'icon'=>'fe-eye',
+        'require'=>['Survey','admin_survey'] ],
     ];
 
     // Opsi group admin (hanya muncul jika user punya akses child-nya)
@@ -145,6 +147,15 @@ public function get_menu_mobile()
             'icon'    => 'fe-file-text',
             'require' => ['admin_permohonan'] // cukup link modul
         ],
+
+        [
+            'id'      => 'admin_survey',
+            'label'   => 'Surevy',
+            'url'     => site_url('admin_survey'),
+            'icon'    => 'fe-file-text',
+            'require' => ['admin_survey'] // cukup link modul
+        ],
+
         [
             'id'      => 'admin_scan',
             'label'   => 'Checkin/Checkout',
