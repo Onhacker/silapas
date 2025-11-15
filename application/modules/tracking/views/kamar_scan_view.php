@@ -394,7 +394,7 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
   </div>
 
 
-                <div class="card-body">
+                <div class="card-body card-box">
                   <!-- FOTO + NAMA + NO.REG (mobile) -->
                   <div class="tahanan-avatar">
                     <?php if ($fotoThumb): ?>
