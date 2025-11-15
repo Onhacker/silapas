@@ -125,16 +125,17 @@ class Admin_kamar_detail extends Admin_Controller {
     }
 
     /** Helper upload foto */
-   private function _do_upload($field, $oldFile = null)
+ /** Helper upload foto */
+private function _do_upload($field, $oldFile = null)
 {
     if (empty($_FILES[$field]['name'])) {
         return $oldFile; // tidak ada file baru
     }
 
     $config = [
-        'upload_path'   => $this->upload_path,            // mis: ./uploads/kamar_tahanan/
+        'upload_path'   => $this->upload_path,            // ./uploads/kamar_tahanan/
         'allowed_types' => 'jpg|jpeg|png',
-        'max_size'      => 2048, // 2MB (boleh disesuaikan)
+        'max_size'      => 2048, // 2MB (kalau mau benar2 mentah besar, silakan dibesarkan)
         'encrypt_name'  => true,
     ];
 
@@ -152,9 +153,9 @@ class Admin_kamar_detail extends Admin_Controller {
     }
 
     $up      = $this->upload->data();
-    $newFile = $up['file_name'];
+    $newFile = $up['file_name'];      // <-- ini file FULL mentah dari upload
 
-    // === AUTO RESIZE + THUMBNAIL ===
+    // === HANYA BUAT THUMBNAIL, FULL TIDAK DIRESIZE ===
     $this->load->library('image_lib');
 
     // Pastikan folder thumbnail ada
@@ -163,34 +164,21 @@ class Admin_kamar_detail extends Admin_Controller {
         @mkdir($thumb_path, 0755, true);
     }
 
-    // 1) Resize "full" (batasi max 1200x1200, quality 80%)
-    $config_full = [
-        'image_library'  => 'gd2',
-        'source_image'   => $this->upload_path.$newFile,
-        'maintain_ratio' => true,
-        'width'          => 1200,
-        'height'         => 1200,
-        'quality'        => '80%',
-    ];
-    $this->image_lib->initialize($config_full);
-    $this->image_lib->resize();
-    $this->image_lib->clear();
-
-    // 2) Buat thumbnail (misal 260x260)
+    // Buat thumbnail (misal 260x260) dari file full
     $config_thumb = [
         'image_library'  => 'gd2',
-        'source_image'   => $this->upload_path.$newFile,
-        'new_image'      => $thumb_path.$newFile,
+        'source_image'   => $this->upload_path.$newFile,   // pakai file full
+        'new_image'      => $thumb_path.$newFile,          // simpan ke /thumb
         'maintain_ratio' => true,
         'width'          => 260,
         'height'         => 260,
-        'quality'        => '80%',
+        'quality'        => '80%',                         // kompres thumbnail saja
     ];
     $this->image_lib->initialize($config_thumb);
     $this->image_lib->resize();
     $this->image_lib->clear();
 
-    // Hapus foto lama kalau ada
+    // Hapus foto lama kalau ada (full + thumb)
     if ($oldFile) {
         $oldMain  = $this->upload_path.$oldFile;
         $oldThumb = $thumb_path.$oldFile;
@@ -198,8 +186,9 @@ class Admin_kamar_detail extends Admin_Controller {
         if (is_file($oldThumb)) @unlink($oldThumb);
     }
 
-    return $newFile;
+    return $newFile; // di DB tetap simpan nama file FULL
 }
+
 
     public function add()
     {
@@ -342,8 +331,6 @@ class Admin_kamar_detail extends Admin_Controller {
 
 public function generate_thumbnails_kamar_tahanan()
 {
-    // Amankan dulu: hanya boleh dipanggil oleh admin login
-    // (Silakan sesuaikan dengan sistem auth kamu)
     // if (!$this->session->userdata('logged_in')) show_404();
 
     $upload_path = FCPATH.'uploads/kamar_tahanan/';
@@ -381,24 +368,7 @@ public function generate_thumbnails_kamar_tahanan()
             continue;
         }
 
-        // Resize full (optional, biar tidak kegedean)
-        $config_full = [
-            'image_library'  => 'gd2',
-            'source_image'   => $srcFull,
-            'maintain_ratio' => true,
-            'width'          => 1200,
-            'height'         => 1200,
-            'quality'        => '80%',
-        ];
-        $this->image_lib->initialize($config_full);
-        if (!$this->image_lib->resize()) {
-            echo "GAGAL resize full: {$file} -> ".$this->image_lib->display_errors()."\n";
-        } else {
-            echo "OK resize full: {$file}\n";
-        }
-        $this->image_lib->clear();
-
-        // Buat thumbnail 260x260
+        // HANYA BUAT THUMBNAIL, FULL TIDAK DIRESIZE
         $config_thumb = [
             'image_library'  => 'gd2',
             'source_image'   => $srcFull,
@@ -420,6 +390,7 @@ public function generate_thumbnails_kamar_tahanan()
     echo "SELESAI.\n";
     echo "</pre>";
 }
+
 
 
     public function hapus_data()
