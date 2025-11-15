@@ -89,14 +89,16 @@
 
     /* Skeleton shimmer untuk modal foto */
 .photo-skeleton{
-  width:260px;
-  height:260px;
+  width:100%;
+  max-width:420px;
+  aspect-ratio:3/4;     /* kira-kira proporsi foto manusia */
   margin:0 auto 0.5rem;
-  border-radius:999px; /* bulat */
+  border-radius:8px;    /* sama seperti foto full */
   background:linear-gradient(90deg,#1f2937 25%,#374151 37%,#1f2937 63%);
   background-size:400% 100%;
   animation:skeleton-wave 1.4s ease-in-out infinite;
 }
+
 
 @keyframes skeleton-wave{
   0%{
