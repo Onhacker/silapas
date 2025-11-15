@@ -170,7 +170,7 @@
             </div>
 
             <!-- Data Lain -->
-            <div class="form-row mb-2">
+           <!--  <div class="form-row mb-2">
               <div class="form-group col-md-4">
                 <label>Jenis Kelamin</label>
                 <select name="jenis_kelamin" id="jenis_kelamin" class="form-control">
@@ -187,20 +187,20 @@
                 <label>Tanggal Lahir</label>
                 <input type="date" class="form-control" name="tanggal_lahir" id="tanggal_lahir">
               </div>
-            </div>
+            </div> -->
 
             <!-- Alamat -->
-            <div class="form-group mb-2">
+            <!-- <div class="form-group mb-2">
               <label>Alamat</label>
               <textarea class="form-control" name="alamat" id="alamat" rows="2"></textarea>
-            </div>
+            </div> -->
 
             <!-- Deskripsi -->
-            <div class="form-group mb-2">
+           <!--  <div class="form-group mb-2">
               <label>Deskripsi</label>
               <textarea class="form-control" name="deskripsi" id="deskripsi" rows="3" placeholder="catatan tambahan"></textarea>
             </div>
-
+ -->
           </form>
         </div>
 
