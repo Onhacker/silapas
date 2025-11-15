@@ -30,8 +30,8 @@ class Hal extends MX_Controller {
 
 	public function hasil_survey(){
 	    $data["rec"]       = $this->fm->web_me();
-	    $data["title"]     = "Hasil Survey";
-	    $data["deskripsi"] = "Hasil Survey";
+	    $data["title"]     = "Survey";
+	    $data["deskripsi"] = "Hasil Survey Survey Kepuasan Masyarakat ".$data["rec"]->type.". .";
 	    $data["prev"]      = base_url("assets/images/icon_app.png");
 
 	    // ambil daftar survey (bulan & link_survey)
