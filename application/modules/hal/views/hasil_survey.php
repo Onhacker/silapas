@@ -102,47 +102,11 @@ if (!function_exists('bulan_tahun_indo')) {
           <div class="row align-items-center mb-3">
             <!-- Keterangan di kiri -->
             <div class="col-lg-7 mb-3 mb-lg-0">
-              <div class="skm-badge">
-                <i class="fe-smile"></i> Survey Kepuasan Masyarakat
-              </div>
-              <p class="skm-title mt-2">Ikuti Survey Kepuasan Masyarakat</p>
-              <p class="skm-desc">
-                Bantu kami meningkatkan kualitas layanan dengan mengisi survey kepuasan masyarakat.
-                Pengisian hanya membutuhkan beberapa menit.
-              </p>
-            </div>
-
-            <!-- Barcode + tombol di kanan -->
-            <div class="col-lg-5">
-              <div class="skm-qr-wrap">
-                <!-- Barcode / QR -->
-                <img src="<?= base_url('assets/images/survey.jpeg'); ?>"
-                     alt="Barcode Survey Kepuasan Masyarakat"
-                     class="skm-qr-img">
-
-                <div class="skm-qr-caption">
-                  Scan barcode di atas untuk mengisi survey,<br>
-                  atau klik tombol di bawah.
-                </div>
-
-                <!-- Tombol Isi Survey (diperkecil, tanpa btn-lg) -->
-                <a href="https://star-survei3a.kemenimipas.go.id/ly/91QpdXUo"
-                   target="_blank"
-                   rel="noopener"
-                   class="btn btn-success btn-rounded skm-btn-isi">
-                  <i class="fe-edit-3 mr-1"></i>
-                  Isi Survey Kepuasan Masyarakat
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- <hr class="my-3"> -->
-
-          <!-- Judul Hasil Survey -->
+               <!-- Judul Hasil Survey -->
           <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2">
             <div>
-              <h4 class="mb-1">Hasil Survey Kepuasan Masyarakat</h4>
+              <p class="skm-title mt-2">Hasil Survey Kepuasan Masyarakat</p>
+              <!-- <h4 class="mb-1">Hasil Survey Kepuasan Masyarakat</h4> -->
               <small class="text-muted">
                 Pilih bulan dan tahun untuk melihat ringkasan hasil survey.
               </small>
@@ -182,6 +146,44 @@ if (!function_exists('bulan_tahun_indo')) {
               </div>
             </div>
           </div>
+              <div class="skm-badge mt-2">
+                <i class="fe-smile"></i> Survey Kepuasan Masyarakat
+              </div>
+              <p class="skm-title mt-2">Ikuti Survey Kepuasan Masyarakat</p>
+              <p class="skm-desc">
+                Bantu kami meningkatkan kualitas layanan dengan mengisi survey kepuasan masyarakat.
+                Pengisian hanya membutuhkan beberapa menit.
+              </p>
+            </div>
+
+            <!-- Barcode + tombol di kanan -->
+            <div class="col-lg-5">
+              <div class="skm-qr-wrap">
+                <!-- Barcode / QR -->
+                <img src="<?= base_url('assets/images/survey.jpeg'); ?>"
+                     alt="Barcode Survey Kepuasan Masyarakat"
+                     class="skm-qr-img">
+
+                <div class="skm-qr-caption">
+                  Scan barcode di atas untuk mengisi survey,<br>
+                  atau klik tombol di bawah.
+                </div>
+
+                <!-- Tombol Isi Survey (diperkecil, tanpa btn-lg) -->
+                <a href="https://star-survei3a.kemenimipas.go.id/ly/91QpdXUo"
+                   target="_blank"
+                   rel="noopener"
+                   class="btn btn-success btn-rounded skm-btn-isi">
+                  <i class="fe-edit-3 mr-1"></i>
+                  Isi Survey Kepuasan Masyarakat
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- <hr class="my-3"> -->
+
+         
 
         </div> <!-- /.skm-wrapper -->
 
