@@ -50,7 +50,7 @@
 <body class="menubar-gradient gradient-topbar topbar-dark">
 <header id="topnav">
   <!-- OVERLAY BLOKIR LANDSCAPE -->
-<div class="landscape-guard d-md-none" id="landscapeGuard">
+<div class="landscape-guard" id="landscapeGuard">
   <div class="landscape-guard-inner">
     <div class="landscape-guard-icon">
       <i class="fe-rotate-ccw"></i>
@@ -186,11 +186,11 @@ body {
 /* ===== Blokir tampilan landscape di perangkat kecil (misal iPhone) ===== */
 .landscape-guard{
   position:fixed;
-  inset:0;               /* top:0; right:0; bottom:0; left:0; */
-  z-index:12000;         /* di atas header, konten, dan modal */
-  background:#020617;    /* hampir hitam */
+  inset:0;
+  z-index:12000;
+  background:#020617;
   color:#e5e7eb;
-  display:none;          /* default: tidak tampil */
+  display:none;          /* default: sembunyi */
   align-items:center;
   justify-content:center;
   text-align:center;
@@ -220,12 +220,18 @@ body {
   opacity:.85;
 }
 
-/* Hanya aktif saat LANDSCAPE di layar kecil (HP) */
-@media (orientation: landscape) and (max-width: 768px){
+/* AKTIF SAAT LANDSCAPE DI LAYAR APA PUN */
+@media screen and (orientation: landscape){
   .landscape-guard{
     display:flex;
   }
+
+  /* opsional: biar konten belakang tidak bisa discroll */
+  body{
+    overflow:hidden;
+  }
 }
+
 
 </style>
 
