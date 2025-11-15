@@ -49,6 +49,21 @@
 
 <body class="menubar-gradient gradient-topbar topbar-dark">
 <header id="topnav">
+  <!-- OVERLAY BLOKIR LANDSCAPE -->
+<div class="landscape-guard d-md-none" id="landscapeGuard">
+  <div class="landscape-guard-inner">
+    <div class="landscape-guard-icon">
+      <i class="fe-rotate-ccw"></i>
+    </div>
+    <div class="landscape-guard-title">
+      Gunakan Mode Potret
+    </div>
+    <div class="landscape-guard-text">
+      Halaman ini hanya dapat diakses dalam posisi tegak (portrait).
+      <br>Silakan putar ponsel Anda ke atas.
+    </div>
+  </div>
+</div>
   <div class="navbar-custom kamar-navbar">
     <div class="container-fluid">
       <div class="topbar-inner d-flex align-items-center justify-content-between">
@@ -167,6 +182,49 @@ body {
   border-width:8px 8px 0 0;
   border-style:solid;
   border-color:#184183 transparent transparent transparent;
+}
+/* ===== Blokir tampilan landscape di perangkat kecil (misal iPhone) ===== */
+.landscape-guard{
+  position:fixed;
+  inset:0;               /* top:0; right:0; bottom:0; left:0; */
+  z-index:12000;         /* di atas header, konten, dan modal */
+  background:#020617;    /* hampir hitam */
+  color:#e5e7eb;
+  display:none;          /* default: tidak tampil */
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:1.5rem;
+  font-family:inherit;
+}
+
+.landscape-guard-inner{
+  max-width:320px;
+  margin:0 auto;
+}
+
+.landscape-guard-icon{
+  font-size:2.5rem;
+  margin-bottom:0.75rem;
+  display:inline-block;
+}
+
+.landscape-guard-title{
+  font-size:1.05rem;
+  font-weight:700;
+  margin-bottom:0.25rem;
+}
+
+.landscape-guard-text{
+  font-size:.85rem;
+  opacity:.85;
+}
+
+/* Hanya aktif saat LANDSCAPE di layar kecil (HP) */
+@media (orientation: landscape) and (max-width: 768px){
+  .landscape-guard{
+    display:flex;
+  }
 }
 
 </style>
