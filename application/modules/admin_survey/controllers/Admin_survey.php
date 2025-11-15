@@ -29,40 +29,77 @@ class Admin_survey extends Admin_Controller {
 
     /** DataTables server-side */
     public function get_dataa()
-    {
-        $list = $this->dm->get_data();
-        $data = [];
-        foreach ($list as $r) {
-            $row = [];
-            $row['cek'] = '<div class="checkbox checkbox-primary checkbox-single">'
-                        . '<input type="checkbox" class="data-check" value="'.(int)$r->id.'"><label></label>'
-                        . '</div>';
-            $row['no']  = ''; // diisi rowCallback
+{
+    $list = $this->dm->get_data();
+    $data = [];
 
-            // bulan (langsung dari DB, ex: 2025-11)
-            $row['bulan'] = htmlspecialchars($r->bulan, ENT_QUOTES, 'UTF-8');
+    foreach ($list as $r) {
+        $row = [];
+        $row['cek'] = '<div class="checkbox checkbox-primary checkbox-single">'
+                    . '<input type="checkbox" class="data-check" value="'.(int)$r->id.'"><label></label>'
+                    . '</div>';
+        $row['no']  = ''; // diisi rowCallback
 
-            // link_survey jadi link yang bisa diklik
+        /* ==========
+         * FORMAT BULAN (YYYY-MM -> "November 2025")
+         * ========== */
+        $blnIndo = '-';
+        if (!empty($r->bulan)) {
+            $parts = explode('-', $r->bulan); // ex: 2025-11
+            if (count($parts) >= 2) {
+                $tahun = $parts[0];
+                $bulan = (int)$parts[1];
+
+                $nama_bulan = [
+                    '', 'Januari','Februari','Maret','April','Mei','Juni',
+                    'Juli','Agustus','September','Oktober','November','Desember'
+                ];
+
+                if ($bulan >= 1 && $bulan <= 12) {
+                    $blnIndo = $nama_bulan[$bulan].' '.$tahun;
+                } else {
+                    $blnIndo = htmlspecialchars($r->bulan, ENT_QUOTES, 'UTF-8');
+                }
+            } else {
+                $blnIndo = htmlspecialchars($r->bulan, ENT_QUOTES, 'UTF-8');
+            }
+        }
+        $row['bulan'] = $blnIndo;
+
+        /* ==========
+         * LINK SURVEY -> TOMBOL KECIL
+         * ========== */
+        $row['link_survey'] = '<span class="text-muted">-</span>';
+        if (!empty($r->link_survey)) {
             $link_safe = htmlspecialchars($r->link_survey, ENT_QUOTES, 'UTF-8');
-            $row['link_survey'] = '<a href="'.$link_safe.'" target="_blank" rel="noopener">'.$link_safe.'</a>';
 
-            $btnEdit = '<button type="button" class="btn btn-sm btn-warning" onclick="edit('.(int)$r->id.')">'
-                     . '<i class="fe-edit"></i> Edit</button>';
-
-            $row['aksi'] = $btnEdit;
-
-            $data[] = $row;
+            // tombol kecil, icon saja biar simple
+            $row['link_survey'] =
+                '<a href="'.$link_safe.'" target="_blank" rel="noopener" '.
+                'class="btn btn-xs btn-info waves-effect waves-light" title="Buka link survey">'.
+                    '<i class="fe-external-link"></i>'.
+                '</a>';
         }
 
-        $out = [
-            "draw"            => (int)$this->input->post('draw'),
-            "recordsTotal"    => $this->dm->count_all(),
-            "recordsFiltered" => $this->dm->count_filtered(),
-            "data"            => $data,
-        ];
-        $this->output->set_content_type('application/json')
-                     ->set_output(json_encode($out));
+        $btnEdit = '<button type="button" class="btn btn-sm btn-warning" onclick="edit('.(int)$r->id.')">'
+                 . '<i class="fe-edit"></i> Edit</button>';
+
+        $row['aksi'] = $btnEdit;
+
+        $data[] = $row;
     }
+
+    $out = [
+        "draw"            => (int)$this->input->post('draw'),
+        "recordsTotal"    => $this->dm->count_all(),
+        "recordsFiltered" => $this->dm->count_filtered(),
+        "data"            => $data,
+    ];
+
+    $this->output->set_content_type('application/json')
+                 ->set_output(json_encode($out));
+}
+
 
     /** Ambil satu baris untuk form edit */
     public function get_one($id)
