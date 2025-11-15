@@ -46,20 +46,21 @@
         <div class="card-body">
 
           <div class="button-list mb-2">
-          <button type="button" onclick="kembali()" class="btn btn-warning btn-xs waves-effect waves-light">
-  <span class="btn-label"><i class="fe-arrow-left"></i></span>Kembali
-</button>
+            <button type="button" onclick="kembali()" class="btn btn-warning btn-xs waves-effect waves-light">
+              <span class="btn-label"><i class="fe-arrow-left"></i></span>Kembali
+            </button>
 
-<button type="button" onclick="add()" class="btn btn-success btn-xs waves-effect waves-light">
-  <span class="btn-label"><i class="fe-plus-circle"></i></span>Tambah Tahanan
-</button>
-<button type="button" onclick="refresh()" class="btn btn-info btn-xs waves-effect waves-light">
-  <span class="btn-label"><i class="fe-refresh-ccw"></i></span>Refresh
-</button>
-<button type="button" onclick="hapus_data()" class="btn btn-danger btn-xs waves-effect waves-light">
-  <span class="btn-label"><i class="fa fa-trash"></i></span>Hapus
-</button>
+            <button type="button" onclick="add()" class="btn btn-success btn-xs waves-effect waves-light">
+              <span class="btn-label"><i class="fe-plus-circle"></i></span>Tambah Tahanan
+            </button>
 
+            <button type="button" onclick="refresh()" class="btn btn-info btn-xs waves-effect waves-light">
+              <span class="btn-label"><i class="fe-refresh-ccw"></i></span>Refresh
+            </button>
+
+            <button type="button" onclick="hapus_data()" class="btn btn-danger btn-xs waves-effect waves-light">
+              <span class="btn-label"><i class="fa fa-trash"></i></span>Hapus
+            </button>
           </div>
 
           <hr>
@@ -131,17 +132,16 @@
             </div>
 
             <!-- Status -->
-         <div class="form-group mb-3">
-  <label for="status_tahanan">Status</label>
-  <select name="status" id="status_tahanan" class="form-control" required>
-    <option value="">-- Pilih Status --</option>
-    <option value="aktif">Aktif</option>
-    <option value="pindah">Pindah</option>
-    <option value="bebas">Bebas</option>
-    <option value="lainnya">Lainnya</option>
-  </select>
-</div>
-
+            <div class="form-group mb-3">
+              <label for="status_tahanan">Status</label>
+              <select name="status" id="status_tahanan" class="form-control" required>
+                <option value="">-- Pilih Status --</option>
+                <option value="aktif">Aktif</option>
+                <option value="pindah">Pindah</option>
+                <option value="bebas">Bebas</option>
+                <option value="lainnya">Lainnya</option>
+              </select>
+            </div>
 
             <!-- No Reg -->
             <div class="form-group mb-2">
@@ -155,26 +155,18 @@
               <input type="text" class="form-control" name="perkara" id="perkara" required>
             </div>
 
-            <!-- Putusan -->
-            <div class="form-row mb-2">
-              <div class="form-group col-md-4">
-                <label>Putusan Tahun</label>
-                <input type="number" class="form-control" name="putusan_tahun" id="putusan_tahun" value="0" min="0">
-              </div>
-              <div class="form-group col-md-4">
-                <label>Putusan Bulan</label>
-                <input type="number" class="form-control" name="putusan_bulan" id="putusan_bulan" value="0" min="0">
-              </div>
-              <div class="form-group col-md-4">
-                <label>Putusan Hari</label>
-                <input type="number" class="form-control" name="putusan_hari" id="putusan_hari" value="0" min="0">
-              </div>
+            <!-- Putusan (text) -->
+            <div class="form-group mb-2">
+              <label>Putusan</label>
+              <input type="text" class="form-control" name="putusan" id="putusan"
+                     placeholder="contoh: 2 tahun 3 bulan 10 hari">
             </div>
 
-            <!-- Expirasi -->
+            <!-- Expirasi (text) -->
             <div class="form-group mb-2">
-              <label>Expirasi (Tanggal)</label>
-              <input type="date" class="form-control" name="expirasi" id="expirasi">
+              <label>Expirasi</label>
+              <input type="text" class="form-control" name="expirasi" id="expirasi"
+                     placeholder="contoh: 12-12-2025">
             </div>
 
             <!-- Data Lain -->
@@ -318,9 +310,7 @@ function edit(id) {
       $('#nama').val(d.nama);
       $('#no_reg').val(d.no_reg);
       $('#perkara').val(d.perkara);
-      $('#putusan_tahun').val(d.putusan_tahun);
-      $('#putusan_bulan').val(d.putusan_bulan);
-      $('#putusan_hari').val(d.putusan_hari);
+      $('#putusan').val(d.putusan);
       $('#expirasi').val(d.expirasi);
       $('#jenis_kelamin').val(d.jenis_kelamin);
       $('#tempat_lahir').val(d.tempat_lahir);
@@ -425,8 +415,8 @@ function hapus_data() {
     });
   });
 }
+
 function kembali(){
   window.location.href = "<?= site_url('admin_kamar'); ?>";
 }
-
 </script>
