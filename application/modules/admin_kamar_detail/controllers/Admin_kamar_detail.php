@@ -156,67 +156,72 @@ class Admin_kamar_detail extends Admin_Controller {
     }
 
     public function add()
-    {
-        $data = $this->input->post(NULL, TRUE);
-        $this->load->library('form_validation');
+{
+    $data = $this->input->post(NULL, TRUE);
+    $this->load->library('form_validation');
 
-        $this->form_validation->set_rules('id_kamar','Kamar','required|integer');
-        $this->form_validation->set_rules('nama','Nama','trim|required|min_length[3]|max_length[150]');
-        $this->form_validation->set_rules('no_reg','No.Reg','trim|required|max_length[50]');
-        $this->form_validation->set_rules('perkara','Perkara','trim|required|max_length[255]');
-        $this->form_validation->set_rules('putusan_tahun','Putusan Tahun','trim|integer');
-        $this->form_validation->set_rules('putusan_bulan','Putusan Bulan','trim|integer');
-        $this->form_validation->set_rules('putusan_hari','Putusan Hari','trim|integer');
-        $this->form_validation->set_rules(
-            'status',
-            'Status',
-            'trim|required|in_list[aktif,pindah,bebas,lainnya]'
-        );
+    $this->form_validation->set_rules('id_kamar','Kamar','required|integer');
+    $this->form_validation->set_rules('nama','Nama','trim|required|min_length[3]|max_length[150]');
+    $this->form_validation->set_rules('no_reg','No.Reg','trim|required|max_length[50]');
+    $this->form_validation->set_rules('perkara','Perkara','trim|required|max_length[255]');
+    $this->form_validation->set_rules('putusan_tahun','Putusan Tahun','trim|integer');
+    $this->form_validation->set_rules('putusan_bulan','Putusan Bulan','trim|integer');
+    $this->form_validation->set_rules('putusan_hari','Putusan Hari','trim|integer');
+    $this->form_validation->set_rules(
+        'status',
+        'Status',
+        'trim|required|in_list[aktif,pindah,bebas,lainnya]'
+    );
 
-        $this->form_validation->set_message('required','* %s harus diisi');
-        $this->form_validation->set_error_delimiters('<br> ',' ');
+    $this->form_validation->set_message('required','* %s harus diisi');
+    $this->form_validation->set_error_delimiters('<br> ',' ');
 
-        if ($this->form_validation->run() !== TRUE) {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>validation_errors()]);
-            return;
-        }
-
-        $exp = $data['expirasi'] ?? null;
-        if ($exp === '') $exp = null;
-
-        $status = strtolower($data['status'] ?? 'aktif');
-        if (!in_array($status, ['aktif','pindah','bebas','lainnya'], true)) {
-            $status = 'aktif';
-        }
-
-        // upload foto (kalau ada)
-        $foto = $this->_do_upload('foto', null);
-
-        $ins = [
-            'id_kamar'       => (int)$data['id_kamar'],
-            'nama'           => $data['nama'],
-            'no_reg'         => $data['no_reg'],
-            'perkara'        => $data['perkara'],
-            'putusan_tahun'  => (int)($data['putusan_tahun'] ?? 0),
-            'putusan_bulan'  => (int)($data['putusan_bulan'] ?? 0),
-            'putusan_hari'   => (int)($data['putusan_hari'] ?? 0),
-            'expirasi'       => $exp,
-            'jenis_kelamin'  => $data['jenis_kelamin'] ?? null,
-            'tempat_lahir'   => $data['tempat_lahir'] ?? null,
-            'tanggal_lahir'  => ($data['tanggal_lahir'] ?? '') ?: null,
-            'alamat'         => $data['alamat'] ?? null,
-            'status'         => $status,
-            'deskripsi'      => $data['deskripsi'] ?? null,
-            'foto'           => $foto,
-        ];
-
-        $res = $this->db->insert('kamar_tahanan',$ins);
-        if ($res) {
-            echo json_encode(["success"=>true,"title"=>"Berhasil","pesan"=>"Data tahanan berhasil disimpan"]);
-        } else {
-            echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data gagal disimpan"]);
-        }
+    if ($this->form_validation->run() !== TRUE) {
+        echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>validation_errors()]);
+        return;
     }
+
+    $exp = $data['expirasi'] ?? null;
+    if ($exp === '') $exp = null;
+
+    $status = strtolower($data['status'] ?? 'aktif');
+    if (!in_array($status, ['aktif','pindah','bebas','lainnya'], true)) {
+        $status = 'aktif';
+    }
+
+    // ========== FOTO OPSIONAL ==========
+    $foto = null;
+    if (!empty($_FILES['foto']['name'])) {
+        // hanya upload kalau memang ada file
+        $foto = $this->_do_upload('foto', null);
+    }
+    // ===================================
+
+    $ins = [
+        'id_kamar'       => (int)$data['id_kamar'],
+        'nama'           => $data['nama'],
+        'no_reg'         => $data['no_reg'],
+        'perkara'        => $data['perkara'],
+        'putusan_tahun'  => (int)($data['putusan_tahun'] ?? 0),
+        'putusan_bulan'  => (int)($data['putusan_bulan'] ?? 0),
+        'putusan_hari'   => (int)($data['putusan_hari'] ?? 0),
+        'expirasi'       => $exp,
+        'jenis_kelamin'  => $data['jenis_kelamin'] ?? null,
+        'tempat_lahir'   => $data['tempat_lahir'] ?? null,
+        'tanggal_lahir'  => ($data['tanggal_lahir'] ?? '') ?: null,
+        'alamat'         => $data['alamat'] ?? null,
+        'status'         => $status,
+        'deskripsi'      => $data['deskripsi'] ?? null,
+        'foto'           => $foto, // boleh NULL, artinya tanpa foto
+    ];
+
+    $res = $this->db->insert('kamar_tahanan',$ins);
+    if ($res) {
+        echo json_encode(["success"=>true,"title"=>"Berhasil","pesan"=>"Data tahanan berhasil disimpan"]);
+    } else {
+        echo json_encode(["success"=>false,"title"=>"Gagal","pesan"=>"Data gagal disimpan"]);
+    }
+}
 
     public function update()
     {
