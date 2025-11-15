@@ -108,7 +108,9 @@
     background-position:-100% 0;
   }
 }
-
+body {
+  line-height: 1.2 !important;
+}
 /*.modal-photo-img{
   width:260px;
   height:260px;
