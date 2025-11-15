@@ -142,7 +142,7 @@
 .tahanan-ribbon-box{
   position:relative;
   min-width:34px;
-  padding:6px 14px;
+  padding:1px 1px;
   background:#184183;        /* merah danger */
   color:#ffffff;
   font-size:.8rem;
