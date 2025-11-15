@@ -220,7 +220,7 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
 
   <div class="row mt-1">
     <div class="col-lg-12">
-      <div class="card-box">
+      
 
         <!-- HEADER KAMAR -->
         <div class="kamar-header">
@@ -300,8 +300,8 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
           </div>
         </div>
 
-        <hr class="mt-2 mb-2">
-
+        <!-- <hr class="mt-1 mb-1"> -->
+<!-- <div class="card-box"> -->
         <?php if (empty($tahanan)): ?>
           <div class="alert alert-light kamar-empty d-flex align-items-center" role="alert">
             <span class="kamar-empty-icon">
@@ -540,10 +540,7 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
           </small>
         </div>
 
-      </div><!-- /.card-box -->
-    </div>
-  </div>
-</div>
+
 
 <!-- MODAL ATENSI KPLP -->
 <div class="modal fade" id="modalAtensi" tabindex="-1" role="dialog" aria-labelledby="modalAtensiLabel" aria-hidden="true">
@@ -551,7 +548,7 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
     <div class="modal-content">
       <div class="modal-header py-2">
         <h5 class="modal-title" id="modalAtensiLabel">
-          Atensi KPLP - Kamar <?= html_escape($kamar->nama); ?>
+          Atensi KPLP - <?= html_escape($kamar->nama); ?>
         </h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
           <span aria-hidden="true">&times;</span>
@@ -595,8 +592,10 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
   </div>
 </div>
 
+  </div><!-- /.col-lg-12 -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
 </div><!-- /#app-scroll -->
-
 <script src="<?= base_url('assets/admin/js/vendor.min.js') ?>"></script>
 <script src="<?= base_url('assets/admin/js/app.min.js') ?>"></script>
 
