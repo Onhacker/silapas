@@ -490,8 +490,12 @@ public function generate_thumbnails_kamar_tahanan()
 
         // hapus file foto
         foreach ($rows as $r) {
-            if (!empty($r->foto) && is_file($this->upload_path.$r->foto)) {
-                @unlink($this->upload_path.$r->foto);
+            if (!empty($r->foto)) {
+                $main  = $this->upload_path.$r->foto;
+                $thumb = rtrim($this->upload_path,'/').'/thumb/'.$r->foto;
+
+                if (is_file($main))  @unlink($main);
+                if (is_file($thumb)) @unlink($thumb);
             }
         }
 
