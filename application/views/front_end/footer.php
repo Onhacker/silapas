@@ -200,6 +200,13 @@
 
         <div id="quickmobilem" class="quickmobilem-scroll d-flex text-center" tabindex="0" aria-label="Menu cepat geser">
           <div class="quickmobilem-item">
+            <a href="<?= site_url('hal/hasil_survey') ?>" class="qcard d-block text-decoration-none">
+              <div class="menu-circle" style="background:#ffc107;"><span class="emoji-icon">📊</span></div>
+              <small class="menu-label">Survey Kepuasan Masyarakat</small>
+            </a>
+          </div>
+
+          <div class="quickmobilem-item">
             <a href="<?= site_url('booking') ?>" class="qcard d-block text-decoration-none">
               <div class="menu-circle" style="background:#17a2b8;"><span class="emoji-icon">📅</span></div>
               <small class="menu-label">Booking</small>
