@@ -23,7 +23,7 @@ class Admin_survey extends Admin_Controller {
         $data["controller"] = get_class($this);
         $data["title"]      = "Master";
         $data["subtitle"]   = $this->om->engine_nama_menu(get_class($this));
-        $data["content"]    = $this->load->view($data["controller"]."_view",$data,true);
+        $data["content"]    = $this->load->view("admin_survey_view",$data,true);
         $this->render($data);
     }
 
