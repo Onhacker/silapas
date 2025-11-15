@@ -265,21 +265,18 @@ $atensi_kplp = trim((string)($kamar->atensi ?? ''));
                 $foto    = !empty($t->foto) ? base_url('uploads/kamar_tahanan/'.rawurlencode($t->foto)) : null;
 
                 // PUTUSAN
-                $pt_t = (int)($t->putusan_tahun ?? 0);
-                $pt_b = (int)($t->putusan_bulan ?? 0);
-                $pt_h = (int)($t->putusan_hari ?? 0);
-                $pt_parts = [];
-                if ($pt_t > 0) $pt_parts[] = $pt_t.' th';
-                if ($pt_b > 0) $pt_parts[] = $pt_b.' bln';
-                if ($pt_h > 0) $pt_parts[] = $pt_h.' hr';
-                $putusan_text = !empty($pt_parts) ? implode(' ', $pt_parts) : '';
+                // PUTUSAN (TEXT, apa adanya)
+$putusan_text = '';
+if (isset($t->putusan)) {
+  $putusan_text = trim((string)$t->putusan);
+}
 
-                // EXPIRASI
-                $exp_text = '';
-                if (!empty($t->expirasi) && $t->expirasi !== '0000-00-00') {
-                  $expShort = tgl_biasa($t->expirasi);
-                  if ($expShort) $exp_text = $expShort;
-                }
+// EXPIRASI (TEXT, apa adanya)
+$exp_text = '';
+if (isset($t->expirasi)) {
+  $exp_text = trim((string)$t->expirasi);
+}
+
 
                 $perkara   = trim((string)($t->perkara ?? ''));
                 $alamat    = trim((string)($t->alamat ?? ''));

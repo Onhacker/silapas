@@ -4,8 +4,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class M_admin_kamar_detail extends CI_Model {
 
     private $table         = 'kamar_tahanan d';
-    private $column_order  = [null, null, 'd.nama', 'd.no_reg', 'd.expirasi', 'd.status'];
-    private $column_search = ['d.nama','d.no_reg','d.perkara'];
+    // index kolom DataTables:
+    // 0 = cek, 1 = no, 2 = identitas (nama), 3 = putusan, 4 = expirasi, 5 = status, 6 = aksi
+    private $column_order  = [null, null, 'd.nama', 'd.putusan', 'd.expirasi', 'd.status'];
+    private $column_search = ['d.nama','d.no_reg','d.perkara','d.putusan','d.expirasi'];
     private $order         = ['d.nama' => 'ASC'];
 
     public function __construct(){
